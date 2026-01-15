@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,10 +8,17 @@ import WorkoutScreen from "./src/screens/WorkoutScreen";
 import PhaseScreen from "./src/screens/PhaseScreen";
 import StatsScreen from "./src/screens/StatsScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import { initDb } from "./src/services/database";
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
+	useEffect(() => {
+		initDb().catch((error) => {
+			console.error("Failed to initialize database", error);
+		});
+	}, []);
+
 	return (
 		<NavigationContainer>
 			<StatusBar style="auto" />

@@ -7,7 +7,9 @@ import {
 	TextInput,
 	View,
 } from "react-native";
-import { ExerciseRow, addExercise, getExercises } from "../services/database";
+import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory, ExerciseHistory } from "../services/database";
+import ExerciseChart from "../components/ExerciseChart";
+
 
 export default function StatsScreen() {
 	const [exercises, setExercises] = useState<ExerciseRow[]>([]);
@@ -17,6 +19,28 @@ export default function StatsScreen() {
 	const [exerciseName, setExerciseName] = useState("");
 	const [muscleGroup, setMuscleGroup] = useState("");
 	const [isFormVisible, setIsFormVisible] = useState(false);
+
+	const [latestSessions, setLatestSessions] = useState<Record<number, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
+	const [previewLoading, setPreviewLoading] = useState<Record<number, boolean>>({});
+
+	const [exerciseHistories, setExerciseHistories] = useState<Record<number, ExerciseHistory[]>>({});
+
+	const loadLatestSession = async (exerciseId: number) => {
+		try {
+			setPreviewLoading((prev) => ({ ...prev, [exerciseId]: true }));
+			const session = await getLatestExerciseSession(exerciseId);
+			setLatestSessions((prev) => ({ ...prev, [exerciseId]: session }));
+			
+			const history = await getExerciseHistory(exerciseId);
+			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: history }));
+		} catch (e) {
+			console.error("Failed to load latest session", e);
+			setLatestSessions((prev) => ({ ...prev, [exerciseId]: null }));
+			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: [] }));
+		} finally {
+			setPreviewLoading((prev) => ({ ...prev, [exerciseId]: false }));
+		}
+	};
 
 	const loadExercises = async () => {
 		try {
@@ -123,9 +147,13 @@ export default function StatsScreen() {
 
 					return (
 						<Pressable
-							onPress={() =>
-								setExpandedId(isExpanded ? null : item.id)
-							}
+							onPress={() => {
+								const next = isExpanded ? null : item.id;
+								setExpandedId(next);
+								if (next != null) {
+									loadLatestSession(item.id);
+								}
+							}}
 							style={({ pressed }) => [
 								styles.card,
 								pressed && styles.cardPressed,
@@ -139,9 +167,24 @@ export default function StatsScreen() {
 							</View>
 							{isExpanded ? (
 								<View style={styles.statsPreview}>
-									<Text style={styles.statsText}>
-										Stats will go here
-									</Text>
+									{previewLoading[item.id] ? (
+										<Text style={styles.statsText}>Loading…</Text>
+									) : latestSessions[item.id] == null ? (
+										<Text style={styles.statsText}>No logged sets yet</Text>
+									) : (
+										<View>
+											<Text style={styles.statsText}>Latest session: {latestSessions[item.id]!.workoutDate}</Text>
+											{latestSessions[item.id]!.sets.map((s, idx) => (
+												<Text key={idx} style={styles.statsText}>
+													Set {idx + 1}: {s.reps} reps @ {s.weight}
+												</Text>
+											))}
+											<ExerciseChart
+												history={exerciseHistories[item.id] || []}
+												exerciseName={item.name}
+											/>
+										</View>
+									)}
 								</View>
 							) : null}
 						</Pressable>

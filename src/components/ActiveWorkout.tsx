@@ -35,6 +35,7 @@ export default function ActiveWorkout({
 }: Props) {
     const [setsByExercise, setSetsByExercise] = useState<Record<number, { reps: string; weight: string }[]>>({});
     const [name, setName] = useState<string>("");
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     useEffect(() => {
         setSetsByExercise((prev) => {
@@ -50,6 +51,7 @@ export default function ActiveWorkout({
     }, [exercises, selectedIds]);
 
     const addSetRow = (exerciseId: number) => {
+        setValidationError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: [...(prev[exerciseId] ?? []), { reps: "", weight: "" }],
@@ -57,6 +59,7 @@ export default function ActiveWorkout({
     };
 
     const removeSet = (exerciseId: number, index: number) => {
+        setValidationError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).filter((_, i) => i !== index),
@@ -64,6 +67,7 @@ export default function ActiveWorkout({
     };
 
     const updateReps = (exerciseId: number, index: number, value: string) => {
+        setValidationError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
@@ -73,6 +77,7 @@ export default function ActiveWorkout({
     };
 
     const updateWeight = (exerciseId: number, index: number, value: string) => {
+        setValidationError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
@@ -91,13 +96,28 @@ export default function ActiveWorkout({
     };
 
     const endWorkout = async () => {
+        const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
+        const hasInvalidSet = selectedExercises.some((exercise) => {
+            const sets = setsByExercise[exercise.id] ?? [];
+
+            if (sets.length === 0) {
+                return true;
+            }
+
+            return sets.some((set) => !set.reps.trim() || !set.weight.trim());
+        });
+
+        if (hasInvalidSet) {
+            setValidationError("Fill reps and weight for all sets");
+            return;
+        }
+
         try {
-            const date = new Date().toISOString();
+            const date = new Date().toISOString().substring(0, 10);
             const duration = "0:00.00";
-            const workoutName = name.trim();
+            const workoutName = name.trim() || "Workout";
 
             const workoutId = await addWorkout(workoutName, duration, date);
-            const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
 
             for (const exercise of selectedExercises) {
                 const workoutExerciseId = await addWorkoutExercise(
@@ -139,6 +159,10 @@ export default function ActiveWorkout({
                     cursorColor="#20ca17"
                 />
             </View>
+
+            {validationError ? (
+                <Text style={styles.validationError}>{validationError}</Text>
+            ) : null}
 
             <FlatList
                 data={exercises.filter(ex => selectedIds.has(ex.id))}
@@ -184,6 +208,7 @@ export default function ActiveWorkout({
                                                 }
                                                 keyboardType="number-pad"
                                                 placeholder="Reps"
+                                                
                                             />
                                             <TextInput
                                                 style={styles.setInput}
@@ -373,4 +398,9 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		marginTop: 12,
 	},
+    validationError: {
+        color: "#b00020",
+        marginBottom: 12,
+        textAlign: "center"
+    },
 });

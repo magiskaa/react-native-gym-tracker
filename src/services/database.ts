@@ -13,6 +13,12 @@ export type WorkoutRow = {
     date: string;
 };
 
+export type ExerciseHistory = {
+	date: string;
+	avgReps: number;
+	avgWeight: number;
+};
+
 const db = SQLite.openDatabaseSync("gym.db");
 
 export const initDb = async () => {
@@ -54,8 +60,8 @@ export const initDb = async () => {
 			CREATE TABLE IF NOT EXISTS sets (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				workout_exercise_id INTEGER NOT NULL,
-				reps INTEGER,
-				weight REAL,
+				reps INTEGER NOT NULL,
+				weight REAL NOT NULL,
 				FOREIGN KEY(workout_exercise_id) REFERENCES workout_exercises(id)
 			)
 			`,
@@ -104,6 +110,51 @@ export const addSet = async (workout_exercise_id: number, reps: number, weight: 
 		[workout_exercise_id, reps, weight]
 	);
 	return result.lastInsertRowId as number;
+};
+
+export const getExerciseHistory = async (exercise_id: number) => {
+	const history = await db.getAllAsync<{ date: string; totalReps: number; totalWeight: number; setCount: number }>(
+		`
+		SELECT
+			w.date,
+			SUM(s.reps) as totalReps,
+			SUM(s.weight) as totalWeight,
+			COUNT(s.id) as setCount
+		FROM workout_exercises we
+		JOIN workouts w ON w.id = we.workout_id
+		JOIN sets s ON s.workout_exercise_id = we.id
+		WHERE we.exercise_id = ?
+		GROUP BY w.date
+		ORDER BY w.date ASC
+		`, 
+		[exercise_id]
+	);
+
+	return history.map(row => ({
+		date: row.date.slice(5),
+		avgReps: Math.round((row.totalReps / row.setCount) * 10) / 10,
+		avgWeight: Math.round((row.totalWeight / row.setCount) * 10) / 10,
+	}));
+};
+
+
+
+export const getLatestExerciseSession = async (exercise_id: number) => {
+	const latest = await db.getFirstAsync<{ id: number; date: string }>(
+		`SELECT we.id as id, w.date as date
+		 FROM workout_exercises we
+		 JOIN workouts w ON w.id = we.workout_id
+		 WHERE we.exercise_id = ?
+		 ORDER BY w.date DESC, we.id DESC
+		 LIMIT 1`,
+		[exercise_id]
+	);
+	if (!latest) return null;
+	const sets = await db.getAllAsync<{ reps: number; weight: number }>(
+		"SELECT reps, weight FROM sets WHERE workout_exercise_id = ? ORDER BY id ASC",
+		[latest.id]
+	);
+	return { workoutExerciseId: latest.id, workoutDate: latest.date, sets };
 };
 
 

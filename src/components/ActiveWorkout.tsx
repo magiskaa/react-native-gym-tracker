@@ -7,49 +7,83 @@ import {
     TextInput,
 } from "react-native";
 import { ExerciseRow } from "../services/database";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
     exercises: ExerciseRow[];
     selectedIds: Set<number>;
     expandedId: number | null;
     setExpandedId: (id: number | null) => void;
+    setIsModalVisible: (visible: boolean) => void;
+    setIsWorkoutActive: (active: boolean) => void;
 };
 
 export default function ActiveWorkout({
     exercises,
     selectedIds,
     expandedId,
-    setExpandedId
+    setExpandedId,
+    setIsModalVisible,
+    setIsWorkoutActive
 }: Props) {
-    const [inputs, setInputs] = useState<Record<number, { reps: string; weight: string }>>({});
+    const [setsByExercise, setSetsByExercise] = useState<Record<number, { reps: string; weight: string }[]>>({});
 
-    const addSet = () => {
+    useEffect(() => {
+        setSetsByExercise((prev) => {
+            const next: Record<number, { reps: string; weight: string }[]> = {};
+            const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
 
-    };
+            selectedExercises.forEach((ex) => {
+                next[ex.id] = prev[ex.id] ?? [{ reps: "", weight: "" }];
+            });
 
-    const updateReps = (id: number, value: string) => {
-        setInputs((prev) => ({
+            return next;
+        });
+    }, [exercises, selectedIds]);
+
+    const addSet = (exerciseId: number) => {
+        setSetsByExercise((prev) => ({
             ...prev,
-            [id]: {
-                reps: value,
-                weight: prev[id]?.weight ?? "",
-            },
+            [exerciseId]: [...(prev[exerciseId] ?? []), { reps: "", weight: "" }],
         }));
     };
 
-    const updateWeight = (id: number, value: string) => {
-        setInputs((prev) => ({
+    const removeSet = (exerciseId: number, index: number) => {
+        setSetsByExercise((prev) => ({
             ...prev,
-            [id]: {
-                reps: prev[id]?.reps ?? "",
-                weight: value,
-            },
+            [exerciseId]: (prev[exerciseId] ?? []).filter((_, i) => i !== index),
         }));
     };
+
+    const updateReps = (exerciseId: number, index: number, value: string) => {
+        setSetsByExercise((prev) => ({
+            ...prev,
+            [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
+                i === index ? { ...set, reps: value } : set
+            ),
+        }));
+    };
+
+    const updateWeight = (exerciseId: number, index: number, value: string) => {
+        setSetsByExercise((prev) => ({
+            ...prev,
+            [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
+                i === index ? { ...set, weight: value } : set
+            ),
+        }));
+    };
+
+    const editExercises = () => {
+        setIsModalVisible(true);
+    };
+
+    const endWorkout = () => {
+        setIsWorkoutActive(false);
+    };
+    
 
     return (
-        <View>
+        <View style={styles.container}>
             <FlatList
                 data={exercises.filter(ex => selectedIds.has(ex.id))}
                 keyExtractor={(item) => item.id.toString()}
@@ -67,29 +101,56 @@ export default function ActiveWorkout({
                             ]}
                         >
                             <View style={styles.cardHeader}>
-                                <Text style={styles.cardTitle}>{item.name}</Text>
-                                <Text style={styles.cardSubtitle}>
-                                    {item.muscle_group}
-                                </Text>
+                                <View style={styles.cardTitles}>
+                                    <Text style={styles.cardTitle}>{item.name}</Text>
+                                    <Text style={styles.cardSubtitle}>
+                                        {item.muscle_group}
+                                    </Text>
+                                </View>
+
+                                {isExpanded ? (
+                                    <View style={styles.cardStats}>
+                                        <Text style={styles.repsPerSet}>R/S: 14.33</Text>
+                                        <Text style={styles.avgWeight}>~W: 35</Text>
+                                    </View>
+                                ) : null}
                             </View>
+
                             {isExpanded ? (
                                 <View style={styles.setsContainer}>
-                                    <TextInput
-                                        style={styles.setInput}
-                                        value={inputs[item.id]?.reps ?? ""}
-                                        onChangeText={(value) => updateReps(item.id, value)}
-                                        keyboardType="number-pad"
-                                        placeholder="Reps"
-                                    />
-                                    <TextInput
-                                        style={styles.setInput}
-                                        value={inputs[item.id]?.weight ?? ""}
-                                        onChangeText={(value) => updateWeight(item.id, value)}
-                                        keyboardType="number-pad"
-                                        placeholder="Weight"
-                                    />
-                                    <Pressable onPress={addSet}>
-                                        <Text style={styles.addSet}>+</Text>
+                                    {(setsByExercise[item.id] ?? []).map((set, index) => (
+                                        <View style={styles.setRow} key={`${item.id}-${index}`}>
+                                            <TextInput
+                                                style={styles.setInput}
+                                                value={set.reps}
+                                                onChangeText={(value) =>
+                                                    updateReps(item.id, index, value)
+                                                }
+                                                keyboardType="number-pad"
+                                                placeholder="Reps"
+                                            />
+                                            <TextInput
+                                                style={styles.setInput}
+                                                value={set.weight}
+                                                onChangeText={(value) =>
+                                                    updateWeight(item.id, index, value)
+                                                }
+                                                keyboardType="number-pad"
+                                                placeholder="Weight"
+                                            />
+                                            <Pressable
+                                                onPress={() => removeSet(item.id, index)}
+                                                style={styles.removeSetButton}
+                                            >
+                                                <Text style={styles.removeSetText}>Remove</Text>
+                                            </Pressable>
+                                        </View>
+                                    ))}
+                                    <Pressable
+                                        onPress={() => addSet(item.id)}
+                                        style={styles.addSetButton}
+                                    >
+                                        <Text style={styles.addSet}>+ Add set</Text>
                                     </Pressable>
                                 </View>
                             ) : null}
@@ -101,11 +162,30 @@ export default function ActiveWorkout({
                     <Text style={styles.empty}>No exercises</Text>
                 }
             />
+
+            <View style={styles.footerContainer}>
+                <Text style={styles.durationText}>0:00.00</Text>
+                <Pressable 
+                    style={styles.footerButton}
+                    onPress={editExercises}
+                >
+                    <Text style={styles.buttonText}>Edit</Text>
+                </Pressable>
+                <Pressable
+                    style={styles.footerButton}
+                    onPress={endWorkout}
+                >
+                    <Text style={styles.buttonText}>End</Text>
+                </Pressable>
+            </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
     card: {
 		backgroundColor: "#1e1e1e",
 		borderRadius: 12,
@@ -115,7 +195,12 @@ const styles = StyleSheet.create({
 	cardPressed: {
 		opacity: 0.8,
 	},
-	cardHeader: {
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+	cardTitles: {
 		gap: 4,
 	},
 	cardTitle: {
@@ -127,28 +212,77 @@ const styles = StyleSheet.create({
 		color: "#c7c7c7",
 		fontSize: 13,
 	},
-	setsContainer: {
+    cardStats: {
         flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
+        gap: 8,
+    },
+    repsPerSet: {
+        color: "#c7c7c7",
+    },
+    avgWeight: {
+        color: "#c7c7c7",
+    },
+	setsContainer: {
+        gap: 10,
 		marginTop: 12,
 		paddingTop: 12,
 		borderTopWidth: 1,
 		borderTopColor: "#2c2c2c",
 	},
+    setRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
     setInput: {
-        width: "45%",
+        flex: 1,
         fontSize: 18,
         backgroundColor: "#c7c7c7",
-        paddingTop: 5,
-        paddingBottom: 5,
-        paddingRight: 5,
-        paddingLeft: 5,
+        paddingVertical: 6,
+        paddingHorizontal: 8,
         borderRadius: 5,
     },
+    addSetButton: {
+        alignSelf: "flex-start",
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: "#2f6fed",
+    },
     addSet: {
+        color: "#2f6fed",
+        fontWeight: "600",
+    },
+    removeSetButton: {
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        backgroundColor: "#2a2a2a",
+    },
+    removeSetText: {
         color: "#c7c7c7",
+        fontSize: 12,
+    },
+    footerContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    durationText: {
         fontSize: 32,
+    },
+    footerButton: {
+        borderRadius: 999,
+		borderWidth: 1,
+        borderColor: "#2f6fed",
+		paddingVertical: 6,
+		paddingHorizontal: 12,
+        width: "30%",
+    },
+    buttonText: {
+        color: "#2f6fed",
+        textAlign: "center",
     },
 	listContent: {
 		paddingBottom: 24,

@@ -9,6 +9,7 @@ import { ExerciseRow, getExercises } from "../services/database";
 import ExerciseSelectModal from "../modal/ExerciseSelectModal";
 import ActiveWorkout from "../components/ActiveWorkout";
 
+
 export default function WorkoutScreen() {
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [exercises, setExercises] = useState<ExerciseRow[]>([]);
@@ -48,7 +49,9 @@ export default function WorkoutScreen() {
 		}
 		setError(null);
 		closeModal();
-		setIsWorkoutActive(true);
+		if (!isWorkoutActive) {
+			setIsWorkoutActive(true);
+		}
 	};
 
 	const closeModal = () => {
@@ -68,6 +71,8 @@ export default function WorkoutScreen() {
 					selectedIds={selectedIds}
 					expandedId={expandedId}
 					setExpandedId={setExpandedId}
+					setIsModalVisible={setIsModalVisible}
+					setIsWorkoutActive={setIsWorkoutActive}
 				/>
 			) : (
 				<View style={styles.workoutContainer}>
@@ -108,6 +113,7 @@ const styles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 20,
+		fontWeight: 600,
 		textAlign: "center",
 		margin: "auto",
 		marginBottom: 10,

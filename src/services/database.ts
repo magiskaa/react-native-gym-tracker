@@ -46,7 +46,6 @@ export const initDb = async () => {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				workout_id INTEGER NOT NULL,
 				exercise_id INTEGER NOT NULL,
-				position INTEGER NOT NULL,
 				FOREIGN KEY(workout_id) REFERENCES workouts(id),
 				FOREIGN KEY(exercise_id) REFERENCES exercises(id)
 			)
@@ -82,5 +81,30 @@ export const getWorkouts = async () => {
         "SELECT id, name, duration, date FROM workouts ORDER BY date DESC"
     );
 };
+
+export const addWorkout = async (name: string, duration: string, date: string) => {
+	const result = await db.runAsync(
+		"INSERT INTO workouts (name, duration, date) VALUES (?, ?, ?)",
+		[name, duration, date]
+	);
+	return result.lastInsertRowId as number;
+};
+
+export const addWorkoutExercise = async (workout_id: number, exercise_id: number) => {
+	const result = await db.runAsync(
+		"INSERT INTO workout_exercises (workout_id, exercise_id) VALUES (?, ?)",
+		[workout_id, exercise_id]
+	);
+	return result.lastInsertRowId as number;
+};
+
+export const addSet = async (workout_exercise_id: number, reps: number, weight: number) => {
+	const result = await db.runAsync(
+		"INSERT INTO sets (workout_exercise_id, reps, weight) VALUES (?, ?, ?)",
+		[workout_exercise_id, reps, weight]
+	);
+	return result.lastInsertRowId as number;
+};
+
 
 export default db;

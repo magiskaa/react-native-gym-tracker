@@ -109,9 +109,7 @@ export default function StatsScreen() {
 							isAdding && styles.addButtonDisabled,
 						]}
 					>
-						<Text style={styles.addButtonText}>
-							{isAdding ? "Adding..." : "Save exercise"}
-						</Text>
+						<Text style={styles.addButtonText}>Save exercise</Text>
 					</Pressable>
 				</View>
 			) : null}
@@ -176,7 +174,7 @@ const styles = StyleSheet.create({
 	},
 	headerButton: {
 		borderWidth: 1,
-		borderColor: "#2f6fed",
+		borderColor: "#20ca17",
 		borderRadius: 999,
 		paddingVertical: 6,
 		paddingHorizontal: 12,
@@ -188,7 +186,7 @@ const styles = StyleSheet.create({
 		opacity: 0.6,
 	},
 	headerButtonText: {
-		color: "#2f6fed",
+		color: "#20ca17",
 		fontWeight: "600",
 	},
 	error: {
@@ -210,7 +208,7 @@ const styles = StyleSheet.create({
 		color: "#ffffff",
 	},
 	addButton: {
-		backgroundColor: "#2f6fed",
+		backgroundColor: "#20ca17",
 		borderRadius: 10,
 		paddingVertical: 10,
 		paddingHorizontal: 14,

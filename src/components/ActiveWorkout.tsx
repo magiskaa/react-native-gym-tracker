@@ -6,7 +6,12 @@ import {
     View, 
     TextInput,
 } from "react-native";
-import { ExerciseRow } from "../services/database";
+import {
+    addSet,
+    addWorkout,
+    addWorkoutExercise,
+    ExerciseRow,
+} from "../services/database";
 import { useEffect, useState } from "react";
 
 type Props = {
@@ -16,6 +21,7 @@ type Props = {
     setExpandedId: (id: number | null) => void;
     setIsModalVisible: (visible: boolean) => void;
     setIsWorkoutActive: (active: boolean) => void;
+    setSelectedIds: (ids: Set<number>) => void;
 };
 
 export default function ActiveWorkout({
@@ -24,9 +30,11 @@ export default function ActiveWorkout({
     expandedId,
     setExpandedId,
     setIsModalVisible,
-    setIsWorkoutActive
+    setIsWorkoutActive,
+    setSelectedIds
 }: Props) {
     const [setsByExercise, setSetsByExercise] = useState<Record<number, { reps: string; weight: string }[]>>({});
+    const [name, setName] = useState<string>("");
 
     useEffect(() => {
         setSetsByExercise((prev) => {
@@ -41,7 +49,7 @@ export default function ActiveWorkout({
         });
     }, [exercises, selectedIds]);
 
-    const addSet = (exerciseId: number) => {
+    const addSetRow = (exerciseId: number) => {
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: [...(prev[exerciseId] ?? []), { reps: "", weight: "" }],
@@ -73,17 +81,65 @@ export default function ActiveWorkout({
         }));
     };
 
+    const deleteWorkout = () => {
+        setIsWorkoutActive(false);
+        setSelectedIds(new Set());
+    };
+
     const editExercises = () => {
         setIsModalVisible(true);
     };
 
-    const endWorkout = () => {
-        setIsWorkoutActive(false);
+    const endWorkout = async () => {
+        try {
+            const date = new Date().toISOString();
+            const duration = "0:00.00";
+            const workoutName = name.trim();
+
+            const workoutId = await addWorkout(workoutName, duration, date);
+            const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
+
+            for (const exercise of selectedExercises) {
+                const workoutExerciseId = await addWorkoutExercise(
+                    workoutId,
+                    exercise.id
+                );
+
+                const sets = setsByExercise[exercise.id] ?? [];
+                for (const set of sets) {
+                    const reps = Number(set.reps);
+                    const weight = Number(set.weight);
+
+                    if (Number.isNaN(reps) || Number.isNaN(weight)) {
+                        continue;
+                    }
+
+                    await addSet(workoutExerciseId, reps, weight);
+                }
+            }
+
+            setIsWorkoutActive(false);
+            setSelectedIds(new Set());
+        } catch (error) {
+            console.error("Failed to save workout", error);
+        }
     };
     
 
     return (
         <View style={styles.container}>
+
+            <View style={styles.headerContainer}>
+                <TextInput 
+                    style={styles.nameInput}
+                    value={name}
+                    onChangeText={(value) => setName(value)}
+                    placeholder="Workout name"
+                    selectionColor="#20ca17"
+                    cursorColor="#20ca17"
+                />
+            </View>
+
             <FlatList
                 data={exercises.filter(ex => selectedIds.has(ex.id))}
                 keyExtractor={(item) => item.id.toString()}
@@ -147,7 +203,7 @@ export default function ActiveWorkout({
                                         </View>
                                     ))}
                                     <Pressable
-                                        onPress={() => addSet(item.id)}
+                                        onPress={() => addSetRow(item.id)}
                                         style={styles.addSetButton}
                                     >
                                         <Text style={styles.addSet}>+ Add set</Text>
@@ -165,6 +221,12 @@ export default function ActiveWorkout({
 
             <View style={styles.footerContainer}>
                 <Text style={styles.durationText}>0:00.00</Text>
+                <Pressable 
+                    style={styles.footerButton}
+                    onPress={deleteWorkout}
+                >
+                    <Text style={styles.buttonText}>Delete</Text>
+                </Pressable>
                 <Pressable 
                     style={styles.footerButton}
                     onPress={editExercises}
@@ -185,6 +247,21 @@ export default function ActiveWorkout({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    headerContainer: {
+        marginTop: 8,
+        marginBottom: 9,
+        borderBottomWidth: 1,
+        borderBottomColor: "#2c2c2c",
+        paddingBottom: 20,
+    },
+    nameInput: {
+        fontSize: 22,
+        backgroundColor: "#c7c7c7",
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        borderRadius: 999,
+        color: "#2a2a2a"
     },
     card: {
 		backgroundColor: "#1e1e1e",
@@ -248,10 +325,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         borderRadius: 6,
         borderWidth: 1,
-        borderColor: "#2f6fed",
+        borderColor: "#20ca17",
     },
     addSet: {
-        color: "#2f6fed",
+        color: "#20ca17",
         fontWeight: "600",
     },
     removeSetButton: {
@@ -268,20 +345,24 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        borderTopWidth: 1,
+        borderTopColor: "#2c2c2c",
+        paddingTop: 14,
     },
     durationText: {
         fontSize: 32,
+        color: "#2a2a2a",
     },
     footerButton: {
         borderRadius: 999,
 		borderWidth: 1,
-        borderColor: "#2f6fed",
+        borderColor: "#20ca17",
 		paddingVertical: 6,
 		paddingHorizontal: 12,
-        width: "30%",
+        width: "20%",
     },
     buttonText: {
-        color: "#2f6fed",
+        color: "#20ca17",
         textAlign: "center",
     },
 	listContent: {

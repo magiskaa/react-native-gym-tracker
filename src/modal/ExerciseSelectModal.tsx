@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     },
     exerciseRowSelected: {
         borderWidth: 1,
-        borderColor: "#2f6fed",
+        borderColor: "#20ca17",
     },
     exerciseRowPressed: {
         opacity: 0.85,
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     exerciseSelected: {
-        color: "#2f6fed",
+        color: "#20ca17",
         fontSize: 12,
         fontWeight: "600",
     },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
         color: "#9a9a9a",
     },
     confirmButton: {
-        backgroundColor: "#2f6fed",
+        backgroundColor: "#20ca17",
         borderRadius: 10,
         paddingVertical: 10,
         paddingHorizontal: 14,

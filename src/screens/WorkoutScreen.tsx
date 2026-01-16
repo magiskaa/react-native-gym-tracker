@@ -73,6 +73,7 @@ export default function WorkoutScreen() {
 					setExpandedId={setExpandedId}
 					setIsModalVisible={setIsModalVisible}
 					setIsWorkoutActive={setIsWorkoutActive}
+					setSelectedIds={setSelectedIds}
 				/>
 			) : (
 				<View style={styles.workoutContainer}>
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
 		marginBottom: 10,
 	},
 	logButton: {
-		backgroundColor: "#2f6fed",
+		backgroundColor: "#20ca17",
 		borderRadius: 10,
 		paddingVertical: 12,
 		paddingHorizontal: 16,

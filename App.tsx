@@ -24,6 +24,8 @@ export default function App() {
 			<StatusBar style="auto" />
 			<Tab.Navigator
 				screenOptions={({ route }) => ({
+					tabBarActiveTintColor: "#20ca17",
+    				tabBarInactiveTintColor: "#686868",
 					tabBarIcon: ({ color, size }) => {
 						let iconName: keyof typeof Ionicons.glyphMap;
 

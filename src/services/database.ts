@@ -130,14 +130,15 @@ export const getExerciseHistory = async (exercise_id: number) => {
 		[exercise_id]
 	);
 
-	return history.map(row => ({
-		date: row.date.slice(5),
-		avgReps: Math.round((row.totalReps / row.setCount) * 10) / 10,
-		avgWeight: Math.round((row.totalWeight / row.setCount) * 10) / 10,
-	}));
+	return history.map(row => {
+		const [month, day] = row.date.slice(5).split("-");
+		return {
+			date: `${parseInt(day)}.${parseInt(month)}.`,
+			avgReps: Math.round((row.totalReps / row.setCount) * 10) / 10,
+			avgWeight: Math.round((row.totalWeight / row.setCount) * 10) / 10,
+		};
+	});
 };
-
-
 
 export const getLatestExerciseSession = async (exercise_id: number) => {
 	const latest = await db.getFirstAsync<{ id: number; date: string }>(

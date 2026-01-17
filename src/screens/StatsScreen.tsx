@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory, ExerciseHistory } from "../services/database";
 import ExerciseChart from "../components/ExerciseChart";
+import AddExerciseModal from "../modal/AddExerciseModal";
 
 
 export default function StatsScreen() {
@@ -24,6 +25,8 @@ export default function StatsScreen() {
 	const [previewLoading, setPreviewLoading] = useState<Record<number, boolean>>({});
 
 	const [exerciseHistories, setExerciseHistories] = useState<Record<number, ExerciseHistory[]>>({});
+
+	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
 	const loadLatestSession = async (exerciseId: number) => {
 		try {
@@ -87,25 +90,17 @@ export default function StatsScreen() {
 		}
 	};
 
+	const closeModal = () => {
+		setIsModalVisible(false);
+		setError(null);
+	};
+
+	const openModal = () => {
+		setIsModalVisible(true);
+	};
+
 	return (
-		<View style={styles.container}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Exercise Stats</Text>
-				<Pressable
-					onPress={() => setIsFormVisible((value) => !value)}
-					disabled={isAdding}
-					style={({ pressed }) => [
-						styles.headerButton,
-						pressed && !isAdding && styles.headerButtonPressed,
-						isAdding && styles.headerButtonDisabled,
-					]}
-				>
-					<Text style={styles.headerButtonText}>
-						Add exercise
-					</Text>
-				</Pressable>
-			</View>
-			
+		<View style={styles.container}>	
 			{isFormVisible ? (
 				<View style={styles.form}>
 					<TextInput
@@ -181,7 +176,6 @@ export default function StatsScreen() {
 											))}
 											<ExerciseChart
 												history={exerciseHistories[item.id] || []}
-												exerciseName={item.name}
 											/>
 										</View>
 									)}
@@ -195,6 +189,55 @@ export default function StatsScreen() {
 					<Text style={styles.empty}>No exercises yet</Text>
 				}
 			/>
+
+			<View style={styles.footer}>
+				<Pressable
+					onPress={openModal}
+					disabled={isAdding}
+					style={({ pressed }) => [
+						styles.footerButton,
+						pressed && !isAdding && styles.footerButtonPressed,
+						isAdding && styles.footerButtonDisabled,
+					]}
+				>
+					<Text style={styles.footerButtonText}>
+						Add exercise
+					</Text>
+				</Pressable>
+
+				<Pressable
+					style={({ pressed }) => [
+						styles.footerButton,
+						pressed && !isAdding && styles.footerButtonPressed,
+						isAdding && styles.footerButtonDisabled,
+					]}
+				>
+					<Text style={styles.footerButtonText}>
+						Phase
+					</Text>
+				</Pressable>
+
+				<Pressable
+					style={({ pressed }) => [
+						styles.footerButton,
+						pressed && !isAdding && styles.footerButtonPressed,
+						isAdding && styles.footerButtonDisabled,
+					]}
+				>
+					<Text style={styles.footerButtonText}>
+						Muscle Group
+					</Text>
+				</Pressable>
+			</View>
+
+			{isModalVisible ? (
+				<AddExerciseModal 
+					visible={isModalVisible}
+					error={error}
+					onClose={closeModal}
+					onConfirm={handleAddExercise}
+				/>
+			) : null}
 		</View>
 	);
 }
@@ -204,31 +247,29 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 16,
 	},
-	title: {
-		fontSize: 22,
-		fontWeight: "600",
-	},
-	header: {
+	footer: {
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
-		marginBottom: 12,
+		paddingTop: 14,
 		gap: 12,
+		borderTopWidth: 1,
+		borderTopColor: "#2c2c2c",
 	},
-	headerButton: {
+	footerButton: {
 		borderWidth: 1,
 		borderColor: "#20ca17",
 		borderRadius: 999,
 		paddingVertical: 6,
 		paddingHorizontal: 12,
 	},
-	headerButtonPressed: {
+	footerButtonPressed: {
 		opacity: 0.85,
 	},
-	headerButtonDisabled: {
+	footerButtonDisabled: {
 		opacity: 0.6,
 	},
-	headerButtonText: {
+	footerButtonText: {
 		color: "#20ca17",
 		fontWeight: "600",
 	},

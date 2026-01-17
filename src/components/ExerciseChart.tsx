@@ -4,10 +4,9 @@ import { ExerciseHistory } from "../services/database";
 
 type ExerciseChartProps = {
     history: ExerciseHistory[];
-    exerciseName: string;
 };
 
-export default function ExerciseChart({ history, exerciseName }: ExerciseChartProps) {
+export default function ExerciseChart({ history }: ExerciseChartProps) {
     if (history.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -16,9 +15,8 @@ export default function ExerciseChart({ history, exerciseName }: ExerciseChartPr
         );
     }
 
-    const chartWidth = Dimensions.get("window").width - 40;
+    const chartWidth = Dimensions.get("window").width - 50;
 
-    // Prepare data for reps chart
     const repsChartData = {
         labels: history.map((h) => h.date),
         datasets: [
@@ -30,7 +28,6 @@ export default function ExerciseChart({ history, exerciseName }: ExerciseChartPr
         ],
     };
 
-    // Prepare data for weight chart
     const weightChartData = {
         labels: history.map((h) => h.date),
         datasets: [
@@ -44,11 +41,11 @@ export default function ExerciseChart({ history, exerciseName }: ExerciseChartPr
 
     return (
         <View style={styles.container}>
-            <Text style={styles.chartTitle}>Avg Reps per Set</Text>
+            <Text style={styles.chartTitle}>Reps per Set</Text>
             <LineChart
                 data={repsChartData}
                 width={chartWidth}
-                height={220}
+                height={160}
                 chartConfig={{
                     backgroundColor: "#1e1e1e",
                     backgroundGradientFrom: "#1e1e1e",
@@ -56,19 +53,23 @@ export default function ExerciseChart({ history, exerciseName }: ExerciseChartPr
                     decimalPlaces: 1,
                     color: () => "#20ca17",
                     labelColor: () => "#c7c7c7",
-                    style: {
-                        borderRadius: 8,
-                    },
+                    propsForLabels: {
+                        fontSize: 12,
+                    }
                 }}
+                yAxisLabel=""
+                yAxisSuffix=""
+                fromZero={false}
+                segments={3}
                 style={styles.chart}
                 bezier
             />
 
-            <Text style={styles.chartTitle}>Avg Weight per Set</Text>
+            <Text style={styles.chartTitle}>Weight per Set</Text>
             <LineChart
                 data={weightChartData}
                 width={chartWidth}
-                height={220}
+                height={160}
                 chartConfig={{
                     backgroundColor: "#1e1e1e",
                     backgroundGradientFrom: "#1e1e1e",
@@ -76,11 +77,15 @@ export default function ExerciseChart({ history, exerciseName }: ExerciseChartPr
                     decimalPlaces: 1,
                     color: () => "#4a9eff",
                     labelColor: () => "#c7c7c7",
-                    style: {
-                        borderRadius: 8,
-                    },
+                    propsForLabels: {
+                        fontSize: 12,
+                    }
                 }}
-                style={styles.chart}
+                yAxisLabel=""
+                yAxisSuffix=""
+                fromZero={false}
+                segments={3}
+                style={{ ...styles.chart, marginBottom: 0 }}
                 bezier
             />
         </View>
@@ -102,12 +107,13 @@ const styles = StyleSheet.create({
     },
     chartTitle: {
         color: "#ffffff",
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: "600",
-        marginBottom: 8,
+        marginBottom: 4,
+        textAlign: "center"
     },
     chart: {
-        marginVertical: 8,
-        borderRadius: 8,
+        marginBottom: 12,
+        marginLeft: -23
     },
 });

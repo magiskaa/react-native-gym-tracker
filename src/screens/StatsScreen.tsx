@@ -16,10 +16,8 @@ export default function StatsScreen() {
 	const [exercises, setExercises] = useState<ExerciseRow[]>([]);
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isAdding, setIsAdding] = useState(false);
 	const [exerciseName, setExerciseName] = useState("");
 	const [muscleGroup, setMuscleGroup] = useState("");
-	const [isFormVisible, setIsFormVisible] = useState(false);
 
 	const [latestSessions, setLatestSessions] = useState<Record<number, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
 	const [previewLoading, setPreviewLoading] = useState<Record<number, boolean>>({});
@@ -60,7 +58,6 @@ export default function StatsScreen() {
 	}, []);
 
 	const handleAddExercise = async () => {
-		setIsAdding(true);
 		setError(null);
 		try {
 			const trimmedName = exerciseName.trim();
@@ -81,18 +78,19 @@ export default function StatsScreen() {
 			await loadExercises();
 			setExerciseName("");
 			setMuscleGroup("");
-			setIsFormVisible(false);
 		} catch (err) {
 			setError("Failed to add exercise");
 			console.error(err);
 		} finally {
-			setIsAdding(false);
+			closeModal();
 		}
 	};
 
 	const closeModal = () => {
 		setIsModalVisible(false);
 		setError(null);
+		setExerciseName("");
+		setMuscleGroup("");
 	};
 
 	const openModal = () => {
@@ -101,39 +99,6 @@ export default function StatsScreen() {
 
 	return (
 		<View style={styles.container}>	
-			{isFormVisible ? (
-				<View style={styles.form}>
-					<TextInput
-						value={exerciseName}
-						onChangeText={setExerciseName}
-						placeholder="Exercise name"
-						placeholderTextColor="#8b8b8b"
-						style={styles.input}
-						editable={!isAdding}
-					/>
-					<TextInput
-						value={muscleGroup}
-						onChangeText={setMuscleGroup}
-						placeholder="Muscle group"
-						placeholderTextColor="#8b8b8b"
-						style={styles.input}
-						editable={!isAdding}
-					/>
-					<Pressable
-						onPress={handleAddExercise}
-						disabled={isAdding}
-						style={({ pressed }) => [
-							styles.addButton,
-							pressed && !isAdding && styles.addButtonPressed,
-							isAdding && styles.addButtonDisabled,
-						]}
-					>
-						<Text style={styles.addButtonText}>Save exercise</Text>
-					</Pressable>
-				</View>
-			) : null}
-			{error ? <Text style={styles.error}>{error}</Text> : null}
-
 			<FlatList
 				data={exercises}
 				keyExtractor={(item) => item.id.toString()}
@@ -193,11 +158,9 @@ export default function StatsScreen() {
 			<View style={styles.footer}>
 				<Pressable
 					onPress={openModal}
-					disabled={isAdding}
 					style={({ pressed }) => [
 						styles.footerButton,
-						pressed && !isAdding && styles.footerButtonPressed,
-						isAdding && styles.footerButtonDisabled,
+						pressed && styles.footerButtonPressed
 					]}
 				>
 					<Text style={styles.footerButtonText}>
@@ -208,8 +171,7 @@ export default function StatsScreen() {
 				<Pressable
 					style={({ pressed }) => [
 						styles.footerButton,
-						pressed && !isAdding && styles.footerButtonPressed,
-						isAdding && styles.footerButtonDisabled,
+						pressed && styles.footerButtonPressed
 					]}
 				>
 					<Text style={styles.footerButtonText}>
@@ -220,8 +182,7 @@ export default function StatsScreen() {
 				<Pressable
 					style={({ pressed }) => [
 						styles.footerButton,
-						pressed && !isAdding && styles.footerButtonPressed,
-						isAdding && styles.footerButtonDisabled,
+						pressed && styles.footerButtonPressed
 					]}
 				>
 					<Text style={styles.footerButtonText}>
@@ -234,6 +195,10 @@ export default function StatsScreen() {
 				<AddExerciseModal 
 					visible={isModalVisible}
 					error={error}
+					exerciseName={exerciseName}
+					muscleGroup={muscleGroup}
+					setExerciseName={setExerciseName}
+					setMuscleGroup={setMuscleGroup}
 					onClose={closeModal}
 					onConfirm={handleAddExercise}
 				/>
@@ -265,9 +230,6 @@ const styles = StyleSheet.create({
 	},
 	footerButtonPressed: {
 		opacity: 0.85,
-	},
-	footerButtonDisabled: {
-		opacity: 0.6,
 	},
 	footerButtonText: {
 		color: "#20ca17",

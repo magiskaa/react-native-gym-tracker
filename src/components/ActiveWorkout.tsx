@@ -5,6 +5,8 @@ import {
     Text, 
     View, 
     TextInput,
+    TouchableWithoutFeedback,
+    Keyboard
 } from "react-native";
 import {
     addSet,
@@ -147,125 +149,127 @@ export default function ActiveWorkout({
     
 
     return (
-        <View style={styles.container}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.container}>
 
-            <View style={styles.headerContainer}>
-                <TextInput 
-                    style={styles.nameInput}
-                    value={name}
-                    onChangeText={(value) => setName(value)}
-                    placeholder="Workout name"
-                    selectionColor="#20ca17"
-                    cursorColor="#20ca17"
-                />
-            </View>
+                <View style={styles.headerContainer}>
+                    <TextInput 
+                        style={styles.nameInput}
+                        value={name}
+                        onChangeText={(value) => setName(value)}
+                        placeholder="Workout name"
+                        selectionColor="#20ca17"
+                        cursorColor="#20ca17"
+                    />
+                </View>
 
-            {validationError ? (
-                <Text style={styles.validationError}>{validationError}</Text>
-            ) : null}
+                {validationError ? (
+                    <Text style={styles.validationError}>{validationError}</Text>
+                ) : null}
 
-            <FlatList
-                data={exercises.filter(ex => selectedIds.has(ex.id))}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => {
-                    const isExpanded = expandedId === item.id;
+                <FlatList
+                    data={exercises.filter(ex => selectedIds.has(ex.id))}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => {
+                        const isExpanded = expandedId === item.id;
 
-                    return (
-                        <Pressable
-                            onPress={() =>
-                                setExpandedId(isExpanded ? null : item.id)
-                            }
-                            style={({ pressed }) => [
-                                styles.card,
-                                pressed && styles.cardPressed,
-                            ]}
-                        >
-                            <View style={styles.cardHeader}>
-                                <View style={styles.cardTitles}>
-                                    <Text style={styles.cardTitle}>{item.name}</Text>
-                                    <Text style={styles.cardSubtitle}>
-                                        {item.muscle_group}
-                                    </Text>
+                        return (
+                            <Pressable
+                                onPress={() =>
+                                    setExpandedId(isExpanded ? null : item.id)
+                                }
+                                style={({ pressed }) => [
+                                    styles.card,
+                                    pressed && styles.cardPressed,
+                                ]}
+                            >
+                                <View style={styles.cardHeader}>
+                                    <View style={styles.cardTitles}>
+                                        <Text style={styles.cardTitle}>{item.name}</Text>
+                                        <Text style={styles.cardSubtitle}>
+                                            {item.muscle_group}
+                                        </Text>
+                                    </View>
+
+                                    {isExpanded ? (
+                                        <View style={styles.cardStats}>
+                                            <Text style={styles.repsPerSet}>R/S: 14.33</Text>
+                                            <Text style={styles.avgWeight}>~W: 35</Text>
+                                        </View>
+                                    ) : null}
                                 </View>
 
                                 {isExpanded ? (
-                                    <View style={styles.cardStats}>
-                                        <Text style={styles.repsPerSet}>R/S: 14.33</Text>
-                                        <Text style={styles.avgWeight}>~W: 35</Text>
+                                    <View style={styles.setsContainer}>
+                                        {(setsByExercise[item.id] ?? []).map((set, index) => (
+                                            <View style={styles.setRow} key={`${item.id}-${index}`}>
+                                                <TextInput
+                                                    style={styles.setInput}
+                                                    value={set.reps}
+                                                    onChangeText={(value) =>
+                                                        updateReps(item.id, index, value)
+                                                    }
+                                                    keyboardType="number-pad"
+                                                    placeholder="Reps"
+                                                    
+                                                />
+                                                <TextInput
+                                                    style={styles.setInput}
+                                                    value={set.weight}
+                                                    onChangeText={(value) =>
+                                                        updateWeight(item.id, index, value)
+                                                    }
+                                                    keyboardType="number-pad"
+                                                    placeholder="Weight"
+                                                />
+                                                <Pressable
+                                                    onPress={() => removeSet(item.id, index)}
+                                                    style={styles.removeSetButton}
+                                                >
+                                                    <Text style={styles.removeSetText}>Remove</Text>
+                                                </Pressable>
+                                            </View>
+                                        ))}
+                                        <Pressable
+                                            onPress={() => addSetRow(item.id)}
+                                            style={styles.addSetButton}
+                                        >
+                                            <Text style={styles.addSet}>+ Add set</Text>
+                                        </Pressable>
                                     </View>
                                 ) : null}
-                            </View>
+                            </Pressable>
+                        );
+                    }}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        <Text style={styles.empty}>No exercises</Text>
+                    }
+                />
 
-                            {isExpanded ? (
-                                <View style={styles.setsContainer}>
-                                    {(setsByExercise[item.id] ?? []).map((set, index) => (
-                                        <View style={styles.setRow} key={`${item.id}-${index}`}>
-                                            <TextInput
-                                                style={styles.setInput}
-                                                value={set.reps}
-                                                onChangeText={(value) =>
-                                                    updateReps(item.id, index, value)
-                                                }
-                                                keyboardType="number-pad"
-                                                placeholder="Reps"
-                                                
-                                            />
-                                            <TextInput
-                                                style={styles.setInput}
-                                                value={set.weight}
-                                                onChangeText={(value) =>
-                                                    updateWeight(item.id, index, value)
-                                                }
-                                                keyboardType="number-pad"
-                                                placeholder="Weight"
-                                            />
-                                            <Pressable
-                                                onPress={() => removeSet(item.id, index)}
-                                                style={styles.removeSetButton}
-                                            >
-                                                <Text style={styles.removeSetText}>Remove</Text>
-                                            </Pressable>
-                                        </View>
-                                    ))}
-                                    <Pressable
-                                        onPress={() => addSetRow(item.id)}
-                                        style={styles.addSetButton}
-                                    >
-                                        <Text style={styles.addSet}>+ Add set</Text>
-                                    </Pressable>
-                                </View>
-                            ) : null}
-                        </Pressable>
-                    );
-                }}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={
-                    <Text style={styles.empty}>No exercises</Text>
-                }
-            />
-
-            <View style={styles.footerContainer}>
-                <Text style={styles.durationText}>0:00.00</Text>
-                <Pressable 
-                    style={styles.footerButton}
-                    onPress={deleteWorkout}
-                >
-                    <Text style={styles.buttonText}>Delete</Text>
-                </Pressable>
-                <Pressable 
-                    style={styles.footerButton}
-                    onPress={editExercises}
-                >
-                    <Text style={styles.buttonText}>Edit</Text>
-                </Pressable>
-                <Pressable
-                    style={styles.footerButton}
-                    onPress={endWorkout}
-                >
-                    <Text style={styles.buttonText}>End</Text>
-                </Pressable>
+                <View style={styles.footerContainer}>
+                    <Text style={styles.durationText}>0:00.00</Text>
+                    <Pressable 
+                        style={styles.footerButton}
+                        onPress={deleteWorkout}
+                    >
+                        <Text style={styles.buttonText}>Delete</Text>
+                    </Pressable>
+                    <Pressable 
+                        style={styles.footerButton}
+                        onPress={editExercises}
+                    >
+                        <Text style={styles.buttonText}>Edit</Text>
+                    </Pressable>
+                    <Pressable
+                        style={styles.footerButton}
+                        onPress={endWorkout}
+                    >
+                        <Text style={styles.buttonText}>End</Text>
+                    </Pressable>
+                </View>
             </View>
-        </View>
+        </TouchableWithoutFeedback>
     )
 }
 

@@ -25,6 +25,11 @@ export type WeightHistory = {
 	weight: number;
 };
 
+export type Profile = {
+	username: string;
+	image: string;
+};
+
 const db = SQLite.openDatabaseSync("gym.db");
 
 export const initDb = async () => {
@@ -76,6 +81,13 @@ export const initDb = async () => {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				weight REAL NOT NULL,
 				date DATE NOT NULL
+			)
+			`,
+			`
+			CREATE TABLE IF NOT EXISTS profile (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				username TEXT NOT NULL UNIQUE,
+				image TEXT
 			)
 			`
 		].join("; ") + ";"
@@ -190,6 +202,45 @@ export const addWeight = async (date: string, weight: number) => {
 	await db.runAsync(
 		"INSERT INTO weight (date, weight) VALUES (?, ?)",
 		[date, weight]
+	);
+};
+
+export const getProfile = async () => {
+    return await db.getAllAsync<Profile>(
+        "SELECT username, image FROM profile"
+    );
+};
+
+export const updateProfile = async (
+	id: number,
+	updates: { username?: string; image?: string }
+) => {
+	const fields: string[] = [];
+	const values: (string | number | null)[] = [];
+
+	if (updates.username !== undefined) {
+		fields.push("username = ?");
+		values.push(updates.username);
+	}
+
+	if (updates.image !== undefined) {
+		fields.push("image = ?");
+		values.push(updates.image);
+	}
+
+	if (fields.length === 0) return;
+
+	values.push(id);
+	await db.runAsync(
+		`UPDATE profile SET ${fields.join(", ")} WHERE id = ?`,
+		values
+	);
+};
+
+export const addProfile = async (username: string, image: string) => {
+	await db.runAsync(
+		"INSERT INTO profile (username, image) VALUES (?, ?)",
+		[username, image]
 	);
 };
 

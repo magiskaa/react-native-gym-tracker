@@ -1,18 +1,36 @@
-import { Pressable, StyleSheet, Text, View, Alert, Button, Image } from "react-native";
+import { 
+	Pressable, 
+	StyleSheet, 
+	Text, 
+	View, 
+	Alert, 
+	Button, 
+	Image, 
+	TextInput, 
+	TouchableWithoutFeedback, 
+	Keyboard
+} from "react-native";
 import { useState, useEffect } from "react";
 import WeightChart from "../components/WeightChart";
 import LogWeightModal from "../modal/LogWeightModal";
 import { WeightHistory, addWeight, getWeight } from "../services/database";
 import * as ImagePicker from 'expo-image-picker';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { Ionicons } from "@expo/vector-icons";
 
 
 export default function ProfileScreen() {
 	const [error, setError] = useState<string | null>(null);
 	const [history, setHistory] = useState<WeightHistory[]>([]);
 	const [isWeightModalVisible, setIsWeightModalVisible] = useState<boolean>(false);
+	
 	const [weightInput, setWeightInput] = useState<string>("");
 	const [dateInput, setDateInput] = useState<Date>(new Date());
+
 	const [image, setImage] = useState<string | null>(null);
+	const [username, setUsername] = useState<string>("");
+	const [isEditable, setIsEditable] = useState<boolean>(false);
+	const [editButtonColor, setEditButtonColor] = useState<string>("#1e1e1e");
 	
 	const loadHistory = async () => {
 		try {
@@ -47,6 +65,9 @@ export default function ProfileScreen() {
 		}
 	};
 
+	const saveChanges = async () => {
+		
+	};
 
 	const logWeight = async () => {
 		if (!weightInput) {
@@ -80,33 +101,73 @@ export default function ProfileScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<Button title="Select image" onPress={pickImage} />
-      		{image && <Image source={{ uri: image }} style={styles.image} />}
+		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+			<View style={styles.container}>
+				{isEditable ? <Button title="Select image" onPress={pickImage} /> : null}
+				{image ? (
+					<Image source={{ uri: image }} style={styles.image}/>
+				) : (
+					<View style={[styles.image, { backgroundColor: "#d0d0d0" }]}>
+						<Ionicons name={"person"} size={150} color={"#9f9f9f"} style={{ margin: "auto" }} />
+					</View>
+				)}
 
-			<WeightChart 
-				history={history}
-			/>
+				<Pressable style={styles.editButton} onPress={() => {
+					if (isEditable) {
+						Alert.alert(
+							"Save profile", "Are you sure you want to save the changes?", 
+							[{ text: "No", style: "cancel" }, { text: "Yes", onPress: saveChanges }], 
+							{ cancelable: true }
+						)
+					}
+					setIsEditable(!isEditable);
+					if (editButtonColor === "#20ca17") {
+						setEditButtonColor("#1e1e1e");
+					} else {
+						setEditButtonColor("#20ca17");
+					}
+				}}>
+					<FontAwesome6 name="pencil" size={24} color={editButtonColor} />
+				</Pressable>
 
-			<Pressable style={styles.logButton} onPress={openModal}>
-				<Text style={styles.logButtonText}>Log weight</Text>
-			</Pressable>
+				<View style={styles.usernameContainer}>
+					{isEditable ? (
+						<TextInput 
+							value={username}
+							onChangeText={setUsername}
+							placeholder="Username"
+							placeholderTextColor="#8b8b8b"
+							style={styles.input}
+						/>
+					) : (
+						<Text style={styles.username}>{username}</Text>
+					)}
+				</View>
 
-			{error && !isWeightModalVisible ? <Text style={styles.error}>{error}</Text> : null}
-
-			{isWeightModalVisible ? (
-				<LogWeightModal 
-					visible={isWeightModalVisible}
-					error={error}
-					weightInput={weightInput}
-					dateInput={dateInput}
-					setWeightInput={setWeightInput}
-					setDateInput={setDateInput}
-					onClose={closeModal}
-					onConfirm={logWeight}
+				<WeightChart 
+					history={history}
 				/>
-			) : null}
-		</View>
+
+				<Pressable style={styles.logButton} onPress={openModal}>
+					<Text style={styles.logButtonText}>Log weight</Text>
+				</Pressable>
+
+				{error && !isWeightModalVisible ? <Text style={styles.error}>{error}</Text> : null}
+
+				{isWeightModalVisible ? (
+					<LogWeightModal 
+						visible={isWeightModalVisible}
+						error={error}
+						weightInput={weightInput}
+						dateInput={dateInput}
+						setWeightInput={setWeightInput}
+						setDateInput={setDateInput}
+						onClose={closeModal}
+						onConfirm={logWeight}
+					/>
+				) : null}
+			</View>
+		</TouchableWithoutFeedback>
 	);
 }
 
@@ -118,7 +179,7 @@ const styles = StyleSheet.create({
     error: {
         color: "#b00020",
         marginBottom: 12,
-        textAlign: "center"
+        textAlign: "center",
     },
 	image: {
 		width: 200,
@@ -126,6 +187,32 @@ const styles = StyleSheet.create({
 		borderRadius: 999,
 		margin: "auto",
 		marginTop: 10,
+	},
+	usernameContainer: {
+		backgroundColor: "#dedede",
+		height: 40,
+		borderRadius: 12,
+	},
+	username: {
+		color: "#1e1e1e",
+		textAlign: "center",
+		fontSize: 22,
+		marginVertical: "auto",
+	},
+	input: {
+		borderRadius: 10,
+		paddingHorizontal: 12,
+		paddingVertical: 10,
+		width: "100%",
+		height: "100%",
+		color: "#1e1e1e",
+		textAlign: "center",
+		fontSize: 22,
+	},
+	editButton: {
+		position: "absolute",
+		right: 16,
+		top: 16,
 	},
 	logButton: {
 		backgroundColor: "#20ca17",

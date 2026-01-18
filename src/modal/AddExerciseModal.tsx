@@ -38,11 +38,11 @@ export default function AddExerciseModal({
             animationType="slide"
             transparent
             onRequestClose={onClose}
-        >
-            
+        > 
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                style={styles.container}>
+                style={styles.container}
+            >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <View style={styles.modalOverlay}>
                         <View style={styles.modalSheet}>

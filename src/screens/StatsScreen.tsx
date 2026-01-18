@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
 	FlatList,
 	Pressable,
@@ -10,6 +10,7 @@ import {
 import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory, ExerciseHistory } from "../services/database";
 import ExerciseChart from "../components/ExerciseChart";
 import AddExerciseModal from "../modal/AddExerciseModal";
+import FilterExercisesModal from "../modal/FilterExercisesModal";
 
 
 export default function StatsScreen() {
@@ -25,6 +26,23 @@ export default function StatsScreen() {
 	const [exerciseHistories, setExerciseHistories] = useState<Record<number, ExerciseHistory[]>>({});
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+	const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
+
+	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
+
+	const selectedCount = useMemo(() => selectedGroups.size, [selectedGroups]);
+	
+	const toggleGroup = (name: string) => {
+		setSelectedGroups((prev) => {
+			const next = new Set(prev);
+			if (next.has(name)) {
+				next.delete(name);
+			} else {
+				next.add(name);
+			}
+			return next;
+		});
+	};
 
 	const loadLatestSession = async (exerciseId: number) => {
 		try {
@@ -88,6 +106,7 @@ export default function StatsScreen() {
 
 	const closeModal = () => {
 		setIsModalVisible(false);
+		setIsFilterModalVisible(false);
 		setError(null);
 		setExerciseName("");
 		setMuscleGroup("");
@@ -97,6 +116,10 @@ export default function StatsScreen() {
 		setIsModalVisible(true);
 	};
 
+	const openFilterModal = () => {
+		setIsFilterModalVisible(true);
+	};
+
 	return (
 		<View style={styles.container}>	
 			<FlatList
@@ -104,6 +127,10 @@ export default function StatsScreen() {
 				keyExtractor={(item) => item.id.toString()}
 				renderItem={({ item }) => {
 					const isExpanded = expandedId === item.id;
+
+					if (!selectedGroups.has(item.muscle_group.toLowerCase()) && selectedGroups.size !== 0) {
+						return (<View></View>);
+					}
 
 					return (
 						<Pressable
@@ -180,6 +207,7 @@ export default function StatsScreen() {
 				</Pressable>
 
 				<Pressable
+					onPress={openFilterModal}
 					style={({ pressed }) => [
 						styles.footerButton,
 						pressed && styles.footerButtonPressed
@@ -201,6 +229,18 @@ export default function StatsScreen() {
 					setMuscleGroup={setMuscleGroup}
 					onClose={closeModal}
 					onConfirm={handleAddExercise}
+				/>
+			) : null}
+
+			{isFilterModalVisible ? (
+				<FilterExercisesModal 
+					visible={isFilterModalVisible}
+					error={error}
+					selectedGroups={selectedGroups}
+					selectedCount={selectedCount}
+					onToggleGroup={toggleGroup}
+					onClose={closeModal}
+					onConfirm={closeModal}
 				/>
 			) : null}
 		</View>

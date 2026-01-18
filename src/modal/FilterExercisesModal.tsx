@@ -14,7 +14,6 @@ type Props = {
     selectedCount: number;
     onToggleGroup: (name: string) => void;
     onClose: () => void;
-    onConfirm: () => void;
 };
 
 export default function FilterExercisesModal({ 
@@ -23,8 +22,7 @@ export default function FilterExercisesModal({
     selectedGroups,
     selectedCount,
     onToggleGroup,
-    onClose, 
-    onConfirm 
+    onClose
 }: Props) {
     return (
         <Modal
@@ -78,7 +76,7 @@ export default function FilterExercisesModal({
                             Selected: {selectedCount}
                         </Text>
                         
-                        <Pressable style={styles.confirmButton} onPress={onConfirm}>
+                        <Pressable style={styles.confirmButton} onPress={onClose}>
                             <Text style={styles.confirmButtonText}>Filter</Text>
                         </Pressable>
                     </View>

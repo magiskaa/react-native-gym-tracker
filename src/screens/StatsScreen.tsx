@@ -17,8 +17,8 @@ export default function StatsScreen() {
 	const [exercises, setExercises] = useState<ExerciseRow[]>([]);
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [exerciseName, setExerciseName] = useState("");
-	const [muscleGroup, setMuscleGroup] = useState("");
+	const [exerciseName, setExerciseName] = useState<string>("");
+	const [muscleGroup, setMuscleGroup] = useState<string>("");
 
 	const [latestSessions, setLatestSessions] = useState<Record<number, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
 	const [previewLoading, setPreviewLoading] = useState<Record<number, boolean>>({});
@@ -44,7 +44,7 @@ export default function StatsScreen() {
 		});
 	};
 
-	const loadLatestSession = async (exerciseId: number) => {
+	const loadExerciseHistory = async (exerciseId: number) => {
 		try {
 			setPreviewLoading((prev) => ({ ...prev, [exerciseId]: true }));
 			const session = await getLatestExerciseSession(exerciseId);
@@ -138,7 +138,7 @@ export default function StatsScreen() {
 								const next = isExpanded ? null : item.id;
 								setExpandedId(next);
 								if (next != null) {
-									loadLatestSession(item.id);
+									loadExerciseHistory(item.id);
 								}
 							}}
 							style={({ pressed }) => [
@@ -240,7 +240,6 @@ export default function StatsScreen() {
 					selectedCount={selectedCount}
 					onToggleGroup={toggleGroup}
 					onClose={closeModal}
-					onConfirm={closeModal}
 				/>
 			) : null}
 		</View>

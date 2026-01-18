@@ -1,4 +1,5 @@
 import * as SQLite from "expo-sqlite";
+import WeightChart from "../components/WeightChart";
 
 export type ExerciseRow = {
 	id: number;
@@ -17,6 +18,11 @@ export type ExerciseHistory = {
 	date: string;
 	avgReps: number;
 	avgWeight: number;
+};
+
+export type WeightHistory = {
+	date: string;
+	weight: number;
 };
 
 const db = SQLite.openDatabaseSync("gym.db");
@@ -65,6 +71,13 @@ export const initDb = async () => {
 				FOREIGN KEY(workout_exercise_id) REFERENCES workout_exercises(id)
 			)
 			`,
+			`
+			CREATE TABLE IF NOT EXISTS weight (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				weight REAL NOT NULL,
+				date DATE NOT NULL
+			)
+			`
 		].join("; ") + ";"
 	);
 };
@@ -158,5 +171,26 @@ export const getLatestExerciseSession = async (exercise_id: number) => {
 	return { workoutExerciseId: latest.id, workoutDate: latest.date, sets };
 };
 
+export const getWeight = async () => {
+    const history = await db.getAllAsync<WeightHistory>(
+        "SELECT weight, date FROM weight ORDER BY date ASC"
+    );
+
+	return history.map(row => {
+		const [month, day] = row.date.slice(5).split("-");
+
+		return {
+			date: `${parseInt(day)}.${parseInt(month)}.`,
+			weight: row.weight,
+		}
+	});
+};
+
+export const addWeight = async (date: string, weight: number) => {
+	await db.runAsync(
+		"INSERT INTO weight (date, weight) VALUES (?, ?)",
+		[date, weight]
+	);
+};
 
 export default db;

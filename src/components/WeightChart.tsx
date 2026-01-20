@@ -49,7 +49,7 @@ export default function WeightChart({ history }: WeightChartProps) {
                 chartConfig={{
                     decimalPlaces: 1,
                     color: () => "#20ca17",
-                    labelColor: () => "#c7c7c7",
+                    labelColor: () => "#1e1e1e",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -70,8 +70,7 @@ const styles = StyleSheet.create({
     container: {
         margin: "auto",
         marginBottom: 0,
-        backgroundColor: "#1e1e1e",
-        padding: 14,
+        padding: 0,
         borderRadius: 12,
     },
     emptyContainer: {
@@ -84,10 +83,10 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     chartTitle: {
-        color: "#ffffff",
+        color: "#1e1e1e",
         fontSize: 13,
         fontWeight: "600",
-        marginBottom: 4,
+        marginBottom: 8,
         textAlign: "center"
     },
     chart: {

@@ -13,10 +13,13 @@ import {
 import { useState, useEffect } from "react";
 import WeightChart from "../components/WeightChart";
 import LogWeightModal from "../modal/LogWeightModal";
-import { WeightHistory, addWeight, getWeight } from "../services/database";
+import { WeightHistory, addWeight, getWeight, getProfile, updateProfile } from "../services/database";
 import * as ImagePicker from 'expo-image-picker';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Fontisto from '@expo/vector-icons/Fontisto';
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from '../auth/authContext';
 
 
 export default function ProfileScreen() {
@@ -27,22 +30,40 @@ export default function ProfileScreen() {
 	const [weightInput, setWeightInput] = useState<string>("");
 	const [dateInput, setDateInput] = useState<Date>(new Date());
 
-	const [image, setImage] = useState<string | null>(null);
-	const [username, setUsername] = useState<string>("");
+	const [profileId, setProfileId] = useState<number>(0);
+
+	const { user, saveUser, logout } = useAuth();
+	const username = user?.username || "";
+	const image = user?.image || null;
+
+	const [editedUsername, setEditedUsername] = useState<string>(username);
+	const [editedImage, setEditedImage] = useState<string | null>(image);
+
+	const [originalUsername, setOriginalUsername] = useState<string>("");
+	const [originalImage, setOriginalImage] = useState<string | null>(null);
+
 	const [isEditable, setIsEditable] = useState<boolean>(false);
 	const [editButtonColor, setEditButtonColor] = useState<string>("#1e1e1e");
 	
-	const loadHistory = async () => {
+	const loadData = async () => {
 		try {
-			const data = await getWeight();
-			setHistory(data);
+			const weightData = await getWeight();
+			setHistory(weightData);
+
+			const profileData = await getProfile(username);
+			if (profileData.length === 0) { return; }
+
+			setProfileId(profileData[0].id);
+			if (profileData[0].image) {
+				setEditedImage(profileData[0].image);
+			}
 		} catch (err) {
 			console.error("Failed to load weight history", err);
 		}
 	};
 
 	useEffect(() => {
-		loadHistory();
+		loadData();
 	}, []);
 	
 	const pickImage = async () => {
@@ -61,12 +82,15 @@ export default function ProfileScreen() {
 		});
 
 		if (!result.canceled) {
-			setImage(result.assets[0].uri);
+			setEditedImage(result.assets[0].uri);
 		}
 	};
 
 	const saveChanges = async () => {
-		
+		if (user) {
+			await saveUser({ ...user, username: editedUsername, image: editedImage });
+			await updateProfile(profileId, { username: editedUsername, image: editedImage });
+		}
 	};
 
 	const logWeight = async () => {
@@ -80,7 +104,7 @@ export default function ProfileScreen() {
 			const weight = Number(weightInput.replace(",", "."));
 
 			await addWeight(date, weight);
-			await loadHistory();
+			await loadData();
 		} catch (error) {
 			setError(`Failed to log weight: ${error}`);
 		} finally {
@@ -103,9 +127,23 @@ export default function ProfileScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View style={styles.container}>
-				{isEditable ? <Button title="Select image" onPress={pickImage} /> : null}
-				{image ? (
-					<Image source={{ uri: image }} style={styles.image}/>
+				<Pressable style={styles.logoutButton} onPress={() => {
+					Alert.alert(
+						"Logout?", "Are you sure you want to logout?", 
+						[{ text: "No", style: "cancel" }, { text: "Yes", onPress: logout }], 
+						{ cancelable: true }
+					)
+				}}>
+					<MaterialIcons name="logout" size={24} color="#1e1e1e" />
+				</Pressable>
+
+				{isEditable ? (
+					<View style={styles.selectImageButton}>
+						<Button title="Select image" onPress={pickImage} />
+					</View>
+				) : null}
+				{(editedImage) ? (
+					<Image source={{ uri: editedImage }} style={styles.image}/>
 				) : (
 					<View style={[styles.image, { backgroundColor: "#d0d0d0" }]}>
 						<Ionicons name={"person"} size={150} color={"#9f9f9f"} style={{ margin: "auto" }} />
@@ -116,26 +154,45 @@ export default function ProfileScreen() {
 					if (isEditable) {
 						Alert.alert(
 							"Save profile", "Are you sure you want to save the changes?", 
-							[{ text: "No", style: "cancel" }, { text: "Yes", onPress: saveChanges }], 
+							[
+								{ 
+									text: "No", 
+									style: "cancel",
+									onPress: () => {
+										setEditedUsername(originalUsername);
+										setEditedImage(originalImage);
+										setIsEditable(false);
+										setEditButtonColor("#1e1e1e");
+									}
+								},
+								{ 
+									text: "Yes", 
+									onPress: async () => {
+										await saveChanges();
+										setIsEditable(false);
+										setEditButtonColor("#1e1e1e");
+									}
+								}
+							], 
 							{ cancelable: true }
 						)
+						return;
 					}
-					setIsEditable(!isEditable);
-					if (editButtonColor === "#20ca17") {
-						setEditButtonColor("#1e1e1e");
-					} else {
-						setEditButtonColor("#20ca17");
-					}
+					setOriginalUsername(editedUsername);
+					setOriginalImage(editedImage);
+					setIsEditable(true);
+					setEditButtonColor("#20ca17");
 				}}>
-					<FontAwesome6 name="pencil" size={24} color={editButtonColor} />
+					<FontAwesome6 name={isEditable ? "save" : "pencil"} size={24} color={editButtonColor} />
 				</Pressable>
 
 				<View style={styles.usernameContainer}>
 					{isEditable ? (
 						<TextInput 
-							value={username}
-							onChangeText={setUsername}
+							value={editedUsername}
+							onChangeText={setEditedUsername}
 							placeholder="Username"
+							autoCapitalize="none"
 							placeholderTextColor="#8b8b8b"
 							style={styles.input}
 						/>
@@ -144,10 +201,7 @@ export default function ProfileScreen() {
 					)}
 				</View>
 
-				<WeightChart 
-					history={history}
-				/>
-
+				<WeightChart history={history} />
 				<Pressable style={styles.logButton} onPress={openModal}>
 					<Text style={styles.logButtonText}>Log weight</Text>
 				</Pressable>
@@ -181,12 +235,18 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         textAlign: "center",
     },
+	logoutButton: {
+		position: "absolute",
+		top: 8,
+		left: 8,
+	},
 	image: {
 		width: 200,
 		height: 200,
 		borderRadius: 999,
 		margin: "auto",
-		marginTop: 10,
+		marginTop: 30,
+		marginBottom: 20,
 	},
 	usernameContainer: {
 		backgroundColor: "#dedede",
@@ -211,8 +271,13 @@ const styles = StyleSheet.create({
 	},
 	editButton: {
 		position: "absolute",
-		right: 16,
-		top: 16,
+		right: 24,
+		top: "34%",
+	},
+	selectImageButton: {
+		position: "absolute",
+		right: "40%",
+		top: 10,
 	},
 	logButton: {
 		backgroundColor: "#20ca17",

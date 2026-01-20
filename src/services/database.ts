@@ -1,5 +1,4 @@
 import * as SQLite from "expo-sqlite";
-import WeightChart from "../components/WeightChart";
 
 export type ExerciseRow = {
 	id: number;
@@ -26,6 +25,7 @@ export type WeightHistory = {
 };
 
 export type Profile = {
+	id: number;
 	username: string;
 	image: string;
 };
@@ -38,7 +38,9 @@ export const initDb = async () => {
             "DROP TABLE IF EXISTS sets",
             "DROP TABLE IF EXISTS workout_exercises",
             "DROP TABLE IF EXISTS workouts",
-            "DROP TABLE IF EXISTS exercises"
+            "DROP TABLE IF EXISTS exercises",
+			"DROP TABLE IF EXISTS weight",
+			"DROP TABLE IF EXISTS profile",
         ].join("; ") + ";"
     ); */
 	await db.execAsync(
@@ -205,15 +207,23 @@ export const addWeight = async (date: string, weight: number) => {
 	);
 };
 
-export const getProfile = async () => {
-    return await db.getAllAsync<Profile>(
-        "SELECT username, image FROM profile"
-    );
+export const getProfile = async (username: string) => {
+	return await db.getAllAsync<Profile>(
+		"SELECT id, username, image FROM profile WHERE username = ?",
+		[username]
+	);
+};
+
+export const addProfile = async (username: string, image: string | null) => {
+	await db.runAsync(
+		"INSERT INTO profile (username, image) VALUES (?, ?)",
+		[username, image]
+	);
 };
 
 export const updateProfile = async (
 	id: number,
-	updates: { username?: string; image?: string }
+	updates: { username?: string; image?: string | null }
 ) => {
 	const fields: string[] = [];
 	const values: (string | number | null)[] = [];
@@ -237,11 +247,5 @@ export const updateProfile = async (
 	);
 };
 
-export const addProfile = async (username: string, image: string) => {
-	await db.runAsync(
-		"INSERT INTO profile (username, image) VALUES (?, ?)",
-		[username, image]
-	);
-};
 
 export default db;

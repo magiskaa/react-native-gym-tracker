@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from 'expo-haptics';
 import HomeScreen from "./src/screens/HomeScreen";
 import WorkoutScreen from "./src/screens/WorkoutScreen";
 import PhaseScreen from "./src/screens/PhaseScreen";
@@ -58,6 +59,11 @@ function AppContent() {
                         return <Ionicons name={iconName} size={size} color={color} />;
                     },
                 })}
+                screenListeners={{
+                    tabPress: () => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+                    },
+                }}
             >
                 <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="Workout" component={WorkoutScreen} />

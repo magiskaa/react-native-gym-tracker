@@ -15,9 +15,9 @@ import WeightChart from "../components/WeightChart";
 import LogWeightModal from "../modal/LogWeightModal";
 import { WeightHistory, addWeight, getWeight, getProfile, updateProfile } from "../services/database";
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Fontisto from '@expo/vector-icons/Fontisto';
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from '../auth/authContext';
 
@@ -128,6 +128,7 @@ export default function ProfileScreen() {
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View style={styles.container}>
 				<Pressable style={styles.logoutButton} onPress={() => {
+					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 					Alert.alert(
 						"Logout?", "Are you sure you want to logout?", 
 						[{ text: "No", style: "cancel" }, { text: "Yes", onPress: logout }], 
@@ -139,7 +140,7 @@ export default function ProfileScreen() {
 
 				{isEditable ? (
 					<View style={styles.selectImageButton}>
-						<Button title="Select image" onPress={pickImage} />
+						<Button title="Select image" onPress={() =>{ pickImage(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}} />
 					</View>
 				) : null}
 				{(editedImage) ? (
@@ -151,6 +152,7 @@ export default function ProfileScreen() {
 				)}
 
 				<Pressable style={styles.editButton} onPress={() => {
+					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 					if (isEditable) {
 						Alert.alert(
 							"Save profile", "Are you sure you want to save the changes?", 
@@ -202,7 +204,7 @@ export default function ProfileScreen() {
 				</View>
 
 				<WeightChart history={history} />
-				<Pressable style={styles.logButton} onPress={openModal}>
+				<Pressable style={styles.logButton} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); }}>
 					<Text style={styles.logButtonText}>Log weight</Text>
 				</Pressable>
 

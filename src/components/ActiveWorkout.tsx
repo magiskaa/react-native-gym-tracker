@@ -8,6 +8,7 @@ import {
     TouchableWithoutFeedback,
     Keyboard
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 import {
     addSet,
     addWorkout,
@@ -175,9 +176,10 @@ export default function ActiveWorkout({
 
                         return (
                             <Pressable
-                                onPress={() =>
-                                    setExpandedId(isExpanded ? null : item.id)
-                                }
+                                onPress={() => {
+                                    setExpandedId(isExpanded ? null : item.id);
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                }}
                                 style={({ pressed }) => [
                                     styles.card,
                                     pressed && styles.cardPressed,
@@ -223,7 +225,7 @@ export default function ActiveWorkout({
                                                     placeholder="Weight"
                                                 />
                                                 <Pressable
-                                                    onPress={() => removeSet(item.id, index)}
+                                                    onPress={() => { removeSet(item.id, index); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                                                     style={styles.removeSetButton}
                                                 >
                                                     <Text style={styles.removeSetText}>Remove</Text>
@@ -231,7 +233,7 @@ export default function ActiveWorkout({
                                             </View>
                                         ))}
                                         <Pressable
-                                            onPress={() => addSetRow(item.id)}
+                                            onPress={() => { addSetRow(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                                             style={styles.addSetButton}
                                         >
                                             <Text style={styles.addSet}>+ Add set</Text>
@@ -251,19 +253,19 @@ export default function ActiveWorkout({
                     <Text style={styles.durationText}>0:00.00</Text>
                     <Pressable 
                         style={styles.footerButton}
-                        onPress={deleteWorkout}
+                        onPress={() => { deleteWorkout(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                     >
                         <Text style={styles.buttonText}>Delete</Text>
                     </Pressable>
                     <Pressable 
                         style={styles.footerButton}
-                        onPress={editExercises}
+                        onPress={() => { editExercises(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                     >
                         <Text style={styles.buttonText}>Edit</Text>
                     </Pressable>
                     <Pressable
                         style={styles.footerButton}
-                        onPress={endWorkout}
+                        onPress={() => { endWorkout(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                     >
                         <Text style={styles.buttonText}>End</Text>
                     </Pressable>

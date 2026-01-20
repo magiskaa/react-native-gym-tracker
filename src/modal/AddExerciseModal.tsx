@@ -10,6 +10,7 @@ import {
     KeyboardAvoidingView,
     Platform
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 
 type Props = {
     visible: boolean;
@@ -49,7 +50,7 @@ export default function AddExerciseModal({
                             <View style={styles.modalHeader}>
                                 <Text style={styles.modalTitle}>Add exercise</Text>
 
-                                <Pressable onPress={onClose}>
+                                <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
                                     <Text style={styles.modalClose}>Close</Text>
                                 </Pressable>
                             </View>
@@ -73,7 +74,7 @@ export default function AddExerciseModal({
 
                             <View style={styles.modalFooter}>
                                 {error ? <Text style={styles.error}>{error}</Text> : null}
-                                <Pressable style={styles.confirmButton} onPress={onConfirm}>
+                                <Pressable style={styles.confirmButton} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
                                     <Text style={styles.confirmButtonText}>Add</Text>
                                 </Pressable>
                             </View>

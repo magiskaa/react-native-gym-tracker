@@ -6,6 +6,7 @@ import {
     View,
     FlatList
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 
 type Props = {
     visible: boolean;
@@ -36,7 +37,7 @@ export default function FilterExercisesModal({
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Filter exercises</Text>
 
-                        <Pressable onPress={onClose}>
+                        <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
                             <Text style={styles.modalClose}>Close</Text>
                         </Pressable>
                     </View>
@@ -48,7 +49,7 @@ export default function FilterExercisesModal({
                             const isSelected = selectedGroups.has(item);
                             return (
                                 <Pressable
-                                    onPress={() => onToggleGroup(item)}
+                                    onPress={() => { onToggleGroup(item); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                                     style={({ pressed }) => [
                                         styles.exerciseRow,
                                         isSelected && styles.exerciseRowSelected,
@@ -76,7 +77,7 @@ export default function FilterExercisesModal({
                             Selected: {selectedCount}
                         </Text>
                         
-                        <Pressable style={styles.confirmButton} onPress={onClose}>
+                        <Pressable style={styles.confirmButton} onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
                             <Text style={styles.confirmButtonText}>Filter</Text>
                         </Pressable>
                     </View>

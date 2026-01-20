@@ -5,6 +5,7 @@ import {
 	Text,
 	View,
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 import { ExerciseRow, getExercises } from "../services/database";
 import ExerciseSelectModal from "../modal/ExerciseSelectModal";
 import ActiveWorkout from "../components/ActiveWorkout";
@@ -78,7 +79,7 @@ export default function WorkoutScreen() {
 			) : (
 				<View style={styles.workoutContainer}>
 					<Text style={styles.text}>No active workout</Text>
-					<Pressable style={styles.logButton} onPress={openModal}>
+					<Pressable style={styles.logButton} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
 						<Text style={styles.logButtonText}>Log workout</Text>
 					</Pressable>
 				</View>

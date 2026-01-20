@@ -7,6 +7,7 @@ import {
 	TextInput,
 	View,
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory, ExerciseHistory } from "../services/database";
 import ExerciseChart from "../components/ExerciseChart";
 import AddExerciseModal from "../modal/AddExerciseModal";
@@ -135,6 +136,7 @@ export default function StatsScreen() {
 					return (
 						<Pressable
 							onPress={() => {
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 								const next = isExpanded ? null : item.id;
 								setExpandedId(next);
 								if (next != null) {
@@ -184,7 +186,7 @@ export default function StatsScreen() {
 
 			<View style={styles.footer}>
 				<Pressable
-					onPress={openModal}
+					onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
 					style={({ pressed }) => [
 						styles.footerButton,
 						pressed && styles.footerButtonPressed
@@ -196,6 +198,7 @@ export default function StatsScreen() {
 				</Pressable>
 
 				<Pressable
+					onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
 					style={({ pressed }) => [
 						styles.footerButton,
 						pressed && styles.footerButtonPressed
@@ -207,7 +210,7 @@ export default function StatsScreen() {
 				</Pressable>
 
 				<Pressable
-					onPress={openFilterModal}
+					onPress={() => { openFilterModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
 					style={({ pressed }) => [
 						styles.footerButton,
 						pressed && styles.footerButtonPressed

@@ -8,6 +8,7 @@ import {
     Keyboard, 
     TouchableWithoutFeedback 
 } from "react-native";
+import * as Haptics from 'expo-haptics';
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 type Props = {
@@ -44,7 +45,7 @@ export default function LogWeightModal({
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>Log weight</Text>
 
-                            <Pressable onPress={onClose}>
+                            <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
                                 <Text style={styles.modalClose}>Close</Text>
                             </Pressable>
                         </View>
@@ -71,7 +72,7 @@ export default function LogWeightModal({
 
                         <View style={styles.modalFooter}>
                             {error ? <Text style={styles.error}>{error}</Text> : null}
-                            <Pressable style={styles.confirmButton} onPress={onConfirm}>
+                            <Pressable style={styles.confirmButton} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
                                 <Text style={styles.confirmButtonText}>Log</Text>
                             </Pressable>
                         </View>

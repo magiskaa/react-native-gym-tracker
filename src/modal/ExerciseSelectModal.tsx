@@ -1,4 +1,5 @@
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import * as Haptics from 'expo-haptics';
 import { ExerciseRow } from "../services/database";
 
 type Props = {
@@ -34,7 +35,7 @@ export default function ExerciseSelectModal({
                     <View style={styles.modalHeader}>
                         <Text style={styles.modalTitle}>Select exercises</Text>
 
-                        <Pressable onPress={onClose}>
+                        <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
                             <Text style={styles.modalClose}>Close</Text>
                         </Pressable>
                     </View>
@@ -46,7 +47,7 @@ export default function ExerciseSelectModal({
                             const isSelected = selectedIds.has(item.id);
                             return (
                                 <Pressable
-                                    onPress={() => onToggleExercise(item.id)}
+                                    onPress={() => { onToggleExercise(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                                     style={({ pressed }) => [
                                         styles.exerciseRow,
                                         isSelected && styles.exerciseRowSelected,
@@ -75,7 +76,7 @@ export default function ExerciseSelectModal({
                             Selected: {selectedCount}
                         </Text>
 
-                        <Pressable style={styles.confirmButton} onPress={onConfirm}>
+                        <Pressable style={styles.confirmButton} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
                             <Text style={styles.confirmButtonText}>Use selection</Text>
                         </Pressable>
                     </View>

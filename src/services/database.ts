@@ -38,23 +38,20 @@ export type SetCount = {
 const db = SQLite.openDatabaseSync("gym.db");
 
 export const initDb = async () => {
-    /* await db.execAsync(
-        [
-            "DROP TABLE IF EXISTS sets",
-            "DROP TABLE IF EXISTS workout_exercises",
-            "DROP TABLE IF EXISTS workouts",
-            "DROP TABLE IF EXISTS exercises",
-			"DROP TABLE IF EXISTS weight",
-			"DROP TABLE IF EXISTS profile",
-        ].join("; ") + ";"
-    ); */
 	await db.execAsync(
 		[
+			//"DROP TABLE IF EXISTS sets",
+            //"DROP TABLE IF EXISTS workout_exercises",
+            //"DROP TABLE IF EXISTS workouts",
+            //"DROP TABLE IF EXISTS exercises",
+			//"DROP TABLE IF EXISTS weight",
+			//"DROP TABLE IF EXISTS profile",
 			`
 			CREATE TABLE IF NOT EXISTS exercises (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name TEXT NOT NULL,
-				muscle_group TEXT NOT NULL
+				muscle_group TEXT NOT NULL,
+				UNIQUE(name, muscle_group)
 			)
 			`,
 			`
@@ -98,6 +95,46 @@ export const initDb = async () => {
 			)
 			`
 		].join("; ") + ";"
+	);
+	await db.runAsync(
+		`
+		INSERT OR IGNORE INTO exercises (name, muscle_group)
+		VALUES
+			('Penkkipunnerrus käsipainoilla', 'Rinta'),
+			('Penkkipunnerrus tangolla', 'Rinta'),
+			('Pec Fly', 'Rinta'),
+			('Dipit', 'Rinta'),
+			('Punnerrus', 'Rinta'),
+			('Vinopenkkipunnerrus käsipainoilla', 'Rinta'),
+			('Pystypunnerrus käsipainoilla', 'Olkapäät'),
+			('Pystypunnerrus tangolla', 'Olkapäät'),
+			('Vipunostot', 'Olkapäät'),
+			('Ojentajapunnerrus', 'Ojentajat'),
+			('Skullchrusher', 'Ojentajat'),
+			('Reverse Fly', 'Selkä'),
+			('Chin up', 'Selkä'),
+			('Pull up', 'Selkä'),
+			('Maastaveto suorin jaloin', 'Selkä'),
+			('Soutu', 'Selkä'),
+			('Ylätalja', 'Selkä'),
+			('Alatalja', 'Selkä'),
+			('Pullover', 'Selkä'),
+			('Hauiskääntö käsipainoilla', 'Hauis'),
+			('Hauiskääntö tangolla', 'Hauis'),
+			('Hauiskääntö vinopenkillä', 'Hauis'),
+			('Hauiskääntö taljassa', 'Hauis'),
+			('Hauiskääntö laitteessa', 'Hauis'),
+			('Hammercurl', 'Hauis'),
+			('Kyykky', 'Jalat'),
+			('Pohjenousu seisten', 'Jalat'),
+			('Pohjenousu istuen', 'Jalat'),
+			('Etureidet laitteessa', 'Jalat'),
+			('Takareidet laitteessa maaten', 'Jalat'),
+			('Takareidet laitteessa istuen', 'Jalat'),
+			('Pakarat abduktio', 'Jalat'),
+			('Nivuset adduktio', 'Jalat'),
+			('Vatsalihasrutistus', 'Vatsat');
+		`
 	);
 };
 

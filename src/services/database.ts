@@ -30,6 +30,11 @@ export type Profile = {
 	image: string;
 };
 
+export type SetCount = {
+	muscle_group: string; 
+	setCount: number;
+}
+
 const db = SQLite.openDatabaseSync("gym.db");
 
 export const initDb = async () => {
@@ -129,6 +134,31 @@ export const addWorkoutExercise = async (workout_id: number, exercise_id: number
 		[workout_id, exercise_id]
 	);
 	return result.lastInsertRowId as number;
+};
+
+export const getSetCountForCurrentWeek = async () => {
+	const now = new Date();
+	const dayIndex = (now.getDay() + 6) % 7;
+	const monday = new Date(now);
+	monday.setDate(now.getDate() - dayIndex);
+
+	const startDate = monday.toISOString().slice(0, 10);
+	const endDate = now.toISOString().slice(0, 10);
+
+	return await db.getAllAsync<SetCount>(
+		`
+		SELECT
+			ex.muscle_group,
+			COUNT(s.id) as setCount
+		FROM exercises ex
+		JOIN workout_exercises we ON we.exercise_id = ex.id
+		JOIN workouts w ON w.id = we.workout_id
+		JOIN sets s ON s.workout_exercise_id = we.id
+		WHERE w.date >= ? AND w.date <= ?
+		GROUP BY ex.muscle_group
+		`,
+		[startDate, endDate]
+	);
 };
 
 export const addSet = async (workout_exercise_id: number, reps: number, weight: number) => {

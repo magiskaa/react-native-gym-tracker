@@ -138,6 +138,11 @@ export const initDb = async () => {
 	);
 };
 
+/* 
+===============================================================================
+|                                  EXERCISES                                  |
+===============================================================================
+*/
 export const getExercises = async () => {
 	return await db.getAllAsync<ExerciseRow>(
 		"SELECT id, name, muscle_group FROM exercises ORDER BY name ASC"
@@ -151,6 +156,11 @@ export const addExercise = async (name: string, muscleGroup: string) => {
 	);
 };
 
+/* 
+===============================================================================
+|                                   WORKOUTS                                  |
+===============================================================================
+*/
 export const getWorkouts = async () => {
     return await db.getAllAsync<WorkoutRow>(
         "SELECT id, name, duration, date FROM workouts ORDER BY date DESC"
@@ -173,6 +183,11 @@ export const addWorkoutExercise = async (workout_id: number, exercise_id: number
 	return result.lastInsertRowId as number;
 };
 
+/* 
+===============================================================================
+|                                     SETS                                    |
+===============================================================================
+*/
 export const getSetCountForCurrentWeek = async () => {
 	const now = new Date();
 	const dayIndex = (now.getDay() + 6) % 7;
@@ -206,6 +221,11 @@ export const addSet = async (workout_exercise_id: number, reps: number, weight: 
 	return result.lastInsertRowId as number;
 };
 
+/* 
+===============================================================================
+|                                EXERCISE DATA                                |
+===============================================================================
+*/
 export const getExerciseHistory = async (exercise_id: number) => {
 	const history = await db.getAllAsync<{ date: string; totalReps: number; totalWeight: number; setCount: number }>(
 		`
@@ -252,6 +272,11 @@ export const getLatestExerciseSession = async (exercise_id: number) => {
 	return { workoutExerciseId: latest.id, workoutDate: latest.date, sets };
 };
 
+/* 
+===============================================================================
+|                                    WEIGHT                                   |
+===============================================================================
+*/
 export const getWeight = async () => {
     const history = await db.getAllAsync<WeightHistory>(
         "SELECT weight, date FROM weight ORDER BY date ASC"
@@ -274,6 +299,11 @@ export const addWeight = async (date: string, weight: number) => {
 	);
 };
 
+/* 
+===============================================================================
+|                                   PROFILE                                   |
+===============================================================================
+*/
 export const getProfile = async (username: string) => {
 	return await db.getAllAsync<Profile>(
 		"SELECT id, username, image FROM profile WHERE username = ?",

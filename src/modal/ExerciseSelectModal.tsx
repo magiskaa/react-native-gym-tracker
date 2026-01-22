@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     modalClose: {
         color: "#8c8c8c",
         fontWeight: "500",
+        padding: 8,
     },
     exerciseList: {
         paddingBottom: 16,

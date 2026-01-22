@@ -11,7 +11,7 @@ import StatsScreen from "./src/screens/StatsScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { initDb } from "./src/services/database";
-import { AuthProvider, useAuth } from './src/auth/authContext';
+import { AuthProvider, useAuth } from './src/auth/AuthContext';
 
 const Tab = createBottomTabNavigator();
 

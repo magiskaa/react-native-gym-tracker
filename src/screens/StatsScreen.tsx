@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 	},
 	card: {
-		backgroundColor: "#1e1e1e",
+		backgroundColor: "#e3e3e3",
 		borderRadius: 12,
 		padding: 16,
 		marginBottom: 12,
@@ -325,12 +325,12 @@ const styles = StyleSheet.create({
 		gap: 4,
 	},
 	cardTitle: {
-		color: "#ffffff",
+		color: "#1e1e1e",
 		fontSize: 16,
 		fontWeight: "600",
 	},
 	cardSubtitle: {
-		color: "#c7c7c7",
+		color: "#505050",
 		fontSize: 13,
 	},
 	statsPreview: {
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
 		borderTopColor: "#2c2c2c",
 	},
 	statsText: {
-		color: "#c7c7c7",
+		color: "#1e1e1e",
 	},
 	empty: {
 		color: "#6b6b6b",

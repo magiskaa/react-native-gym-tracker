@@ -6,7 +6,9 @@ import {
     View, 
     TextInput,
     TouchableWithoutFeedback,
-    Keyboard
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import {
@@ -36,8 +38,13 @@ export default function ActiveWorkout({
     setIsWorkoutActive,
     setSelectedIds
 }: Props) {
+    const [startTime, setStartTime] = useState<number>(Date.now() / 1000);
+    const [duration, setDuration] = useState<number>(0);
+    const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
+    
     const [setsByExercise, setSetsByExercise] = useState<Record<number, { reps: string; weight: string }[]>>({});
     const [name, setName] = useState<string>("");
+
     const [validationError, setValidationError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -52,6 +59,20 @@ export default function ActiveWorkout({
             return next;
         });
     }, [exercises, selectedIds]);
+
+    const formatDuration = () => {
+        const h = Math.floor(duration / 3600);
+        const m = Math.floor(duration / 60);
+        const s = Math.round(duration - h*3600 - m*60);
+        setFormattedDuration(`${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`)
+    };
+
+    useEffect(() => {
+        setTimeout(() => {
+            setDuration(Date.now() / 1000 - startTime);
+            formatDuration();
+        }, 1000);
+    });
 
     const addSetRow = (exerciseId: number) => {
         setValidationError(null);
@@ -117,7 +138,7 @@ export default function ActiveWorkout({
 
         try {
             const date = new Date().toISOString().substring(0, 10);
-            const duration = "0:00.00";
+            const duration = formattedDuration;
             const workoutName = name.trim() || "Workout";
 
             const workoutId = await addWorkout(workoutName, duration, date);
@@ -131,7 +152,7 @@ export default function ActiveWorkout({
                 const sets = setsByExercise[exercise.id] ?? [];
                 for (const set of sets) {
                     const reps = Number(set.reps);
-                    const weight = Number(set.weight);
+                    const weight = Number(set.weight.replace(",", "."));
 
                     if (Number.isNaN(reps) || Number.isNaN(weight)) {
                         continue;
@@ -221,7 +242,7 @@ export default function ActiveWorkout({
                                                     onChangeText={(value) =>
                                                         updateWeight(item.id, index, value)
                                                     }
-                                                    keyboardType="number-pad"
+                                                    keyboardType="numeric"
                                                     placeholder="Weight"
                                                 />
                                                 <Pressable
@@ -250,7 +271,7 @@ export default function ActiveWorkout({
                 />
 
                 <View style={styles.footerContainer}>
-                    <Text style={styles.durationText}>0:00.00</Text>
+                    <Text style={styles.durationText}>{formattedDuration}</Text>
                     <Pressable 
                         style={styles.footerButton}
                         onPress={() => { deleteWorkout(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
@@ -278,6 +299,7 @@ export default function ActiveWorkout({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        justifyContent: "flex-end",
     },
     headerContainer: {
         marginTop: 8,
@@ -295,7 +317,7 @@ const styles = StyleSheet.create({
         color: "#2a2a2a"
     },
     card: {
-		backgroundColor: "#1e1e1e",
+		backgroundColor: "#e3e3e3",
 		borderRadius: 12,
 		padding: 16,
 		marginBottom: 12,
@@ -312,12 +334,12 @@ const styles = StyleSheet.create({
 		gap: 4,
 	},
 	cardTitle: {
-		color: "#ffffff",
+		color: "#1e1e1e",
 		fontSize: 16,
 		fontWeight: "600",
 	},
 	cardSubtitle: {
-		color: "#c7c7c7",
+		color: "#505050",
 		fontSize: 13,
 	},
     cardStats: {
@@ -325,10 +347,10 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     repsPerSet: {
-        color: "#c7c7c7",
+        color: "#1e1e1e",
     },
     avgWeight: {
-        color: "#c7c7c7",
+        color: "#1e1e1e",
     },
 	setsContainer: {
         gap: 10,
@@ -383,6 +405,7 @@ const styles = StyleSheet.create({
     durationText: {
         fontSize: 32,
         color: "#2a2a2a",
+        width: "28%"
     },
     footerButton: {
         borderRadius: 999,

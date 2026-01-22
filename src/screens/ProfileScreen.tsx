@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from '../auth/authContext';
+import { useAuth } from '../auth/AuthContext';
 
 
 export default function ProfileScreen() {

@@ -42,7 +42,7 @@ export default function HomeScreen() {
 								size={84}
 								thickness={3}
 								borderWidth={0}
-
+								color="#20ca17"
 								animated
 								showsText
 								formatText={() => `${item.setCount} / 10`}
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         color: "#1e1e1e",
     },
 	setsPerWeekContainer: {
-		backgroundColor: "#eaeaea",
+		backgroundColor: "#e3e3e3",
 		padding: 8,
 		width: 100,
 		height: 125,

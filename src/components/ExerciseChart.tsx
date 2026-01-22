@@ -47,12 +47,9 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 width={chartWidth}
                 height={160}
                 chartConfig={{
-                    backgroundColor: "#1e1e1e",
-                    backgroundGradientFrom: "#1e1e1e",
-                    backgroundGradientTo: "#1e1e1e",
                     decimalPlaces: 1,
                     color: () => "#20ca17",
-                    labelColor: () => "#c7c7c7",
+                    labelColor: () => "#1e1e1e",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -63,6 +60,7 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 segments={3}
                 style={styles.chart}
                 bezier
+                transparent
             />
 
             <Text style={styles.chartTitle}>Weight per Set</Text>
@@ -71,12 +69,9 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 width={chartWidth}
                 height={160}
                 chartConfig={{
-                    backgroundColor: "#1e1e1e",
-                    backgroundGradientFrom: "#1e1e1e",
-                    backgroundGradientTo: "#1e1e1e",
                     decimalPlaces: 1,
                     color: () => "#4a9eff",
-                    labelColor: () => "#c7c7c7",
+                    labelColor: () => "#1e1e1e",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -87,6 +82,7 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 segments={3}
                 style={{ ...styles.chart, marginBottom: 0 }}
                 bezier
+                transparent
             />
         </View>
     );
@@ -106,7 +102,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     chartTitle: {
-        color: "#ffffff",
+        color: "#1e1e1e",
         fontSize: 13,
         fontWeight: "600",
         marginBottom: 4,

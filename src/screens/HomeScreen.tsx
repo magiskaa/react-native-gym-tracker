@@ -1,10 +1,11 @@
 import { StyleSheet, Text, View, FlatList } from "react-native";
 import { useEffect, useState } from "react";
-import { SetCount, getSetCountForCurrentWeek } from "../services/database";
+import { SetCount, WorkoutRow, getSetCountForCurrentWeek, getWorkouts } from "../services/database";
 import { Circle } from "react-native-progress";
 
 export default function HomeScreen() {
 	const [setCounts, setSetCounts] = useState<SetCount[]>([]);
+	const [workouts, setWorkouts] = useState<WorkoutRow[]>([]);
 	const muscleGroups = ["Rinta", "Olkapäät", "Hauis", "Ojentajat", "Jalat", "Selkä", "Vatsat"];
 
 	const loadData = async () => {
@@ -16,6 +17,9 @@ export default function HomeScreen() {
 				setCount: setCountMap.get(group) || 0
 			}));
 			setSetCounts(fullSetCounts);
+
+			const workoutData = await getWorkouts();
+			setWorkouts(workoutData);
 		} catch (error) {
 			console.log(error);
 		}
@@ -25,6 +29,11 @@ export default function HomeScreen() {
 		loadData();
 	},[])
 
+	const formatDate = (date: string) => {
+		const parts = date.split("-");
+		return `${parts[2].padStart(2, "0")}.${parts[1].padStart(2, "0")}.${parts[0]}`
+	};
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>Sets / Week</Text>
@@ -33,6 +42,7 @@ export default function HomeScreen() {
 				horizontal
 				showsHorizontalScrollIndicator={false}
 				keyExtractor={(item) => item.muscle_group}
+				style={styles.list}
 				renderItem={({ item }) => {	
 					return (
 						<View style={styles.setsPerWeekContainer}>
@@ -55,6 +65,28 @@ export default function HomeScreen() {
 					<Text style={styles.empty}>No exercises yet</Text>
 				}
 			/>
+
+			<Text style={styles.title}>Recent Workouts</Text>
+			<FlatList
+				data={workouts}
+				horizontal
+				showsHorizontalScrollIndicator={false}
+				keyExtractor={(item) => String(item.id)}
+				style={styles.list}
+				renderItem={({ item }) => {	
+					return (
+						<View style={styles.workoutContainer}>
+							<Text style={styles.workoutNameText}>{item.name}</Text>
+							<Text style={styles.workoutText}>{item.duration}</Text>
+							<Text style={styles.workoutText}>{formatDate(item.date)}</Text>
+						</View>
+					)
+				}}
+				contentContainerStyle={styles.listContent}
+				ListEmptyComponent={
+					<Text style={styles.empty}>No exercises yet</Text>
+				}
+			/>
 		</View>
 	);
 }
@@ -62,10 +94,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		justifyContent: "flex-start",
 	},
     title: {
-        fontSize: 22,
-        marginTop: 20,
+        fontSize: 24,
+        marginTop: 24,
 		marginBottom: 4,
 		marginHorizontal: 12,
         fontWeight: "600",
@@ -92,9 +125,37 @@ const styles = StyleSheet.create({
 		margin: "auto",
 		marginTop: 4,
 	},
+	workoutContainer: {
+		backgroundColor: "#e3e3e3",
+		padding: 12,
+		width: 150,
+		height: 100,
+		borderRadius: 12,
+		marginHorizontal: 4,
+		marginVertical: 4,
+	},
+	workoutNameText: {
+		fontSize: 22,
+		fontWeight: 500,
+		textAlign: "center",
+		margin: "auto",
+		marginTop: 0,
+	},
+	workoutText: {
+		fontSize: 18,
+		textAlign: "center",
+		margin: "auto",
+		marginBottom: 2,
+	},
 	listContent: {
-		paddingVertical: 12,
+		flexDirection: "row",
+		flexWrap: "nowrap",
+		flexGrow: 0,
+		paddingVertical: 0,
 		paddingHorizontal: 8,
+	},
+	list: {
+		flexGrow: 0,
 	},
 	empty: {
 		color: "#6b6b6b",

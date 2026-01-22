@@ -163,7 +163,7 @@ export const addExercise = async (name: string, muscleGroup: string) => {
 */
 export const getWorkouts = async () => {
     return await db.getAllAsync<WorkoutRow>(
-        "SELECT id, name, duration, date FROM workouts ORDER BY date DESC"
+        "SELECT id, name, duration, date FROM workouts ORDER BY date DESC LIMIT 5"
     );
 };
 

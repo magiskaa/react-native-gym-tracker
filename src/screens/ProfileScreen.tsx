@@ -127,14 +127,17 @@ export default function ProfileScreen() {
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View style={styles.container}>
-				<Pressable style={styles.logoutButton} onPress={() => {
-					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-					Alert.alert(
-						"Logout?", "Are you sure you want to logout?", 
-						[{ text: "No", style: "cancel" }, { text: "Yes", onPress: logout }], 
-						{ cancelable: true }
-					)
-				}}>
+				<Pressable 
+					style={styles.logoutButton} 
+					onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+						Alert.alert(
+							"Logout?", "Are you sure you want to logout?", 
+							[{ text: "No", style: "cancel" }, { text: "Yes", onPress: logout }], 
+							{ cancelable: true }
+						)
+					}}
+				>
 					<MaterialIcons name="logout" size={24} color="#1e1e1e" />
 				</Pressable>
 
@@ -204,7 +207,13 @@ export default function ProfileScreen() {
 				</View>
 
 				<WeightChart history={history} />
-				<Pressable style={styles.logButton} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); }}>
+				<Pressable 
+					style={styles.logButton} 
+					onPress={() => {
+						openModal(); 
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+					}}
+				>
 					<Text style={styles.logButtonText}>Log weight</Text>
 				</Pressable>
 

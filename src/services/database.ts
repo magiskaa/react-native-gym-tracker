@@ -27,13 +27,21 @@ export type WeightHistory = {
 export type Profile = {
 	id: number;
 	username: string;
-	image: string;
+	image: string | null;
 };
 
 export type SetCount = {
 	muscle_group: string; 
 	setCount: number;
 }
+
+export type NutritionRow = {
+	user: number;
+	calories: number | null;
+	protein: number | null;
+	date: string;
+};
+
 
 const db = SQLite.openDatabaseSync("gym.db");
 
@@ -46,6 +54,7 @@ export const initDb = async () => {
             //"DROP TABLE IF EXISTS exercises",
 			//"DROP TABLE IF EXISTS weight",
 			//"DROP TABLE IF EXISTS profile",
+			//"DROP TABLE IF EXISTS nutrition",
 			`
 			CREATE TABLE IF NOT EXISTS exercises (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,6 +102,17 @@ export const initDb = async () => {
 				username TEXT NOT NULL UNIQUE,
 				image TEXT
 			)
+			`,
+			`
+			CREATE TABLE IF NOT EXISTS nutrition (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user INTEGER NOT NULL,
+				calories INTEGER,
+				protein INTEGER,
+				date TEXT NOT NULL,
+				FOREIGN KEY(user) REFERENCES profile(id)
+				UNIQUE(user, date)
+			)
 			`
 		].join("; ") + ";"
 	);
@@ -108,8 +128,11 @@ export const initDb = async () => {
 			('Vinopenkkipunnerrus käsipainoilla', 'Rinta'),
 			('Pystypunnerrus käsipainoilla', 'Olkapäät'),
 			('Pystypunnerrus tangolla', 'Olkapäät'),
-			('Vipunostot', 'Olkapäät'),
+			('Pystypunnerrus laitteella', 'Olkapäät'),
+			('Vipunostot eteen', 'Olkapäät'),
+			('Vipunostot sivulle', 'Olkapäät'),
 			('Ojentajapunnerrus', 'Ojentajat'),
+			('Ojentajapunnerrus köydellä', 'Ojentajat'),
 			('Skullchrusher', 'Ojentajat'),
 			('Reverse Fly', 'Selkä'),
 			('Chin up', 'Selkä'),
@@ -134,6 +157,15 @@ export const initDb = async () => {
 			('Pakarat abduktio', 'Jalat'),
 			('Nivuset adduktio', 'Jalat'),
 			('Vatsalihasrutistus', 'Vatsat');
+		`
+	);
+	await db.runAsync(
+		`
+		INSERT OR IGNORE INTO nutrition (user, calories, protein, date)
+		VALUES
+			(1, 1750, 115, '2026-01-22'),
+			(1, 2910, 158, '2026-01-21');
+
 		`
 	);
 };
@@ -341,6 +373,27 @@ export const updateProfile = async (
 	await db.runAsync(
 		`UPDATE profile SET ${fields.join(", ")} WHERE id = ?`,
 		values
+	);
+};
+
+/* 
+===============================================================================
+|                                  NUTRITION                                  |
+===============================================================================
+*/
+export const getNutrition = async (user: number) => {
+	return await db.getAllAsync<NutritionRow>(
+		`
+		SELECT 
+			user, 
+			calories, 
+			protein, 
+			date 
+		FROM nutrition
+		WHERE user = ?
+		ORDER BY date DESC
+		`,
+		[user]
 	);
 };
 

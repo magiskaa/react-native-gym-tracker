@@ -2,16 +2,17 @@ import { StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
-import { NutritionRow, getNutrition } from "../services/database";
+import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
 import { useAuth } from "../auth/AuthContext";
+import LogCaloriesModal from "../modal/LogCaloriesModal";
 
 export default function PhaseScreen() {
 	const [nutrition, setNutrition] = useState<NutritionRow[]>([]);
 	const { user } = useAuth();
 
-	const [calories, setCalories] = useState<number | null>(null);
-	const [protein, setProtein] = useState<number | null>(null);
-	const [date, setDate] = useState<string>("");
+	const [calories, setCalories] = useState<number>(0);
+	const [protein, setProtein] = useState<number>(0);
+	const [date, setDate] = useState<Date>(new Date());
 	const today = new Date().toISOString().slice(0, 10);
 
 	const [error, setError] = useState<string | null>(null);
@@ -19,12 +20,21 @@ export default function PhaseScreen() {
 
 	const loadData = async () => {
 		try {
-			const nutritionData = await getNutrition(user.id);
+			let nutritionData = await getNutrition(user.id);
+
+			if (nutritionData.length > 0) {
+				if (nutritionData[0].date !== today) {
+					nutritionData = await addNutrition(user.id, today);
+				}
+			}
+			if (nutritionData.length === 0) {
+				nutritionData = await addNutrition(user.id, today);
+			}
+			console.log(nutritionData)
 
 			setNutrition(nutritionData);
-			setCalories(nutritionData[0].calories);
-			setProtein(nutritionData[0].protein);
-			setDate(nutritionData[0].date);
+			setCalories(nutritionData[0].calories || 0);
+			setProtein(nutritionData[0].protein || 0);
 		} catch (error) {
 			console.log(error);
 		}
@@ -33,6 +43,34 @@ export default function PhaseScreen() {
 	useEffect(() => {
 		loadData();
 	}, []);
+
+	const logCalories = async (cal: number, prot: number) => { 
+		const formattedDate = date.toISOString().slice(0, 10);
+
+		try {
+			if (date.toISOString().slice(0, 10) !== today) {
+				let nutritionData = await getNutritionByDate(user.id, formattedDate);
+
+				if (nutritionData.length === 0) {
+					nutritionData = await addNutrition(user.id, formattedDate);
+				}
+
+				const caloriesMap = new Map(nutritionData.map(row => [row.date, row.calories]))
+				const proteinMap = new Map(nutritionData.map(row => [row.date, row.protein]))
+				const c = (caloriesMap.get(formattedDate) || 0);
+				const p = (proteinMap.get(formattedDate) || 0);
+				await updateNutrition(user.id, c + cal, p + prot, formattedDate);
+				return;
+			}
+			await updateNutrition(user.id, calories + cal, protein + prot, formattedDate);
+			setCalories(calories + cal);
+			setProtein(protein + prot);
+		} catch (error) {
+			setError(`Failed to log calories: ${error}`);
+		} finally {
+			closeModal();
+		}
+	};
 
 	const closeModal = () => {
 		setIsModalVisible(false);
@@ -51,7 +89,7 @@ export default function PhaseScreen() {
 					<View>
 						<Text style={styles.progressTitle}>Calories</Text>
 						<Circle
-							progress={((calories || 0) / 3000) > 1 ? 1 : ((calories || 0) / 3000)}
+							progress={(Number(calories || 0) / 3000) > 1 ? 1 : (Number(calories || 0) / 3000)}
 							size={120}
 							thickness={10}
 							borderWidth={0}
@@ -65,7 +103,7 @@ export default function PhaseScreen() {
 					<View>
 						<Text style={styles.progressTitle}>Protein</Text>
 						<Circle
-							progress={((protein || 0) / 150) > 1 ? 1 : ((protein || 0) / 150)}
+							progress={(Number(protein || 0) / 150) > 1 ? 1 : (Number(protein || 0) / 150)}
 							size={120}
 							thickness={10}
 							borderWidth={0}
@@ -96,6 +134,17 @@ export default function PhaseScreen() {
 				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
 				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
 			</ScrollView>
+
+			{isModalVisible ? (
+				<LogCaloriesModal 
+					visible={isModalVisible}
+					error={error}
+					dateInput={new Date(date)}
+					setDateInput={setDate}
+					onClose={closeModal}
+					onConfirm={logCalories}
+				/>
+			) : null}
 		</View>
 	);
 }

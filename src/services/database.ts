@@ -110,7 +110,7 @@ export const initDb = async () => {
 				calories INTEGER,
 				protein INTEGER,
 				date TEXT NOT NULL,
-				FOREIGN KEY(user) REFERENCES profile(id)
+				FOREIGN KEY(user) REFERENCES profile(id),
 				UNIQUE(user, date)
 			)
 			`
@@ -157,15 +157,6 @@ export const initDb = async () => {
 			('Pakarat abduktio', 'Jalat'),
 			('Nivuset adduktio', 'Jalat'),
 			('Vatsalihasrutistus', 'Vatsat');
-		`
-	);
-	await db.runAsync(
-		`
-		INSERT OR IGNORE INTO nutrition (user, calories, protein, date)
-		VALUES
-			(1, 1750, 115, '2026-01-22'),
-			(1, 2910, 158, '2026-01-21');
-
 		`
 	);
 };
@@ -394,6 +385,46 @@ export const getNutrition = async (user: number) => {
 		ORDER BY date DESC
 		`,
 		[user]
+	);
+};
+
+export const getNutritionByDate = async (user: number, date: string) => {
+	return await db.getAllAsync<NutritionRow>(
+		`
+		SELECT
+			user,
+			calories,
+			protein,
+			date
+		FROM nutrition
+		WHERE user = ?
+		AND date = ?
+		`,
+		[user, date]
+	);
+};
+
+export const addNutrition = async (user: number, date: string) => {
+	await db.runAsync(
+		`
+		INSERT INTO nutrition (user, calories, protein, date)
+		VALUES (?, null, null, ?)
+		`,
+		[user, date]
+	);
+
+	return getNutrition(user);
+};
+
+export const updateNutrition = async (user: number, calories: number, protein: number, date: string) => {
+	await db.runAsync(
+		`
+		UPDATE nutrition 
+		SET calories = ?, protein = ? 
+		WHERE user = ? 
+		AND date = ?
+		`,
+		[calories, protein, user, date]
 	);
 };
 

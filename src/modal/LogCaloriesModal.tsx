@@ -6,7 +6,8 @@ import {
     View, 
     TextInput,
     Keyboard, 
-    TouchableWithoutFeedback 
+    TouchableWithoutFeedback,
+    Switch
 } from "react-native";
 import { useState } from "react";
 import * as Haptics from 'expo-haptics';
@@ -16,7 +17,9 @@ type Props = {
     visible: boolean;
     error: string | null;
     dateInput: Date;
+    isRemoveActive: boolean;
     setDateInput: (date: Date) => void;
+    setIsRemoveActive: (active: boolean) => void;
     onClose: () => void;
     onConfirm: (calories: number, protein: number) => void;
 };
@@ -25,7 +28,9 @@ export default function LogCaloriesModal({
     visible, 
     error,
     dateInput,
+    isRemoveActive,
     setDateInput, 
+    setIsRemoveActive,
     onClose,
     onConfirm
 }: Props) {
@@ -68,6 +73,14 @@ export default function LogCaloriesModal({
                             keyboardType="number-pad"
                             style={styles.input}
                         />
+
+                        <View style={styles.switch}>
+                            <Text style={styles.switchText}>Remove</Text>
+                            <Switch 
+                                value={isRemoveActive} 
+                                onValueChange={(value) => { setIsRemoveActive(value); }}
+                            />
+                        </View>
 
                         <DateTimePicker
                             value={dateInput}
@@ -112,7 +125,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 16,
-        height: "57%",
+        height: "59%",
     },
     modalHeader: {
         flexDirection: "row",
@@ -150,8 +163,20 @@ const styles = StyleSheet.create({
         marginBottom: 20,
 		color: "#ffffff",
 	},
+    switch: {
+        position: "absolute",
+        top: 165,
+        right: 16,
+        flexDirection: "row",
+        alignItems: "center"
+    },
+    switchText: {
+        color: "#c7c7c7",
+        marginRight: 8,
+    },
     datePicker: {
         marginHorizontal: "auto",
+        marginTop: 16,
         marginBottom: 12,
     },
     confirmButton: {

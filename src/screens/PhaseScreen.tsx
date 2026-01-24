@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View, Pressable, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
 import { useAuth } from "../auth/AuthContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
+import { formatDate } from "../utils/Utils";
+
 
 export default function PhaseScreen() {
 	const [nutrition, setNutrition] = useState<NutritionRow[]>([]);
@@ -18,6 +20,8 @@ export default function PhaseScreen() {
 	const [error, setError] = useState<string | null>(null);
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
+	const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
+
 	const loadData = async () => {
 		try {
 			let nutritionData = await getNutrition(user.id);
@@ -30,7 +34,7 @@ export default function PhaseScreen() {
 			if (nutritionData.length === 0) {
 				nutritionData = await addNutrition(user.id, today);
 			}
-			console.log(nutritionData)
+			//console.log(nutritionData);
 
 			setNutrition(nutritionData);
 			setCalories(nutritionData[0].calories || 0);
@@ -59,27 +63,41 @@ export default function PhaseScreen() {
 				const proteinMap = new Map(nutritionData.map(row => [row.date, row.protein]))
 				const c = (caloriesMap.get(formattedDate) || 0);
 				const p = (proteinMap.get(formattedDate) || 0);
-				await updateNutrition(user.id, c + cal, p + prot, formattedDate);
+
+				if (isRemoveActive) {
+					await updateNutrition(user.id, (c - cal) < 0 ? 0 : (c - cal), (p - prot) < 0 ? 0 : (p - prot), formattedDate);
+				} else {
+					await updateNutrition(user.id, c + cal, p + prot, formattedDate);
+				}
 				return;
 			}
-			await updateNutrition(user.id, calories + cal, protein + prot, formattedDate);
+
+			if (isRemoveActive) {
+				await updateNutrition(user.id, (calories - cal) < 0 ? 0 : (calories - cal), (protein - prot) < 0 ? 0 : (protein - prot), formattedDate);
+			} else {
+				await updateNutrition(user.id, calories + cal, protein + prot, formattedDate);
+			}
+
 			setCalories(calories + cal);
 			setProtein(protein + prot);
 		} catch (error) {
 			setError(`Failed to log calories: ${error}`);
 		} finally {
 			closeModal();
+			loadData();
 		}
 	};
 
 	const closeModal = () => {
 		setIsModalVisible(false);
 		setError(null);
+		setIsRemoveActive(false);
 	};
 
 	const openModal = () => {
 		setIsModalVisible(true);
 		setError(null);
+		setIsRemoveActive(false);
 	};
 
 	return (
@@ -97,6 +115,7 @@ export default function PhaseScreen() {
 							animated
 							showsText
 							formatText={() => `${calories}`}
+							textStyle={{ fontSize: 34 }}
 							style={styles.progress}
 						/>
 					</View>
@@ -111,6 +130,7 @@ export default function PhaseScreen() {
 							animated
 							showsText
 							formatText={() => `${protein}`}
+							textStyle={{ fontSize: 34 }}
 							style={styles.progress}
 						/>
 					</View>
@@ -128,6 +148,57 @@ export default function PhaseScreen() {
 			</View>
 			
 			<ScrollView>
+					<FlatList
+						data={nutrition.slice(1, 7)}
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						keyExtractor={(item) => item.date}
+						style={styles.list}
+						renderItem={({ item }) => {	
+							return (
+								<View style={styles.recentDaysContainer}>
+									<Text style={styles.dateText}>{formatDate(item.date).slice(0, 6)}</Text>
+									<View style={styles.progressContainer}>
+										<View>
+											<Text style={styles.progressTitleSmall}>Calories</Text>
+											<Circle
+												progress={(Number(item.calories || 0) / 3000) > 1 ? 1 : (Number(item.calories || 0) / 3000)}
+												size={60}
+												thickness={5}
+												borderWidth={0}
+												color="#20ca17"
+												animated
+												showsText
+												formatText={() => `${(item.calories || 0)}`}
+												textStyle={{ fontSize: 18 }}
+												style={styles.progress}
+											/>
+										</View>
+										<View>
+											<Text style={styles.progressTitleSmall}>Protein</Text>
+											<Circle
+												progress={(Number(item.protein || 0) / 150) > 1 ? 1 : (Number(item.protein || 0) / 150)}
+												size={60}
+												thickness={5}
+												borderWidth={0}
+												color="#20ca17"
+												animated
+												showsText
+												formatText={() => `${(item.protein || 0)}`}
+												textStyle={{ fontSize: 18 }}
+												style={styles.progress}
+											/>
+										</View>
+									</View>
+								</View>
+							)
+						}}
+						contentContainerStyle={styles.listContent}
+						ListEmptyComponent={
+							<Text style={styles.empty}>No exercises yet</Text>
+						}
+					/>
+
 				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
 				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
 				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
@@ -140,7 +211,9 @@ export default function PhaseScreen() {
 					visible={isModalVisible}
 					error={error}
 					dateInput={new Date(date)}
+					isRemoveActive={isRemoveActive}
 					setDateInput={setDate}
+					setIsRemoveActive={setIsRemoveActive}
 					onClose={closeModal}
 					onConfirm={logCalories}
 				/>
@@ -170,6 +243,7 @@ const styles = StyleSheet.create({
 	},
 	progressTitle: {
 		fontSize: 22,
+		fontWeight: 600,
 		textAlign: "center",
 		marginVertical: 10,
 	},
@@ -188,5 +262,39 @@ const styles = StyleSheet.create({
 		color: "#ffffff",
 		fontWeight: "600",
 		textAlign: "center",
+	},
+	recentDaysContainer: {
+		backgroundColor: "#e3e3e3",
+		padding: 2,
+		width: 160,
+		borderRadius: 12,
+		marginHorizontal: 4,
+		marginVertical: 12,
+	},
+	dateText: {
+		fontSize: 22,
+		fontWeight: 500,
+		textAlign: "center",
+		margin: "auto",
+		marginTop: 8,
+		marginBottom: 4,
+	},
+	progressTitleSmall: {
+		fontSize: 18,
+		textAlign: "center",
+		marginVertical: 8,
+	},
+	listContent: {
+		flexDirection: "row",
+		flexWrap: "nowrap",
+		flexGrow: 0,
+	},
+	list: {
+		flexGrow: 0,
+	},
+	empty: {
+		color: "#6b6b6b",
+		textAlign: "center",
+		marginTop: 24,
 	},
 });

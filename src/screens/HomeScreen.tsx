@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import { SetCount, WorkoutRow, getSetCountForCurrentWeek, getWorkouts } from "../services/database";
 import { Circle } from "react-native-progress";
+import { formatDate } from "../utils/Utils";
+
 
 export default function HomeScreen() {
 	const [setCounts, setSetCounts] = useState<SetCount[]>([]);
@@ -28,11 +30,6 @@ export default function HomeScreen() {
 	useEffect(() => {
 		loadData();
 	},[])
-
-	const formatDate = (date: string) => {
-		const parts = date.split("-");
-		return `${parts[2].padStart(2, "0")}.${parts[1].padStart(2, "0")}.${parts[0]}`
-	};
 
 	return (
 		<View style={styles.container}>

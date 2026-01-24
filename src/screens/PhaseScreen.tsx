@@ -2,43 +2,41 @@ import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-n
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
-import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
 import { useAuth } from "../auth/AuthContext";
-import LogCaloriesModal from "../modal/LogCaloriesModal";
 import { formatDate } from "../utils/Utils";
+import StartPhaseModal from "../modal/StartPhaseModal";
+import { getCurrentPhase, addPhase } from "../services/database";
+import ActivePhase from "../components/ActivePhase";
 
 
 export default function PhaseScreen() {
-	const [nutrition, setNutrition] = useState<NutritionRow[]>([]);
+	const [isPhaseActive, setIsPhaseActive] = useState<boolean>(false);
 	const { user } = useAuth();
-
-	const [calories, setCalories] = useState<number>(0);
-	const [protein, setProtein] = useState<number>(0);
-	const [date, setDate] = useState<Date>(new Date());
-	const today = new Date().toISOString().slice(0, 10);
-
 	const [error, setError] = useState<string | null>(null);
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-	const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
+	const [startDateInput, setStartDateInput] = useState<Date>(new Date());
+	const [endDateInput, setEndDateInput] = useState<Date | null>(null);
+	const [phaseInput, setPhaseInput] = useState<string>("maintain");
+	const [startingWeight, setStartingWeight] = useState<number>(0);
+	const [weightGoalInput, setWeightGoalInput] = useState<number | null>(null);
 
 	const loadData = async () => {
 		try {
-			let nutritionData = await getNutrition(user.id);
-
-			if (nutritionData.length > 0) {
-				if (nutritionData[0].date !== today) {
-					nutritionData = await addNutrition(user.id, today);
-				}
+			const currentPhaseData = await getCurrentPhase(user.id);
+			
+			if (currentPhaseData.length === 0) {
+				setIsPhaseActive(false);
+				return;
 			}
-			if (nutritionData.length === 0) {
-				nutritionData = await addNutrition(user.id, today);
-			}
-			//console.log(nutritionData);
+			console.log(currentPhaseData);
 
-			setNutrition(nutritionData);
-			setCalories(nutritionData[0].calories || 0);
-			setProtein(nutritionData[0].protein || 0);
+			setStartDateInput(new Date(currentPhaseData[0].start_date));
+			if (currentPhaseData[0].end_date) { setEndDateInput(new Date(currentPhaseData[0].end_date)); }
+			setPhaseInput(currentPhaseData[0].type);
+			setStartingWeight(currentPhaseData[0].starting_weight);
+			if (currentPhaseData[0].weight_goal) { setWeightGoalInput(currentPhaseData[0].weight_goal); }
+			setIsPhaseActive(true);
 		} catch (error) {
 			console.log(error);
 		}
@@ -48,174 +46,87 @@ export default function PhaseScreen() {
 		loadData();
 	}, []);
 
-	const logCalories = async (cal: number, prot: number) => { 
-		const formattedDate = date.toISOString().slice(0, 10);
-
-		try {
-			if (date.toISOString().slice(0, 10) !== today) {
-				let nutritionData = await getNutritionByDate(user.id, formattedDate);
-
-				if (nutritionData.length === 0) {
-					nutritionData = await addNutrition(user.id, formattedDate);
-				}
-
-				const caloriesMap = new Map(nutritionData.map(row => [row.date, row.calories]))
-				const proteinMap = new Map(nutritionData.map(row => [row.date, row.protein]))
-				const c = (caloriesMap.get(formattedDate) || 0);
-				const p = (proteinMap.get(formattedDate) || 0);
-
-				if (isRemoveActive) {
-					await updateNutrition(user.id, (c - cal) < 0 ? 0 : (c - cal), (p - prot) < 0 ? 0 : (p - prot), formattedDate);
-				} else {
-					await updateNutrition(user.id, c + cal, p + prot, formattedDate);
-				}
+	const startPhase = async () => {
+		const startDate = startDateInput.toISOString().slice(0, 10);
+		let endDate = null;
+		
+		if (endDateInput) {
+			endDate = endDateInput.toISOString().slice(0, 10);
+			if (startDate.localeCompare(endDate) === 1 || startDate.localeCompare(endDate) === 0) {
+				setError("End date can't be before the start date.");
 				return;
 			}
+		}
 
-			if (isRemoveActive) {
-				await updateNutrition(user.id, (calories - cal) < 0 ? 0 : (calories - cal), (protein - prot) < 0 ? 0 : (protein - prot), formattedDate);
-			} else {
-				await updateNutrition(user.id, calories + cal, protein + prot, formattedDate);
-			}
-
-			setCalories(calories + cal);
-			setProtein(protein + prot);
+		try {
+			await addPhase(user.id, phaseInput, startDate, endDate, startingWeight, weightGoalInput);
 		} catch (error) {
-			setError(`Failed to log calories: ${error}`);
+			console.log(error);
 		} finally {
 			closeModal();
 			loadData();
 		}
 	};
 
+	const endPhase = async () => {
+		
+		try {
+			
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
 	const closeModal = () => {
 		setIsModalVisible(false);
 		setError(null);
-		setIsRemoveActive(false);
 	};
 
 	const openModal = () => {
 		setIsModalVisible(true);
 		setError(null);
-		setIsRemoveActive(false);
 	};
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.nutritionContainer}>
-				<View style={styles.progressContainer}>
-					<View>
-						<Text style={styles.progressTitle}>Calories</Text>
-						<Circle
-							progress={(Number(calories || 0) / 3000) > 1 ? 1 : (Number(calories || 0) / 3000)}
-							size={120}
-							thickness={10}
-							borderWidth={0}
-							color="#20ca17"
-							animated
-							showsText
-							formatText={() => `${calories}`}
-							textStyle={{ fontSize: 34 }}
-							style={styles.progress}
-						/>
-					</View>
-					<View>
-						<Text style={styles.progressTitle}>Protein</Text>
-						<Circle
-							progress={(Number(protein || 0) / 150) > 1 ? 1 : (Number(protein || 0) / 150)}
-							size={120}
-							thickness={10}
-							borderWidth={0}
-							color="#20ca17"
-							animated
-							showsText
-							formatText={() => `${protein}`}
-							textStyle={{ fontSize: 34 }}
-							style={styles.progress}
-						/>
-					</View>
+			{isPhaseActive ? (
+				<ActivePhase 
+					error={error}
+					user={user.id}
+					startDateInput={startDateInput}
+					endDateInput={endDateInput}
+					phaseInput={phaseInput}
+					startingWeight={startingWeight}
+					weightGoalInput={weightGoalInput}
+					setStartDateInput={setStartDateInput}
+					setEndDateInput={setEndDateInput}
+					setPhaseInput={setPhaseInput}
+					setStartingWeight={setStartingWeight}
+					setWeightGoalInput={setWeightGoalInput}
+				/>
+			) : (
+				<View style={styles.phaseContainer}>
+					<Text style={styles.text}>No active phase</Text>
+					<Pressable style={styles.startButton} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+						<Text style={styles.startButtonText}>Start phase</Text>
+					</Pressable>
 				</View>
-
-				<Pressable  
-					style={styles.logButton} 
-					onPress={() => {
-						openModal(); 
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-					}}
-				>
-					<Text style={styles.logButtonText}>Log calories</Text>
-				</Pressable>
-			</View>
-			
-			<ScrollView>
-					<FlatList
-						data={nutrition.slice(1, 7)}
-						horizontal
-						showsHorizontalScrollIndicator={false}
-						keyExtractor={(item) => item.date}
-						style={styles.list}
-						renderItem={({ item }) => {	
-							return (
-								<View style={styles.recentDaysContainer}>
-									<Text style={styles.dateText}>{formatDate(item.date).slice(0, 6)}</Text>
-									<View style={styles.progressContainer}>
-										<View>
-											<Text style={styles.progressTitleSmall}>Calories</Text>
-											<Circle
-												progress={(Number(item.calories || 0) / 3000) > 1 ? 1 : (Number(item.calories || 0) / 3000)}
-												size={60}
-												thickness={5}
-												borderWidth={0}
-												color="#20ca17"
-												animated
-												showsText
-												formatText={() => `${(item.calories || 0)}`}
-												textStyle={{ fontSize: 18 }}
-												style={styles.progress}
-											/>
-										</View>
-										<View>
-											<Text style={styles.progressTitleSmall}>Protein</Text>
-											<Circle
-												progress={(Number(item.protein || 0) / 150) > 1 ? 1 : (Number(item.protein || 0) / 150)}
-												size={60}
-												thickness={5}
-												borderWidth={0}
-												color="#20ca17"
-												animated
-												showsText
-												formatText={() => `${(item.protein || 0)}`}
-												textStyle={{ fontSize: 18 }}
-												style={styles.progress}
-											/>
-										</View>
-									</View>
-								</View>
-							)
-						}}
-						contentContainerStyle={styles.listContent}
-						ListEmptyComponent={
-							<Text style={styles.empty}>No exercises yet</Text>
-						}
-					/>
-
-				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
-				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
-				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
-				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
-				<View style={{ width: 200, height: 100, backgroundColor: "#1e1e1e", borderRadius: 12, marginTop: 12 }}></View>
-			</ScrollView>
+			)}
 
 			{isModalVisible ? (
-				<LogCaloriesModal 
+				<StartPhaseModal 
 					visible={isModalVisible}
 					error={error}
-					dateInput={new Date(date)}
-					isRemoveActive={isRemoveActive}
-					setDateInput={setDate}
-					setIsRemoveActive={setIsRemoveActive}
+					startDateInput={startDateInput}
+					endDateInput={endDateInput}
+					phaseInput={phaseInput}
+					setStartDateInput={setStartDateInput}
+					setEndDateInput={setEndDateInput}
+					setPhaseInput={setPhaseInput}
+					setStartingWeight={setStartingWeight}
+					setWeightGoalInput={setWeightGoalInput}
 					onClose={closeModal}
-					onConfirm={logCalories}
+					onConfirm={startPhase}
 				/>
 			) : null}
 		</View>
@@ -229,28 +140,18 @@ const styles = StyleSheet.create({
 		justifyContent: "flex-start",
 		padding: 16,
 	},
-	nutritionContainer: {
-		marginBottom: 0,
-		borderBottomWidth: 1,
-		paddingBottom: 18,
-		borderColor: "#2c2c2c",
+	phaseContainer: {
 		width: "100%",
+		height: "100%",
 	},
-	progressContainer: {
-		flexDirection: "row",
-		justifyContent: "space-evenly",
-		marginBottom: 8,
-	},
-	progressTitle: {
-		fontSize: 22,
+	text: {
+		fontSize: 20,
 		fontWeight: 600,
 		textAlign: "center",
-		marginVertical: 10,
+		margin: "auto",
+		marginBottom: 10,
 	},
-	progress: {
-		marginHorizontal: 8,
-	},
-	logButton: {
+	startButton: {
 		backgroundColor: "#20ca17",
 		borderRadius: 10,
 		paddingVertical: 12,
@@ -258,31 +159,10 @@ const styles = StyleSheet.create({
 		margin: "auto",
 		marginTop: 10,
 	},
-	logButtonText: {
+	startButtonText: {
 		color: "#ffffff",
 		fontWeight: "600",
 		textAlign: "center",
-	},
-	recentDaysContainer: {
-		backgroundColor: "#e3e3e3",
-		padding: 2,
-		width: 160,
-		borderRadius: 12,
-		marginHorizontal: 4,
-		marginVertical: 12,
-	},
-	dateText: {
-		fontSize: 22,
-		fontWeight: 500,
-		textAlign: "center",
-		margin: "auto",
-		marginTop: 8,
-		marginBottom: 4,
-	},
-	progressTitleSmall: {
-		fontSize: 18,
-		textAlign: "center",
-		marginVertical: 8,
 	},
 	listContent: {
 		flexDirection: "row",

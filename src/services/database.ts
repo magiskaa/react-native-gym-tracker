@@ -42,6 +42,15 @@ export type NutritionRow = {
 	date: string;
 };
 
+export type PhaseRow = {
+	user: number;
+	type: string;
+	start_date: string;
+	end_date: string | null;
+	starting_weight: number;
+	weight_goal: number | null;
+};
+
 
 const db = SQLite.openDatabaseSync("gym.db");
 
@@ -55,6 +64,7 @@ export const initDb = async () => {
 			//"DROP TABLE IF EXISTS weight",
 			//"DROP TABLE IF EXISTS profile",
 			//"DROP TABLE IF EXISTS nutrition",
+			//"DROP TABLE IF EXISTS phase",
 			`
 			CREATE TABLE IF NOT EXISTS exercises (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,6 +122,19 @@ export const initDb = async () => {
 				date TEXT NOT NULL,
 				FOREIGN KEY(user) REFERENCES profile(id),
 				UNIQUE(user, date)
+			)
+			`,
+			`
+			CREATE TABLE IF NOT EXISTS phase (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user INTEGER NOT NULL,
+				type TEXT NOT NULL,
+				start_date TEXT NOT NULL,
+				end_date TEXT,
+				starting_weight REAL NOT NULL,
+				weight_goal REAL,
+				FOREIGN KEY(user) REFERENCES profile(id),
+				UNIQUE(user, start_date)
 			)
 			`
 		].join("; ") + ";"
@@ -315,6 +338,12 @@ export const getWeight = async () => {
 	});
 };
 
+export const getCurrentWeight = async () => {
+	return await db.getAllAsync<{weight: number}>(
+		"SELECT weight FROM weight ORDER BY date DESC LIMIT 1"
+	);
+};
+
 export const addWeight = async (date: string, weight: number) => {
 	await db.runAsync(
 		"INSERT INTO weight (date, weight) VALUES (?, ?)",
@@ -425,6 +454,55 @@ export const updateNutrition = async (user: number, calories: number, protein: n
 		AND date = ?
 		`,
 		[calories, protein, user, date]
+	);
+};
+
+/* 
+===============================================================================
+|                                    PHASE                                    |
+===============================================================================
+*/
+export const getCurrentPhase = async (user: number) => {
+	const today = new Date().toISOString().slice(0, 10);
+
+	return await db.getAllAsync<PhaseRow>(
+		`
+		SELECT 
+			user, 
+			type, 
+			start_date,
+			end_date,
+			starting_weight,
+			weight_goal
+		FROM phase
+		WHERE user = ?
+		AND end_date >= ? OR end_date = null
+		ORDER BY start_date DESC
+		LIMIT 1
+		`,
+		[user, today]
+	);
+};
+
+export const addPhase = async (user: number, type: string, start_date: string, end_date: string | null, starting_weight: number, weight_goal: number | null) => {
+	await db.runAsync(
+		`
+		INSERT INTO phase (user, type, start_date, end_date, starting_weight, weight_goal) 
+		VALUES (?, ?, ?, ?, ?, ?) 
+		`,
+		[user, type, start_date, end_date, starting_weight, weight_goal]
+	);
+};
+
+export const updatePhase = async (user: number, type: string, start_date: string, end_date: string | null, starting_weight: number, weight_goal: number | null) => {
+	await db.runAsync(
+		`
+		UPDATE phase
+		SET type = ?, start_date = ?, end_date = ?, starting_weight = ?, weight_goal = ?
+		WHERE user = ?
+		AND start_date = ?
+		`,
+		[type, start_date, end_date, starting_weight, weight_goal, user, start_date]
 	);
 };
 

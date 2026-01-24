@@ -1,0 +1,292 @@
+import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
+import { useEffect, useState } from "react";
+import * as Haptics from 'expo-haptics';
+import { Circle } from "react-native-progress";
+import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
+import { useAuth } from "../auth/AuthContext";
+import LogCaloriesModal from "../modal/LogCaloriesModal";
+import { formatDate } from "../utils/Utils";
+
+
+export default function NutritionScreen() {
+    const [nutrition, setNutrition] = useState<NutritionRow[]>([]);
+    const { user } = useAuth();
+
+    const [calories, setCalories] = useState<number>(0);
+    const [protein, setProtein] = useState<number>(0);
+    const [date, setDate] = useState<Date>(new Date());
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [error, setError] = useState<string | null>(null);
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+    const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
+
+    const loadData = async () => {
+        try {
+            let nutritionData = await getNutrition(user.id);
+
+            if (nutritionData.length > 0) {
+                if (nutritionData[0].date !== today) {
+                    nutritionData = await addNutrition(user.id, today);
+                }
+            }
+            if (nutritionData.length === 0) {
+                nutritionData = await addNutrition(user.id, today);
+            }
+            //console.log(nutritionData);
+
+            setNutrition(nutritionData);
+            setCalories(nutritionData[0].calories || 0);
+            setProtein(nutritionData[0].protein || 0);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const logCalories = async (cal: number, prot: number) => { 
+        const formattedDate = date.toISOString().slice(0, 10);
+
+        try {
+            if (date.toISOString().slice(0, 10) !== today) {
+                let nutritionData = await getNutritionByDate(user.id, formattedDate);
+
+                if (nutritionData.length === 0) {
+                    nutritionData = await addNutrition(user.id, formattedDate);
+                }
+
+                const caloriesMap = new Map(nutritionData.map(row => [row.date, row.calories]))
+                const proteinMap = new Map(nutritionData.map(row => [row.date, row.protein]))
+                const c = (caloriesMap.get(formattedDate) || 0);
+                const p = (proteinMap.get(formattedDate) || 0);
+
+                if (isRemoveActive) {
+                    await updateNutrition(user.id, (c - cal) < 0 ? 0 : (c - cal), (p - prot) < 0 ? 0 : (p - prot), formattedDate);
+                } else {
+                    await updateNutrition(user.id, c + cal, p + prot, formattedDate);
+                }
+                return;
+            }
+
+            if (isRemoveActive) {
+                await updateNutrition(user.id, (calories - cal) < 0 ? 0 : (calories - cal), (protein - prot) < 0 ? 0 : (protein - prot), formattedDate);
+            } else {
+                await updateNutrition(user.id, calories + cal, protein + prot, formattedDate);
+            }
+
+            setCalories(calories + cal);
+            setProtein(protein + prot);
+        } catch (error) {
+            setError(`Failed to log calories: ${error}`);
+        } finally {
+            closeModal();
+            loadData();
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalVisible(false);
+        setError(null);
+        setIsRemoveActive(false);
+    };
+
+    const openModal = () => {
+        setIsModalVisible(true);
+        setError(null);
+        setIsRemoveActive(false);
+    };
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.nutritionContainer}>
+                <View style={styles.progressContainer}>
+                    <View>
+                        <Text style={styles.progressTitle}>Calories</Text>
+                        <Circle
+                            progress={(Number(calories || 0) / 3000) > 1 ? 1 : (Number(calories || 0) / 3000)}
+                            size={120}
+                            thickness={10}
+                            borderWidth={0}
+                            color="#20ca17"
+                            animated
+                            showsText
+                            formatText={() => `${calories}`}
+                            textStyle={{ fontSize: 34 }}
+                            style={styles.progress}
+                        />
+                    </View>
+                    <View>
+                        <Text style={styles.progressTitle}>Protein</Text>
+                        <Circle
+                            progress={(Number(protein || 0) / 150) > 1 ? 1 : (Number(protein || 0) / 150)}
+                            size={120}
+                            thickness={10}
+                            borderWidth={0}
+                            color="#20ca17"
+                            animated
+                            showsText
+                            formatText={() => `${protein}`}
+                            textStyle={{ fontSize: 34 }}
+                            style={styles.progress}
+                        />
+                    </View>
+                </View>
+
+                <Pressable  
+                    style={styles.logButton} 
+                    onPress={() => {
+                        openModal(); 
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                    }}
+                >
+                    <Text style={styles.logButtonText}>Log calories</Text>
+                </Pressable>
+            </View>
+            
+            <FlatList
+                data={nutrition.slice(1, 7)}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item) => item.date}
+                style={styles.list}
+                renderItem={({ item }) => {	
+                    return (
+                        <View style={styles.recentDaysContainer}>
+                            <Text style={styles.dateText}>{formatDate(item.date).slice(0, 6)}</Text>
+                            <View style={styles.progressContainer}>
+                                <View>
+                                    <Text style={styles.progressTitleSmall}>Calories</Text>
+                                    <Circle
+                                        progress={(Number(item.calories || 0) / 3000) > 1 ? 1 : (Number(item.calories || 0) / 3000)}
+                                        size={60}
+                                        thickness={5}
+                                        borderWidth={0}
+                                        color="#20ca17"
+                                        animated
+                                        showsText
+                                        formatText={() => `${(item.calories || 0)}`}
+                                        textStyle={{ fontSize: 18 }}
+                                        style={styles.progress}
+                                    />
+                                </View>
+                                <View>
+                                    <Text style={styles.progressTitleSmall}>Protein</Text>
+                                    <Circle
+                                        progress={(Number(item.protein || 0) / 150) > 1 ? 1 : (Number(item.protein || 0) / 150)}
+                                        size={60}
+                                        thickness={5}
+                                        borderWidth={0}
+                                        color="#20ca17"
+                                        animated
+                                        showsText
+                                        formatText={() => `${(item.protein || 0)}`}
+                                        textStyle={{ fontSize: 18 }}
+                                        style={styles.progress}
+                                    />
+                                </View>
+                            </View>
+                        </View>
+                    )
+                }}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={
+                    <Text style={styles.empty}>No exercises yet</Text>
+                }
+            />
+
+            {isModalVisible ? (
+                <LogCaloriesModal 
+                    visible={isModalVisible}
+                    error={error}
+                    dateInput={new Date(date)}
+                    isRemoveActive={isRemoveActive}
+                    setDateInput={setDate}
+                    setIsRemoveActive={setIsRemoveActive}
+                    onClose={closeModal}
+                    onConfirm={logCalories}
+                />
+            ) : null}
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "flex-start",
+        padding: 16,
+    },
+    nutritionContainer: {
+        marginBottom: 0,
+        borderBottomWidth: 1,
+        paddingBottom: 18,
+        borderColor: "#2c2c2c",
+        width: "100%",
+    },
+    progressContainer: {
+        flexDirection: "row",
+        justifyContent: "space-evenly",
+        marginBottom: 8,
+    },
+    progressTitle: {
+        fontSize: 22,
+        fontWeight: 600,
+        textAlign: "center",
+        marginVertical: 10,
+    },
+    progress: {
+        marginHorizontal: 8,
+    },
+    logButton: {
+        backgroundColor: "#20ca17",
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        margin: "auto",
+        marginTop: 10,
+    },
+    logButtonText: {
+        color: "#ffffff",
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    recentDaysContainer: {
+        backgroundColor: "#e3e3e3",
+        padding: 2,
+        width: 160,
+        borderRadius: 12,
+        marginHorizontal: 4,
+        marginVertical: 12,
+    },
+    dateText: {
+        fontSize: 22,
+        fontWeight: 500,
+        textAlign: "center",
+        margin: "auto",
+        marginTop: 8,
+        marginBottom: 4,
+    },
+    progressTitleSmall: {
+        fontSize: 18,
+        textAlign: "center",
+        marginVertical: 8,
+    },
+    listContent: {
+        flexDirection: "row",
+        flexWrap: "nowrap",
+        flexGrow: 0,
+    },
+    list: {
+        flexGrow: 0,
+    },
+    empty: {
+        color: "#6b6b6b",
+        textAlign: "center",
+        marginTop: 24,
+    },
+});

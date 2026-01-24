@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from 'expo-haptics';
 import HomeScreen from "./src/screens/HomeScreen";
 import WorkoutScreen from "./src/screens/WorkoutScreen";
+import NutritionScreen from './src/screens/NutritionScreen';
 import PhaseScreen from "./src/screens/PhaseScreen";
 import StatsScreen from "./src/screens/StatsScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
@@ -45,6 +46,9 @@ function AppContent() {
                             case "Workout":
                                 iconName = "barbell";
                                 break;
+                            case "Nutrition":
+                                iconName = "nutrition";
+                                break;
                             case "Phase":
                                 iconName = "fitness";
                                 break;
@@ -67,6 +71,7 @@ function AppContent() {
             >
                 <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="Workout" component={WorkoutScreen} />
+                <Tab.Screen name="Nutrition" component={NutritionScreen} />
                 <Tab.Screen name="Phase" component={PhaseScreen} />
                 <Tab.Screen name="Stats" component={StatsScreen} />
                 <Tab.Screen name="Profile" component={ProfileScreen} />

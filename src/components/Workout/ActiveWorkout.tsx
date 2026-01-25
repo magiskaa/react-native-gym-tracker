@@ -16,9 +16,9 @@ import {
     addWorkout,
     addWorkoutExercise,
     ExerciseRow,
-} from "../services/database";
+} from "../../services/database";
 import { useEffect, useState } from "react";
-import { formatLocalDateISO } from "../utils/Utils";
+import { formatLocalDateISO } from "../../utils/Utils";
 
 type Props = {
     exercises: ExerciseRow[];
@@ -40,7 +40,6 @@ export default function ActiveWorkout({
     setSelectedIds
 }: Props) {
     const [startTime, setStartTime] = useState<number>(Date.now() / 1000);
-    const [duration, setDuration] = useState<number>(0);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
     
     const [setsByExercise, setSetsByExercise] = useState<Record<number, { reps: string; weight: string }[]>>({});
@@ -61,19 +60,21 @@ export default function ActiveWorkout({
         });
     }, [exercises, selectedIds]);
 
-    const formatDuration = () => {
-        const h = Math.floor(duration / 3600);
-        const m = Math.floor(duration / 60);
-        const s = Math.round(duration - h*3600 - m*60);
+    const formatDuration = (elapsed: number) => {
+        const h = Math.floor(elapsed / 3600);
+        const m = Math.floor(elapsed / 60);
+        const s = Math.round(elapsed - h*3600 - m*60);
         setFormattedDuration(`${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`)
     };
 
     useEffect(() => {
-        setTimeout(() => {
-            setDuration(Date.now() / 1000 - startTime);
-            formatDuration();
+        const interval = setInterval(() => {
+            const elapsed = Date.now() / 1000 - startTime;
+            formatDuration(elapsed);
         }, 1000);
-    });
+
+        return () => clearInterval(interval);
+    }, [startTime]);
 
     const addSetRow = (exerciseId: number) => {
         setValidationError(null);
@@ -294,7 +295,7 @@ export default function ActiveWorkout({
                 </View>
             </View>
         </TouchableWithoutFeedback>
-    )
+    );
 }
 
 const styles = StyleSheet.create({

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { WeightHistory } from "../services/database";
-import { formatDate } from "../utils/Utils";
+import { WeightHistory } from "../../services/database";
+import { formatDate } from "../../utils/Utils";
 
 type WeightChartProps = {
     history: WeightHistory[];

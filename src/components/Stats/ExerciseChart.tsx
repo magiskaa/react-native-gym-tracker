@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { ExerciseHistory } from "../services/database";
+import { ExerciseHistory } from "../../services/database";
 
 type ExerciseChartProps = {
     history: ExerciseHistory[];

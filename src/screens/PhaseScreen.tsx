@@ -1,13 +1,12 @@
 import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import * as Haptics from 'expo-haptics';
-import { Circle } from "react-native-progress";
 import { useAuth } from "../auth/AuthContext";
 import { formatLocalDateISO } from "../utils/Utils";
 import StartPhaseModal from "../modal/StartPhaseModal";
 import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";
-import ActivePhase from "../components/ActivePhase";
-import PhaseChart from "../components/PhaseChart";
+import ActivePhase from "../components/Phase/ActivePhase";
+import PhaseChart from "../components/Phase/PhaseChart";
 
 
 export default function PhaseScreen() {
@@ -48,7 +47,7 @@ export default function PhaseScreen() {
 		}
 	};
 
-	const loadWeightData = async (date: Date | null = startDate) => {
+	const loadWeightData = useCallback(async (date: Date | null = startDate) => {
 		if (!date) {
 			setPhaseWeightHistory([]);
 			return;
@@ -59,7 +58,7 @@ export default function PhaseScreen() {
 		} else {
 			setPhaseWeightHistory([]);
 		}
-	};
+	}, [startDate]);
 
 	useEffect(() => {
 		loadCurrentPhaseData().then((phaseStartDate) => loadWeightData(phaseStartDate));

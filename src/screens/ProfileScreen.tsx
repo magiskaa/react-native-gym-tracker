@@ -11,7 +11,7 @@ import {
 	Keyboard
 } from "react-native";
 import { useState, useEffect } from "react";
-import WeightChart from "../components/WeightChart";
+import WeightChart from "../components/Profile/WeightChart";
 import LogWeightModal from "../modal/LogWeightModal";
 import { WeightHistory, addWeight, getWeight, getProfile, updateProfile } from "../services/database";
 import * as ImagePicker from 'expo-image-picker';

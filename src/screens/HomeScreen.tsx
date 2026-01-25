@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View, FlatList } from "react-native";
-import { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { useCallback, useState } from "react";
 import { SetCount, WorkoutRow, getSetCountForCurrentWeek, getWorkouts } from "../services/database";
-import { Circle } from "react-native-progress";
-import { formatDate } from "../utils/Utils";
+import { useFocusEffect } from "@react-navigation/native";
+import SetsPerWeek from "../components/Home/SetsPerWeek";
+import RecentWorkouts from "../components/Home/RecentWorkouts";
 
 
 export default function HomeScreen() {
@@ -10,7 +11,7 @@ export default function HomeScreen() {
 	const [workouts, setWorkouts] = useState<WorkoutRow[]>([]);
 	const muscleGroups = ["Rinta", "Olkapäät", "Hauis", "Ojentajat", "Jalat", "Selkä", "Vatsat"];
 
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		try {
 			const setData = await getSetCountForCurrentWeek();
 			const setCountMap = new Map(setData.map(item => [item.muscle_group, item.setCount]));
@@ -23,66 +24,23 @@ export default function HomeScreen() {
 			const workoutData = await getWorkouts();
 			setWorkouts(workoutData);
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 		}
-	};
+	}, []);
 
-	useEffect(() => {
-		loadData();
-	},[])
+	useFocusEffect(
+		useCallback(() => {
+			loadData();
+		},[loadData])
+	);
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.title}>Sets / Week</Text>
-			<FlatList
-				data={setCounts}
-				horizontal
-				showsHorizontalScrollIndicator={false}
-				keyExtractor={(item) => item.muscle_group}
-				style={styles.list}
-				renderItem={({ item }) => {	
-					return (
-						<View style={styles.setsPerWeekContainer}>
-							<Text style={styles.muscleGroupText}>{item.muscle_group}</Text>
-							<Circle 
-								progress={(item.setCount / 10) > 1 ? 1 : (item.setCount / 10)}
-								size={84}
-								thickness={3}
-								borderWidth={0}
-								color="#20ca17"
-								animated
-								showsText
-								formatText={() => `${item.setCount} / 10`}
-							/>
-						</View>
-					)
-				}}
-				contentContainerStyle={styles.listContent}
-				ListEmptyComponent={
-					<Text style={styles.empty}>No exercises yet</Text>
-				}
+			<SetsPerWeek 
+				setCounts={setCounts}
 			/>
-
-			<Text style={styles.title}>Recent Workouts</Text>
-			<FlatList
-				data={workouts}
-				horizontal
-				showsHorizontalScrollIndicator={false}
-				keyExtractor={(item) => String(item.id)}
-				style={styles.list}
-				renderItem={({ item }) => {	
-					return (
-						<View style={styles.workoutContainer}>
-							<Text style={styles.workoutNameText}>{item.name}</Text>
-							<Text style={styles.workoutText}>{item.duration}</Text>
-							<Text style={styles.workoutText}>{formatDate(item.date)}</Text>
-						</View>
-					)
-				}}
-				contentContainerStyle={styles.listContent}
-				ListEmptyComponent={
-					<Text style={styles.empty}>No exercises yet</Text>
-				}
+			<RecentWorkouts 
+				workouts={workouts}
 			/>
 		</View>
 	);
@@ -115,12 +73,6 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		margin: "auto",
 		marginBottom: 4,
-	},
-	setCountText: {
-		fontSize: 18,
-		textAlign: "center",
-		margin: "auto",
-		marginTop: 4,
 	},
 	workoutContainer: {
 		backgroundColor: "#e3e3e3",

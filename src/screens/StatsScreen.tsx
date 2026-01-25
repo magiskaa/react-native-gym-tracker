@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory, ExerciseHistory } from "../services/database";
-import ExerciseChart from "../components/ExerciseChart";
+import ExerciseChart from "../components/Stats/ExerciseChart";
 import AddExerciseModal from "../modal/AddExerciseModal";
 import FilterExercisesModal from "../modal/FilterExercisesModal";
 

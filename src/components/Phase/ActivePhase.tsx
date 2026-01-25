@@ -12,9 +12,9 @@ import {
     Dimensions
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { updatePhase, getCurrentWeight } from "../services/database";
+import { updatePhase, getCurrentWeight } from "../../services/database";
 import { useEffect, useState, useCallback } from "react";
-import { formatDate, formatLocalDateISO, capitalize, dayDiff } from "../utils/Utils";
+import { formatDate, formatLocalDateISO, capitalize, dayDiff } from "../../utils/Utils";
 import { Bar } from "react-native-progress";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useFocusEffect } from "@react-navigation/native";
@@ -174,7 +174,8 @@ const styles = StyleSheet.create({
     phaseManagementContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginBottom: 8,
+        marginBottom: 4,
+        marginTop: -6,
     },
     phaseInfoContainer: {
         backgroundColor: "#e3e3e3",

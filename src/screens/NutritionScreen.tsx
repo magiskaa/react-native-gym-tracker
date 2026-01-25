@@ -34,7 +34,6 @@ export default function NutritionScreen() {
             if (nutritionData.length === 0) {
                 nutritionData = await addNutrition(user.id, today);
             }
-            //console.log(nutritionData);
 
             setNutrition(nutritionData);
             setCalories(nutritionData[0].calories || 0);

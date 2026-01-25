@@ -8,7 +8,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { ExerciseRow, getExercises } from "../services/database";
 import ExerciseSelectModal from "../modal/ExerciseSelectModal";
-import ActiveWorkout from "../components/ActiveWorkout";
+import ActiveWorkout from "../components/Workout/ActiveWorkout";
 
 
 export default function WorkoutScreen() {

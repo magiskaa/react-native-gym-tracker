@@ -18,6 +18,7 @@ import {
     ExerciseRow,
 } from "../services/database";
 import { useEffect, useState } from "react";
+import { formatLocalDateISO } from "../utils/Utils";
 
 type Props = {
     exercises: ExerciseRow[];
@@ -137,7 +138,7 @@ export default function ActiveWorkout({
         }
 
         try {
-            const date = new Date().toISOString().substring(0, 10);
+            const date = formatLocalDateISO(new Date());
             const duration = formattedDuration;
             const workoutName = name.trim() || "Workout";
 

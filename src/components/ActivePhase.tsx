@@ -13,84 +13,100 @@ import {
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { updatePhase, getCurrentWeight } from "../services/database";
-import { useEffect, useState } from "react";
-import { formatDate, capitalize, dayDiff } from "../utils/Utils";
+import { useEffect, useState, useCallback } from "react";
+import { formatDate, formatLocalDateISO, capitalize, dayDiff } from "../utils/Utils";
 import { Bar } from "react-native-progress";
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { useFocusEffect } from "@react-navigation/native";
 
 type Props = {
     error: string | null;
     user: number;
-    startDateInput: Date;
-    endDateInput: Date | null;
-    phaseInput: string;
+    startDate: Date;
+    endDate: Date | null;
+    phase: string;
     startingWeight: number;
-    weightGoalInput: number | null;
-    setStartDateInput: (date: Date) => void;
-    setEndDateInput: (date: Date | null) => void;
-    setPhaseInput: (phase: string) => void;
+    weightGoal: number | null;
+    setStartDate: (date: Date) => void;
+    setEndDate: (date: Date | null) => void;
+    setPhase: (phase: string) => void;
     setStartingWeight: (weight: number) => void;
-    setWeightGoalInput: (goal: number | null) => void;
+    setWeightGoal: (goal: number | null) => void;
+    onWeightUpdate: () => void;
 };
 
 export default function ActivePhase({
     error,
     user,
-    startDateInput,
-    endDateInput,
-    phaseInput,
+    startDate,
+    endDate,
+    phase,
     startingWeight,
-    weightGoalInput,
-    setStartDateInput,
-    setEndDateInput, 
-    setPhaseInput,
+    weightGoal,
+    setStartDate,
+    setEndDate, 
+    setPhase,
     setStartingWeight,
-    setWeightGoalInput,
+    setWeightGoal,
+    onWeightUpdate
 }: Props) {
     const [phaseProgress, setPhaseProgress] = useState<number>(0);
     const [phaseWeightProgress, setPhaseWeightProgress] = useState<number>(0);
+    const [currentWeight, setCurrentWeight] = useState<number | null>(null);
 
     const screenWidth = Dimensions.get("window").width;
 
     const loadData = async () => {
         try {
             const weight = await getCurrentWeight();
+            setCurrentWeight(weight[0].weight || null);
             return weight[0].weight || null;
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return null;
         }
     };
 
     const updateCurrentPhase = async () => {
-		//const startDate = startDateInput.toISOString().slice(0, 10);
-		//const endDate = endDateInput.toISOString().slice(0, 10);
-
-
-        //await updatePhase(user, phaseInput, startDate, endDate, weightGoalInput);
+		//const startDate = startDate.toISOString().slice(0, 10);
+		//const endDate = endDate.toISOString().slice(0, 10);
+        //await updatePhase(user, phase, startDate, endDate, startingWeight, weightGoal);
     };
 
     const calculatePhaseProgress = (currentWeight: number | null) => {
-        if (endDateInput) { 
-            const daysInPhase = dayDiff(startDateInput, endDateInput);
-            const daysToGo = dayDiff(new Date(), endDateInput);
-            setPhaseProgress(Number((daysToGo / daysInPhase).toFixed(2)));
+        if (endDate) { 
+            const daysInPhase = dayDiff(startDate, endDate);
+            const daysToGo = dayDiff(new Date(), endDate);
+            setPhaseProgress(Number(((daysInPhase - daysToGo) / daysInPhase).toFixed(2)));
         }
 
-        if (weightGoalInput && currentWeight) {
-            setPhaseWeightProgress(Number(((currentWeight - startingWeight) / (weightGoalInput - startingWeight)).toFixed(2)));
+        if (weightGoal && currentWeight) {
+            setPhaseWeightProgress(Number(((currentWeight - startingWeight) / (weightGoal - startingWeight)).toFixed(2)));
         }
     };
 
-    useEffect(() => {
-        loadData().then((w) => calculatePhaseProgress(w));
-    }, [startDateInput, endDateInput, weightGoalInput, startingWeight]);
+    useFocusEffect(
+        useCallback(() => {
+            loadData().then((w) => calculatePhaseProgress(w));
+            onWeightUpdate();
+        }, [startDate, endDate, weightGoal, startingWeight, onWeightUpdate])
+    );
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
-                {endDateInput ? (
+                <View style={styles.phaseManagementContainer}>
+                    <Pressable>
+                        <FontAwesome6 name="trash-can" size={24} color="red" />
+                    </Pressable>
+                    <Pressable>
+                        <FontAwesome6 name="pencil" size={24} color="black" />
+                    </Pressable>
+                </View>
+
+                {endDate ? (
                     <View>
-                        <Text style={styles.centeredText}>{phaseProgress * 100}%</Text>
+                        <Text style={styles.centeredText}>{formatDate(formatLocalDateISO(new Date()))}</Text>
                         <Bar 
                             progress={phaseProgress}
                             animated
@@ -102,9 +118,9 @@ export default function ActivePhase({
                         />
                     </View>
                 ) : null}
-                {weightGoalInput ? (
+                {weightGoal ? (
                     <View>
-                        <Text style={styles.centeredText}>{phaseWeightProgress * 100}%</Text>
+                        <Text style={styles.centeredText}>{currentWeight}kg</Text>
                         <Bar 
                             progress={phaseWeightProgress}
                             animated
@@ -118,26 +134,28 @@ export default function ActivePhase({
                 ) : null}
                 
                 <View style={styles.phaseInfoContainer}>
-                    <Text style={styles.phaseText}>{capitalize(phaseInput)}</Text>
+                    <Text style={styles.phaseText}>{capitalize(phase)}</Text>
                     <View style={styles.dateContainer}>
                         <View>
-                            <Text style={styles.centeredText}>Start date:</Text>
-                            <Text style={styles.dateText}>{formatDate(startDateInput.toISOString().slice(0, 10))}</Text>
+                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>Start date:</Text>
+                            <Text style={styles.dateText}>{formatDate(formatLocalDateISO(startDate))}</Text>
                         </View>
                         <View>
-                            <Text style={styles.centeredText}>Starting weight:</Text>
+                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight:</Text>
                             <Text style={styles.weightText}>{startingWeight.toString()}kg</Text>
                         </View>
                         <View>
-                            <Text style={styles.centeredText}>Weight goal:</Text>
-                            <Text style={styles.weightText}>{weightGoalInput ? weightGoalInput.toString() : "?"}kg</Text>
+                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal:</Text>
+                            <Text style={styles.weightText}>{weightGoal ? weightGoal.toString() : "?"}kg</Text>
                         </View>
                         <View>
-                            <Text style={styles.centeredText}>End date:</Text>
-                            <Text style={styles.dateText}>{endDateInput ? formatDate(endDateInput.toISOString().slice(0, 10)) : "?"}</Text>
+                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>End date:</Text>
+                            <Text style={styles.dateText}>{endDate ? formatDate(formatLocalDateISO(endDate)) : "?"}</Text>
                         </View>
                     </View>
                 </View>
+
+                
             </View>
         </TouchableWithoutFeedback>
     );
@@ -153,8 +171,15 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         textAlign: "center"
     },
+    phaseManagementContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 8,
+    },
     phaseInfoContainer: {
-        width: "100%",
+        backgroundColor: "#e3e3e3",
+        borderRadius: 12,
+        padding: 6,
     },
     phaseText: {
         textAlign: "center",
@@ -182,5 +207,7 @@ const styles = StyleSheet.create({
     },
     centeredText: {
         textAlign: "center",
+        fontSize: 12,
+        marginVertical: 2,
     },
 });

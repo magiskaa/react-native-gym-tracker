@@ -5,7 +5,7 @@ import { Circle } from "react-native-progress";
 import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
 import { useAuth } from "../auth/AuthContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
-import { formatDate } from "../utils/Utils";
+import { formatDate, formatLocalDateISO } from "../utils/Utils";
 
 
 export default function NutritionScreen() {
@@ -15,7 +15,7 @@ export default function NutritionScreen() {
     const [calories, setCalories] = useState<number>(0);
     const [protein, setProtein] = useState<number>(0);
     const [date, setDate] = useState<Date>(new Date());
-    const today = new Date().toISOString().slice(0, 10);
+    const today = formatLocalDateISO(new Date());
 
     const [error, setError] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
@@ -49,10 +49,10 @@ export default function NutritionScreen() {
     }, []);
 
     const logCalories = async (cal: number, prot: number) => { 
-        const formattedDate = date.toISOString().slice(0, 10);
+        const formattedDate = formatLocalDateISO(date);
 
         try {
-            if (date.toISOString().slice(0, 10) !== today) {
+            if (formatLocalDateISO(date) !== today) {
                 let nutritionData = await getNutritionByDate(user.id, formattedDate);
 
                 if (nutritionData.length === 0) {
@@ -126,7 +126,7 @@ export default function NutritionScreen() {
                             size={120}
                             thickness={10}
                             borderWidth={0}
-                            color="#20ca17"
+                            color="#4a9eff"
                             animated
                             showsText
                             formatText={() => `${protein}`}
@@ -180,7 +180,7 @@ export default function NutritionScreen() {
                                         size={60}
                                         thickness={5}
                                         borderWidth={0}
-                                        color="#20ca17"
+                                        color="#4a9eff"
                                         animated
                                         showsText
                                         formatText={() => `${(item.protein || 0)}`}

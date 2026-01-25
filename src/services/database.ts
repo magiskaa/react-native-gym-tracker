@@ -328,19 +328,27 @@ export const getWeight = async () => {
         "SELECT weight, date FROM weight ORDER BY date ASC"
     );
 
-	return history.map(row => {
-		const [month, day] = row.date.slice(5).split("-");
-
-		return {
-			date: `${parseInt(day)}.${parseInt(month)}.`,
-			weight: row.weight,
-		}
-	});
+	return history.map(row => ({
+		date: row.date,
+		weight: row.weight,
+	}));
 };
 
 export const getCurrentWeight = async () => {
 	return await db.getAllAsync<{weight: number}>(
 		"SELECT weight FROM weight ORDER BY date DESC LIMIT 1"
+	);
+};
+
+export const getCurrentPhaseWeight = async (start_date: string) => {
+	return await db.getAllAsync<WeightHistory>(
+		`
+		SELECT weight, date 
+		FROM weight
+		WHERE date >= ?
+		ORDER BY date ASC
+		`,
+		[start_date]
 	);
 };
 

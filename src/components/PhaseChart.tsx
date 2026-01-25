@@ -5,9 +5,11 @@ import { formatDate } from "../utils/Utils";
 
 type WeightChartProps = {
     history: WeightHistory[];
+    startingWeight: number;
+    weightGoal: number | null;
 };
 
-export default function WeightChart({ history }: WeightChartProps) {
+export default function PhaseChart({ history, startingWeight, weightGoal }: WeightChartProps) {
     if (history.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -32,16 +34,16 @@ export default function WeightChart({ history }: WeightChartProps) {
                 strokeWidth: 2,
                 withDots: true,
             },
-            /* {
-                data: [80],
+            {
+                data: [startingWeight],
                 withDots: false,
                 strokeWidth: 0,
             },
             {
-                data: [95],
+                data: [weightGoal || startingWeight + 5],
                 withDots: false,
                 strokeWidth: 0,
-            }, */
+            },
         ],
     };
 

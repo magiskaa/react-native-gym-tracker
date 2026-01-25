@@ -20,6 +20,7 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from '../auth/AuthContext';
+import { formatLocalDateISO } from "../utils/Utils";
 
 
 export default function ProfileScreen() {
@@ -100,7 +101,7 @@ export default function ProfileScreen() {
 		}
 
 		try {
-			const date = dateInput.toISOString().substring(0, 10);
+			const date = formatLocalDateISO(dateInput);
 			const weight = Number(weightInput.replace(",", "."));
 
 			await addWeight(date, weight);

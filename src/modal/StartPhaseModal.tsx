@@ -19,14 +19,14 @@ const Item: any = Picker.Item;
 type Props = {
     visible: boolean;
     error: string | null;
-    startDateInput: Date;
-    endDateInput: Date | null;
-    phaseInput: string;
-    setStartDateInput: (date: Date) => void;
-    setEndDateInput: (date: Date | null) => void;
-    setPhaseInput: (phase: string) => void;
+    startDate: Date;
+    endDate: Date | null;
+    phase: string;
+    setStartDate: (date: Date) => void;
+    setEndDate: (date: Date | null) => void;
+    setPhase: (phase: string) => void;
     setStartingWeight: (weight: number) => void;
-    setWeightGoalInput: (goal: number | null) => void;
+    setWeightGoal: (goal: number | null) => void;
     onClose: () => void;
     onConfirm: () => void;
 };
@@ -34,14 +34,14 @@ type Props = {
 export default function StartPhaseModal({ 
     visible, 
     error,
-    startDateInput,
-    endDateInput,
-    phaseInput,
-    setStartDateInput,
-    setEndDateInput, 
-    setPhaseInput,
+    startDate,
+    endDate,
+    phase,
+    setStartDate,
+    setEndDate, 
+    setPhase,
     setStartingWeight,
-    setWeightGoalInput,
+    setWeightGoal,
     onClose,
     onConfirm
 }: Props) {
@@ -61,11 +61,11 @@ export default function StartPhaseModal({
                             <Text style={styles.modalTitle}>Start Phase</Text>
 
                             <Pressable onPress={() => { 
-                                setStartDateInput(new Date());
-                                setEndDateInput(null);
-                                setPhaseInput("maintain");
+                                setStartDate(new Date());
+                                setEndDate(null);
+                                setPhase("maintain");
                                 setStartingWeight(0);
-                                setWeightGoalInput(null);
+                                setWeightGoal(null);
                                 onClose(); 
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             }}>
@@ -74,8 +74,8 @@ export default function StartPhaseModal({
                         </View>
 
                         <Picker
-                            selectedValue={phaseInput}
-                            onValueChange={(v) => setPhaseInput(v)}
+                            selectedValue={phase}
+                            onValueChange={(v) => setPhase(v)}
                             style={{marginBottom: -12, marginTop: -32}}
                         >
                             <Item label="Bulk" value="bulk" />
@@ -83,15 +83,15 @@ export default function StartPhaseModal({
                             <Item label="Cut" value="cut" />
                         </Picker>
                         
-                        <TextInput 
+                        <TextInput
                             onChangeText={(value) => setStartingWeight(Number(value.replace(",", ".")))}
                             placeholder="Starting weight"
                             placeholderTextColor="#8b8b8b"
                             keyboardType="numeric"
                             style={styles.input}
                         />
-                        <TextInput 
-                            onChangeText={(value) => setWeightGoalInput(Number(value.replace(",", ".")))}
+                        <TextInput
+                            onChangeText={(value) => setWeightGoal(Number(value.replace(",", ".")))}
                             placeholder="Weight goal (optional)"
                             placeholderTextColor="#8b8b8b"
                             keyboardType="numeric"
@@ -108,9 +108,9 @@ export default function StartPhaseModal({
 
                         {isEndDateActive ? (
                             <DateTimePicker
-                                value={endDateInput ? endDateInput : new Date()}
+                                value={endDate ? endDate : new Date()}
                                 onChange={(event, selectedDate) => {
-                                    if (selectedDate) setEndDateInput(selectedDate);
+                                    if (selectedDate) setEndDate(selectedDate);
                                 }}
                                 mode="date"
                                 display="spinner"
@@ -119,9 +119,9 @@ export default function StartPhaseModal({
                             />
                         ) : (
                             <DateTimePicker
-                                value={startDateInput}
+                                value={startDate}
                                 onChange={(event, selectedDate) => {
-                                    if (selectedDate) setStartDateInput(selectedDate);
+                                    if (selectedDate) setStartDate(selectedDate);
                                 }}
                                 mode="date"
                                 display="spinner"

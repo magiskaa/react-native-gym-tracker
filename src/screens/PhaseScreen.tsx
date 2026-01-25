@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import { useAuth } from "../auth/AuthContext";
-import { formatDate } from "../utils/Utils";
+import { formatLocalDateISO } from "../utils/Utils";
 import StartPhaseModal from "../modal/StartPhaseModal";
-import { getCurrentPhase, addPhase } from "../services/database";
+import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";
 import ActivePhase from "../components/ActivePhase";
+import PhaseChart from "../components/PhaseChart";
 
 
 export default function PhaseScreen() {
@@ -15,56 +16,74 @@ export default function PhaseScreen() {
 	const [error, setError] = useState<string | null>(null);
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-	const [startDateInput, setStartDateInput] = useState<Date>(new Date());
-	const [endDateInput, setEndDateInput] = useState<Date | null>(null);
-	const [phaseInput, setPhaseInput] = useState<string>("maintain");
+	const [startDate, setStartDate] = useState<Date>(new Date());
+	const [endDate, setEndDate] = useState<Date | null>(null);
+	const [phase, setPhase] = useState<string>("maintain");
 	const [startingWeight, setStartingWeight] = useState<number>(0);
-	const [weightGoalInput, setWeightGoalInput] = useState<number | null>(null);
+	const [weightGoal, setWeightGoal] = useState<number | null>(null);
 
-	const loadData = async () => {
+	const [phaseWeightHistory, setPhaseWeightHistory] = useState<WeightHistory[]>([]);
+
+	const loadCurrentPhaseData = async () => {
 		try {
 			const currentPhaseData = await getCurrentPhase(user.id);
-			
 			if (currentPhaseData.length === 0) {
 				setIsPhaseActive(false);
-				return;
+				setPhaseWeightHistory([]);
+				return null;
 			}
-			console.log(currentPhaseData);
 
-			setStartDateInput(new Date(currentPhaseData[0].start_date));
-			if (currentPhaseData[0].end_date) { setEndDateInput(new Date(currentPhaseData[0].end_date)); }
-			setPhaseInput(currentPhaseData[0].type);
+			const phaseStartDate = new Date(currentPhaseData[0].start_date);
+			setStartDate(phaseStartDate);
+			if (currentPhaseData[0].end_date) { setEndDate(new Date(currentPhaseData[0].end_date)); }
+			setPhase(currentPhaseData[0].type);
 			setStartingWeight(currentPhaseData[0].starting_weight);
-			if (currentPhaseData[0].weight_goal) { setWeightGoalInput(currentPhaseData[0].weight_goal); }
+			if (currentPhaseData[0].weight_goal) { setWeightGoal(currentPhaseData[0].weight_goal); }
+
 			setIsPhaseActive(true);
+			return phaseStartDate;
 		} catch (error) {
-			console.log(error);
+			console.error(error);
+			return null;
+		}
+	};
+
+	const loadWeightData = async (date: Date | null = startDate) => {
+		if (!date) {
+			setPhaseWeightHistory([]);
+			return;
+		}
+		const history = await getCurrentPhaseWeight(formatLocalDateISO(date));
+		if (history.length !== 0) {
+			setPhaseWeightHistory(history);
+		} else {
+			setPhaseWeightHistory([]);
 		}
 	};
 
 	useEffect(() => {
-		loadData();
-	}, []);
+		loadCurrentPhaseData().then((phaseStartDate) => loadWeightData(phaseStartDate));
+	}, [user.id]);
 
 	const startPhase = async () => {
-		const startDate = startDateInput.toISOString().slice(0, 10);
-		let endDate = null;
+		const start = formatLocalDateISO(startDate);
+		let end = null;
 		
-		if (endDateInput) {
-			endDate = endDateInput.toISOString().slice(0, 10);
-			if (startDate.localeCompare(endDate) === 1 || startDate.localeCompare(endDate) === 0) {
+		if (endDate) {
+			end = formatLocalDateISO(endDate);
+			if (start.localeCompare(end) === 1 || start.localeCompare(end) === 0) {
 				setError("End date can't be before the start date.");
 				return;
 			}
 		}
 
 		try {
-			await addPhase(user.id, phaseInput, startDate, endDate, startingWeight, weightGoalInput);
+			await addPhase(user.id, phase, start, end, startingWeight, weightGoal);
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 		} finally {
 			closeModal();
-			loadData();
+			loadCurrentPhaseData().then((phaseStartDate) => loadWeightData(phaseStartDate));
 		}
 	};
 
@@ -90,20 +109,29 @@ export default function PhaseScreen() {
 	return (
 		<View style={styles.container}>
 			{isPhaseActive ? (
-				<ActivePhase 
-					error={error}
-					user={user.id}
-					startDateInput={startDateInput}
-					endDateInput={endDateInput}
-					phaseInput={phaseInput}
-					startingWeight={startingWeight}
-					weightGoalInput={weightGoalInput}
-					setStartDateInput={setStartDateInput}
-					setEndDateInput={setEndDateInput}
-					setPhaseInput={setPhaseInput}
-					setStartingWeight={setStartingWeight}
-					setWeightGoalInput={setWeightGoalInput}
-				/>
+				<View>
+					<ActivePhase 
+						error={error}
+						user={user.id}
+						startDate={startDate}
+						endDate={endDate}
+						phase={phase}
+						startingWeight={startingWeight}
+						weightGoal={weightGoal}
+						setStartDate={setStartDate}
+						setEndDate={setEndDate}
+						setPhase={setPhase}
+						setStartingWeight={setStartingWeight}
+						setWeightGoal={setWeightGoal}
+						onWeightUpdate={loadWeightData}
+					/>
+
+					<PhaseChart 
+						history={phaseWeightHistory}
+						startingWeight={startingWeight}
+						weightGoal={weightGoal}
+					/>
+				</View>
 			) : (
 				<View style={styles.phaseContainer}>
 					<Text style={styles.text}>No active phase</Text>
@@ -117,14 +145,14 @@ export default function PhaseScreen() {
 				<StartPhaseModal 
 					visible={isModalVisible}
 					error={error}
-					startDateInput={startDateInput}
-					endDateInput={endDateInput}
-					phaseInput={phaseInput}
-					setStartDateInput={setStartDateInput}
-					setEndDateInput={setEndDateInput}
-					setPhaseInput={setPhaseInput}
+					startDate={startDate}
+					endDate={endDate}
+					phase={phase}
+					setStartDate={setStartDate}
+					setEndDate={setEndDate}
+					setPhase={setPhase}
 					setStartingWeight={setStartingWeight}
-					setWeightGoalInput={setWeightGoalInput}
+					setWeightGoal={setWeightGoal}
 					onClose={closeModal}
 					onConfirm={startPhase}
 				/>

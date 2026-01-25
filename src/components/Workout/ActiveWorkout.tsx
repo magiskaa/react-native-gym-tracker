@@ -7,16 +7,12 @@ import {
     TextInput,
     TouchableWithoutFeedback,
     Keyboard,
+    Alert,
     KeyboardAvoidingView,
     Platform
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import {
-    addSet,
-    addWorkout,
-    addWorkoutExercise,
-    ExerciseRow,
-} from "../../services/database";
+import { addSet, addWorkout, addWorkoutExercise, ExerciseRow } from "../../services/database";
 import { useEffect, useState } from "react";
 import { formatLocalDateISO } from "../../utils/Utils";
 
@@ -276,7 +272,14 @@ export default function ActiveWorkout({
                     <Text style={styles.durationText}>{formattedDuration}</Text>
                     <Pressable 
                         style={styles.footerButton}
-                        onPress={() => { deleteWorkout(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
+                        onPress={() => { 
+                            Alert.alert(
+                                "Delete workout?", "Are you sure you want to delete this workout?", 
+                                [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteWorkout }],
+                                { cancelable: true }
+                            ); 
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                        }}
                     >
                         <Text style={styles.buttonText}>Delete</Text>
                     </Pressable>

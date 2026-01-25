@@ -25,7 +25,7 @@ export default function SetsPerWeek({ setCounts }: Props) {
                                 size={84}
                                 thickness={3}
                                 borderWidth={0}
-                                color="#20ca17"
+                                color={item.setCount >= 10 ? "#20ca17" : "#4a9eff"}
                                 animated
                                 showsText
                                 formatText={() => `${item.setCount} / 10`}

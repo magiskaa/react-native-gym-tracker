@@ -22,7 +22,6 @@ export default function StatsScreen() {
 	const [muscleGroup, setMuscleGroup] = useState<string>("");
 
 	const [latestSessions, setLatestSessions] = useState<Record<number, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
-	const [previewLoading, setPreviewLoading] = useState<Record<number, boolean>>({});
 
 	const [exerciseHistories, setExerciseHistories] = useState<Record<number, ExerciseHistory[]>>({});
 
@@ -47,7 +46,6 @@ export default function StatsScreen() {
 
 	const loadExerciseHistory = async (exerciseId: number) => {
 		try {
-			setPreviewLoading((prev) => ({ ...prev, [exerciseId]: true }));
 			const session = await getLatestExerciseSession(exerciseId);
 			setLatestSessions((prev) => ({ ...prev, [exerciseId]: session }));
 			
@@ -57,8 +55,6 @@ export default function StatsScreen() {
 			console.error("Failed to load latest session", e);
 			setLatestSessions((prev) => ({ ...prev, [exerciseId]: null }));
 			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: [] }));
-		} finally {
-			setPreviewLoading((prev) => ({ ...prev, [exerciseId]: false }));
 		}
 	};
 
@@ -156,16 +152,14 @@ export default function StatsScreen() {
 							</View>
 							{isExpanded ? (
 								<View style={styles.statsPreview}>
-									{previewLoading[item.id] ? (
-										<Text style={styles.statsText}>Loading…</Text>
-									) : latestSessions[item.id] == null ? (
+									{latestSessions[item.id] == null ? (
 										<Text style={styles.statsText}>No logged sets yet</Text>
 									) : (
 										<View>
 											<Text style={styles.statsText}>Latest session: {latestSessions[item.id]!.workoutDate}</Text>
 											{latestSessions[item.id]!.sets.map((s, idx) => (
 												<Text key={idx} style={styles.statsText}>
-													Set {idx + 1}: {s.reps} reps @ {s.weight}
+													Set {idx + 1}: {s.reps} reps @ {s.weight}kg
 												</Text>
 											))}
 											<ExerciseChart

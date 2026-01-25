@@ -105,12 +105,12 @@ export default function ProfileScreen() {
 			const weight = Number(weightInput.replace(",", "."));
 
 			await addWeight(date, weight);
-			await loadData();
 		} catch (error) {
 			setError(`Failed to log weight: ${error}`);
 		} finally {
 			setIsWeightModalVisible(false);
 			setWeightInput("");
+			loadData();
 		}
 	};
 

@@ -6,6 +6,7 @@ import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNut
 import { useAuth } from "../auth/AuthContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
 import { formatDate, formatLocalDateISO } from "../utils/Utils";
+import NutritionChart from "../components/Nutrition/NutritionChart";
 
 
 export default function NutritionScreen() {
@@ -195,6 +196,10 @@ export default function NutritionScreen() {
                 ListEmptyComponent={
                     <Text style={styles.empty}>No exercises yet</Text>
                 }
+            />
+
+            <NutritionChart 
+                history={nutrition}
             />
 
             {isModalVisible ? (

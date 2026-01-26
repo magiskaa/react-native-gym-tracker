@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/authContext';
 import { formatLocalDateISO } from "../utils/Utils";
 import { CommonStyles } from "../styles/CommonStyles";
 
@@ -217,11 +217,14 @@ export default function ProfileScreen() {
 
 				<WeightChart history={history} />
 				<Pressable 
-					style={CommonStyles.button} 
 					onPress={() => {
 						openModal(); 
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
 					}}
+					style={({ pressed }) => [
+						CommonStyles.button,
+						pressed && CommonStyles.buttonPressed
+					]}
 				>
 					<Text style={CommonStyles.buttonText}>Log weight</Text>
 				</Pressable>

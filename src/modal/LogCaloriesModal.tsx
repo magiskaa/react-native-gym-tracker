@@ -39,10 +39,6 @@ export default function LogCaloriesModal({
     const [calories, setCalories] = useState<number>(0);
     const [protein, setProtein] = useState<number>(0);
 
-    const handleOnConfirm = () => {
-        onConfirm(calories, protein);
-    };
-
     return (
         <Modal
             visible={visible}
@@ -97,7 +93,16 @@ export default function LogCaloriesModal({
 
                         <View style={ModalStyles.modalFooter}>
                             {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
-                            <Pressable style={ModalStyles.button} onPress={() => { handleOnConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+                            <Pressable 
+                                onPress={() => { 
+                                    onConfirm(calories, protein); 
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                }}
+                                style={({ pressed }) => [
+                                    ModalStyles.button,
+                                    pressed && CommonStyles.buttonPressed
+                                ]}    
+                            >
                                 <Text style={CommonStyles.buttonText}>Log</Text>
                             </Pressable>
                         </View>

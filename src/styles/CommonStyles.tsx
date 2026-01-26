@@ -52,6 +52,9 @@ export const CommonStyles = StyleSheet.create({
 		fontWeight: "600",
 		textAlign: "center",
 	},
+	buttonPressed: {
+		opacity: 0.7,
+	},
     listContent: {
         flexDirection: "row",
         flexWrap: "nowrap",

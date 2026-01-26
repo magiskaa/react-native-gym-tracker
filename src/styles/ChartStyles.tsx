@@ -20,6 +20,7 @@ export const ChartStyles = StyleSheet.create({
         color: "#f1f1f1",
         fontSize: 13,
         fontWeight: "600",
+        marginTop: 12,
         marginBottom: 8,
         textAlign: "center"
     },

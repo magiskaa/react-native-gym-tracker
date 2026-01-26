@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWi
 import Feather from '@expo/vector-icons/Feather';
 import { Formik } from "formik";
 import * as yup from "yup";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/authContext";
 import { addProfile, getProfile } from "../services/database";
 import { CommonStyles } from "../styles/CommonStyles";
 

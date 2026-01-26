@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/authContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
 import { formatDateWOZeros, formatLocalDateISO } from "../utils/Utils";
 import NutritionChart from "../components/Nutrition/NutritionChart";
@@ -149,12 +149,15 @@ export default function NutritionScreen() {
                     </View>
                 </View>
 
-                <Pressable  
-                    style={CommonStyles.button} 
+                <Pressable 
                     onPress={() => {
                         openModal(); 
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
                     }}
+                    style={({ pressed }) => [
+                        CommonStyles.button,
+                        pressed && CommonStyles.buttonPressed
+                    ]}
                 >
                     <Text style={CommonStyles.buttonText}>Log calories</Text>
                 </Pressable>

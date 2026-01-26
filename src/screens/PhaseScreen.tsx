@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import * as Haptics from 'expo-haptics';
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/authContext";
 import { formatLocalDateISO } from "../utils/Utils";
 import StartPhaseModal from "../modal/StartPhaseModal";
 import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";
@@ -135,7 +135,16 @@ export default function PhaseScreen() {
 			) : (
 				<View style={CommonStyles.notActiveContainer}>
 					<Text style={CommonStyles.text}>No active phase</Text>
-					<Pressable style={CommonStyles.button} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+					<Pressable 
+						onPress={() => { 
+							openModal(); 
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+						}}
+						style={({ pressed }) => [
+							CommonStyles.button,
+							pressed && CommonStyles.buttonPressed
+						]}	
+					>
 						<Text style={CommonStyles.buttonText}>Start phase</Text>
 					</Pressable>
 				</View>

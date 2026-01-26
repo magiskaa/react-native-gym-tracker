@@ -80,7 +80,16 @@ export default function WorkoutScreen() {
 			) : (
 				<View style={CommonStyles.notActiveContainer}>
 					<Text style={CommonStyles.text}>No active workout</Text>
-					<Pressable style={CommonStyles.button} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+					<Pressable 
+						onPress={() => { 
+							openModal(); 
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+						}}
+						style={({ pressed }) => [
+							CommonStyles.button,
+							pressed && CommonStyles.buttonPressed
+						]}
+					>
 						<Text style={CommonStyles.buttonText}>Log workout</Text>
 					</Pressable>
 				</View>

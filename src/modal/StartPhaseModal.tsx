@@ -134,7 +134,16 @@ export default function StartPhaseModal({
 
                         <View style={ModalStyles.modalFooter}>
                             {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
-                            <Pressable style={ModalStyles.button} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+                            <Pressable 
+                                onPress={() => { 
+                                    onConfirm(); 
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                }}
+                                style={({ pressed }) => [
+                                    ModalStyles.button,
+                                    pressed && CommonStyles.buttonPressed
+                                ]}    
+                            >
                                 <Text style={CommonStyles.buttonText}>Start</Text>
                             </Pressable>
                         </View>

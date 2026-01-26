@@ -78,7 +78,16 @@ export default function ExerciseSelectModal({
                             Selected: {selectedCount}
                         </Text>
 
-                        <Pressable style={ModalStyles.button} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
+                        <Pressable 
+                            onPress={() => { 
+                                onConfirm(); 
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }}
+                            style={({ pressed }) => [
+                                ModalStyles.button,
+                                pressed && CommonStyles.buttonPressed
+                            ]}
+                        >
                             <Text style={CommonStyles.buttonText}>Use selection</Text>
                         </Pressable>
                     </View>

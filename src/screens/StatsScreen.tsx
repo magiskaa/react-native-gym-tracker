@@ -179,13 +179,16 @@ export default function StatsScreen() {
 
 			<View style={styles.footer}>
 				<Pressable
-					onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
+					onPress={() => { 
+						openModal(); 
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+					}}
 					style={({ pressed }) => [
-						styles.footerButton,
-						pressed && styles.footerButtonPressed
+						CommonStyles.button,
+						pressed && CommonStyles.buttonPressed
 					]}
 				>
-					<Text style={styles.footerButtonText}>
+					<Text style={CommonStyles.buttonText}>
 						Add exercise
 					</Text>
 				</Pressable>
@@ -193,11 +196,11 @@ export default function StatsScreen() {
 				<Pressable
 					onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
 					style={({ pressed }) => [
-						styles.footerButton,
-						pressed && styles.footerButtonPressed
+						CommonStyles.button,
+						pressed && CommonStyles.buttonPressed
 					]}
 				>
-					<Text style={styles.footerButtonText}>
+					<Text style={CommonStyles.buttonText}>
 						Phase
 					</Text>
 				</Pressable>
@@ -205,11 +208,11 @@ export default function StatsScreen() {
 				<Pressable
 					onPress={() => { openFilterModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
 					style={({ pressed }) => [
-						styles.footerButton,
-						pressed && styles.footerButtonPressed
+						CommonStyles.button,
+						pressed && CommonStyles.buttonPressed
 					]}
 				>
-					<Text style={styles.footerButtonText}>
+					<Text style={CommonStyles.buttonText}>
 						Muscle Group
 					</Text>
 				</Pressable>
@@ -247,24 +250,9 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
-		paddingTop: 14,
 		gap: 12,
 		borderTopWidth: 1,
 		borderTopColor: "#2b2b2b",
-	},
-	footerButton: {
-		borderWidth: 1,
-		borderColor: "#20ca17",
-		borderRadius: 999,
-		paddingVertical: 6,
-		paddingHorizontal: 12,
-	},
-	footerButtonPressed: {
-		opacity: 0.85,
-	},
-	footerButtonText: {
-		color: "#20ca17",
-		fontWeight: "600",
 	},
 	listContent: {
 		paddingBottom: 24,

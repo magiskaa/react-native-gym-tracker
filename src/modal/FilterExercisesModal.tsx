@@ -80,7 +80,16 @@ export default function FilterExercisesModal({
                             Selected: {selectedCount}
                         </Text>
                         
-                        <Pressable style={ModalStyles.button} onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+                        <Pressable 
+                            onPress={() => { 
+                                onClose(); 
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                            }}
+                            style={({ pressed }) => [
+                                ModalStyles.button,
+                                pressed && CommonStyles.buttonPressed
+                            ]}
+                        >
                             <Text style={CommonStyles.buttonText}>Filter</Text>
                         </Pressable>
                     </View>

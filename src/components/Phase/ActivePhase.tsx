@@ -18,6 +18,7 @@ import { formatDate, formatLocalDateISO, capitalize, dayDiff } from "../../utils
 import { Bar } from "react-native-progress";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useFocusEffect } from "@react-navigation/native";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     error: string | null;
@@ -94,13 +95,14 @@ export default function ActivePhase({
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
+            <View style={[CommonStyles.container, { padding: 0 }]}>
                 <View style={styles.phaseManagementContainer}>
                     <Pressable>
                         <FontAwesome6 name="trash-can" size={24} color="red" />
                     </Pressable>
+                    {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
                     <Pressable>
-                        <FontAwesome6 name="pencil" size={24} color="black" />
+                        <FontAwesome6 name="pencil" size={24} color="#f1f1f1" />
                     </Pressable>
                 </View>
 
@@ -162,15 +164,6 @@ export default function ActivePhase({
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "flex-start",
-    },
-    error: {
-        color: "#b00020",
-        marginBottom: 12,
-        textAlign: "center"
-    },
     phaseManagementContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -178,7 +171,7 @@ const styles = StyleSheet.create({
         marginTop: -6,
     },
     phaseInfoContainer: {
-        backgroundColor: "#e3e3e3",
+        backgroundColor: "#2b2b2b",
         borderRadius: 12,
         padding: 6,
     },
@@ -187,6 +180,7 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: "500",
         marginBottom: 16,
+        color: "#f1f1f1",
     },
     dateContainer: {
         flexDirection: "row",
@@ -199,16 +193,19 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "500",
         marginVertical: 4,
+        color: "#f1f1f1",
     },
     weightText: {
         textAlign: "center",
         fontSize: 22,
         fontWeight: "500",
         marginVertical: 4,
+        color: "#f1f1f1",
     },
     centeredText: {
         textAlign: "center",
         fontSize: 12,
         marginVertical: 2,
+        color: "#f1f1f1",
     },
 });

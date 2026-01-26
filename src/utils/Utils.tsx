@@ -3,6 +3,11 @@ export const formatDate = (date: string) => {
     return `${parts[2].padStart(2, "0")}.${parts[1].padStart(2, "0")}.${parts[0]}`
 };
 
+export const formatDateWOZeros = (date: string) => {
+    const parts = date.split("-");
+    return `${parseInt(parts[2])}.${parseInt(parts[1])}.`
+};
+
 export const formatLocalDateISO = (date: Date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");

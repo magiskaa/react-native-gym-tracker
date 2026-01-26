@@ -5,7 +5,7 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import { useAuth } from "../auth/AuthContext";
 import { addProfile, getProfile } from "../services/database";
-import { StatusBar } from 'expo-status-bar';
+import { CommonStyles } from "../styles/CommonStyles";
 
 
 const loginValidationSchema = yup.object().shape({
@@ -63,8 +63,7 @@ export default function LoginScreen() {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-                <StatusBar style="auto" />
+            <View style={[CommonStyles.container, { justifyContent: "center", backgroundColor: "#1e1e1e" }]}>
                 <View style={styles.switchContainer}>
                     <Switch
                         value={isRegisterActive} 
@@ -101,7 +100,7 @@ export default function LoginScreen() {
                             />
                         </View>
                         {errors.username && touched.username && (
-                        <Text style={styles.errorText}>{errors.username}</Text>
+                        <Text style={CommonStyles.error}>{errors.username}</Text>
                         )}
                         <View style={styles.inputContainer}>
                             <Feather name="lock" size={24} style={styles.icon} />
@@ -116,14 +115,14 @@ export default function LoginScreen() {
                             />
                         </View>
                         {errors.password && touched.password && (
-                        <Text style={styles.errorText}>{errors.password}</Text>
+                        <Text style={CommonStyles.error}>{errors.password}</Text>
                         )}
                         <TouchableOpacity
-                            style={styles.button}
+                            style={[CommonStyles.button, { margin: 0 }]}
                             onPress={handleSubmit as any}
                             disabled={!isValid}
                         >
-                            <Text style={styles.buttonText}>{isRegisterActive ? "Register" : "Login"}</Text>
+                            <Text style={CommonStyles.buttonText}>{isRegisterActive ? "Register" : "Login"}</Text>
                         </TouchableOpacity>
                     </>
                     )}
@@ -134,13 +133,6 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#fcfcfc",
-        paddingHorizontal: 20,
-    },
     switchContainer: {
         position: "absolute",
         bottom: "30%",
@@ -149,15 +141,16 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         marginBottom: 40,
-        fontWeight: "bold",
-        color: "black",
+        fontWeight: "700",
+        color: "#f1f1f1",
+        textAlign: "center",
     },
     inputContainer: {
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
         height: 50,
-        backgroundColor: "#f1f1f1",
+        backgroundColor: "#e3e3e3",
         borderRadius: 8,
         paddingHorizontal: 10,
         marginBottom: 20,
@@ -171,35 +164,6 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         width: "90%",
         color: "#1e1e1e",
-        backgroundColor: "#f1f1f1",
-    },
-    forgotPassword: {
-        alignSelf: "flex-end",
-        marginBottom: 20,
-        color: "#000",
-    },
-    button: {
-        width: "100%",
-        height: 50,
-        backgroundColor: "#20ca17",
-        borderRadius: 8,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    buttonText: {
-        color: "#fff",
-        fontSize: 18,
-    },
-    signUp: {
-        color: "#000",
-    },
-    signUpLink: {
-        color: "#1E90FF",
-    },
-    errorText: {
-        color: "red",
-        alignSelf: "flex-start",
-        marginBottom: 10,
+        backgroundColor: "#e3e3e3",
     },
 });

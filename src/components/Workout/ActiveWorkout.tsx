@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { addSet, addWorkout, addWorkoutExercise, ExerciseRow } from "../../services/database";
 import { useEffect, useState } from "react";
 import { formatLocalDateISO } from "../../utils/Utils";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     exercises: ExerciseRow[];
@@ -170,7 +171,7 @@ export default function ActiveWorkout({
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
+            <View style={[CommonStyles.container, { padding: 0 }]}>
 
                 <View style={styles.headerContainer}>
                     <TextInput 
@@ -184,7 +185,7 @@ export default function ActiveWorkout({
                 </View>
 
                 {validationError ? (
-                    <Text style={styles.validationError}>{validationError}</Text>
+                    <Text style={CommonStyles.error}>{validationError}</Text>
                 ) : null}
 
                 <FlatList
@@ -264,7 +265,7 @@ export default function ActiveWorkout({
                     }}
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={
-                        <Text style={styles.empty}>No exercises</Text>
+                        <Text style={CommonStyles.empty}>No exercises</Text>
                     }
                 />
 
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
         color: "#2a2a2a"
     },
     card: {
-		backgroundColor: "#e3e3e3",
+		backgroundColor: "#2b2b2b",
 		borderRadius: 12,
 		padding: 16,
 		marginBottom: 12,
@@ -339,12 +340,12 @@ const styles = StyleSheet.create({
 		gap: 4,
 	},
 	cardTitle: {
-		color: "#1e1e1e",
+		color: "#f1f1f1",
 		fontSize: 16,
 		fontWeight: "600",
 	},
 	cardSubtitle: {
-		color: "#505050",
+		color: "#767676",
 		fontSize: 13,
 	},
     cardStats: {
@@ -352,17 +353,17 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     repsPerSet: {
-        color: "#1e1e1e",
+        color: "#f1f1f1",
     },
     avgWeight: {
-        color: "#1e1e1e",
+        color: "#f1f1f1",
     },
 	setsContainer: {
         gap: 10,
 		marginTop: 12,
 		paddingTop: 12,
 		borderTopWidth: 1,
-		borderTopColor: "#2c2c2c",
+		borderTopColor: "#2b2b2b",
 	},
     setRow: {
         flexDirection: "row",
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         paddingHorizontal: 8,
         borderRadius: 6,
-        backgroundColor: "#2a2a2a",
+        backgroundColor: "#1e1e1e",
     },
     removeSetText: {
         color: "#c7c7c7",
@@ -404,12 +405,12 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         borderTopWidth: 1,
-        borderTopColor: "#2c2c2c",
+        borderTopColor: "#2b2b2b",
         paddingTop: 14,
     },
     durationText: {
         fontSize: 32,
-        color: "#2a2a2a",
+        color: "#f1f1f1",
         width: "28%"
     },
     footerButton: {
@@ -427,14 +428,4 @@ const styles = StyleSheet.create({
 	listContent: {
 		paddingBottom: 24,
 	},
-    empty: {
-		color: "#9a9a9a",
-		textAlign: "center",
-		marginTop: 12,
-	},
-    validationError: {
-        color: "#b00020",
-        marginBottom: 12,
-        textAlign: "center"
-    },
 });

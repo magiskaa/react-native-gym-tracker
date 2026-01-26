@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from 'expo-haptics';
@@ -16,6 +16,16 @@ import { AuthProvider, useAuth } from './src/auth/AuthContext';
 
 const Tab = createBottomTabNavigator();
 
+const Theme = {
+    ...DefaultTheme,
+    colors: {
+        ...DefaultTheme.colors,
+        background: "#1e1e1e",
+        card: "#2b2b2b",
+        text: "#f1f1f1"
+    }
+}
+
 function AppContent() {
     const { token } = useAuth();
 
@@ -30,12 +40,12 @@ function AppContent() {
     }
 
     return (
-        <NavigationContainer>
-            <StatusBar style="auto" />
+        <NavigationContainer theme={Theme}>
+            <StatusBar style="light" />
             <Tab.Navigator
                 screenOptions={({ route }) => ({
                     tabBarActiveTintColor: "#20ca17",
-                    tabBarInactiveTintColor: "#686868",
+                    tabBarInactiveTintColor: "#e3e3e3",
                     tabBarIcon: ({ color, size }) => {
                         let iconName: keyof typeof Ionicons.glyphMap;
 

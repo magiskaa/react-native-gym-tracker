@@ -7,6 +7,7 @@ import { useAuth } from "../auth/AuthContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
 import { formatDate, formatLocalDateISO } from "../utils/Utils";
 import NutritionChart from "../components/Nutrition/NutritionChart";
+import { CommonStyles } from "../styles/CommonStyles";
 
 
 export default function NutritionScreen() {
@@ -101,7 +102,7 @@ export default function NutritionScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[CommonStyles.container, { paddingHorizontal: 0 }]}>
             <View style={styles.nutritionContainer}>
                 <View style={styles.progressContainer}>
                     <View>
@@ -137,13 +138,13 @@ export default function NutritionScreen() {
                 </View>
 
                 <Pressable  
-                    style={styles.logButton} 
+                    style={CommonStyles.button} 
                     onPress={() => {
                         openModal(); 
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
                     }}
                 >
-                    <Text style={styles.logButtonText}>Log calories</Text>
+                    <Text style={CommonStyles.buttonText}>Log calories</Text>
                 </Pressable>
             </View>
             
@@ -152,7 +153,7 @@ export default function NutritionScreen() {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => item.date}
-                style={styles.list}
+                style={CommonStyles.list}
                 renderItem={({ item }) => {	
                     return (
                         <View style={styles.recentDaysContainer}>
@@ -192,9 +193,9 @@ export default function NutritionScreen() {
                         </View>
                     )
                 }}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
                 ListEmptyComponent={
-                    <Text style={styles.empty}>No exercises yet</Text>
+                    <Text style={CommonStyles.empty}>No exercises yet</Text>
                 }
             />
 
@@ -219,17 +220,9 @@ export default function NutritionScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "flex-start",
-        padding: 16,
-    },
     nutritionContainer: {
         marginBottom: 0,
-        borderBottomWidth: 1,
-        paddingBottom: 18,
-        borderColor: "#2c2c2c",
+        paddingBottom: 14,
         width: "100%",
     },
     progressContainer: {
@@ -242,25 +235,13 @@ const styles = StyleSheet.create({
         fontWeight: 600,
         textAlign: "center",
         marginVertical: 10,
+        color: "#f1f1f1",
     },
     progress: {
         marginHorizontal: 8,
     },
-    logButton: {
-        backgroundColor: "#20ca17",
-        borderRadius: 10,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        margin: "auto",
-        marginTop: 10,
-    },
-    logButtonText: {
-        color: "#ffffff",
-        fontWeight: "600",
-        textAlign: "center",
-    },
     recentDaysContainer: {
-        backgroundColor: "#e3e3e3",
+        backgroundColor: "#2b2b2b",
         padding: 2,
         width: 160,
         borderRadius: 12,
@@ -274,23 +255,12 @@ const styles = StyleSheet.create({
         margin: "auto",
         marginTop: 8,
         marginBottom: 4,
+        color: "#f1f1f1",
     },
     progressTitleSmall: {
         fontSize: 18,
         textAlign: "center",
         marginVertical: 8,
-    },
-    listContent: {
-        flexDirection: "row",
-        flexWrap: "nowrap",
-        flexGrow: 0,
-    },
-    list: {
-        flexGrow: 0,
-    },
-    empty: {
-        color: "#6b6b6b",
-        textAlign: "center",
-        marginTop: 24,
+        color: "#f1f1f1",
     },
 });

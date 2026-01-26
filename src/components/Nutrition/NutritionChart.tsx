@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { NutritionRow } from "../../services/database";
-import { formatDate } from "../../utils/Utils";
+import { formatDate, formatDateWOZeros } from "../../utils/Utils";
+import { ChartStyles } from "../../styles/ChartStyles";
 
 type Props = {
     history: NutritionRow[];
@@ -10,8 +11,8 @@ type Props = {
 export default function NutritionChart({ history }: Props) {
     if (history.length === 0) {
         return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Not enough data to display chart</Text>
+            <View style={ChartStyles.emptyContainer}>
+                <Text style={ChartStyles.emptyText}>Not enough data to display chart</Text>
             </View>
         );
     }
@@ -20,8 +21,8 @@ export default function NutritionChart({ history }: Props) {
 
     const reversed = history.reverse();
 
-    const maxLabels = 6;
-    const rawLabels = reversed.map((h) => formatDate(h.date).slice(0, 6));
+    const maxLabels = 7;
+    const rawLabels = reversed.map((h) => formatDateWOZeros(h.date));
     const step = Math.max(1, Math.ceil(rawLabels.length / maxLabels));
     const labels = rawLabels.map((label, i) => (i % step === 0 ? label : ""));
 
@@ -62,8 +63,8 @@ export default function NutritionChart({ history }: Props) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.chartTitle}>Calories</Text>
+        <View style={ChartStyles.container}>
+            <Text style={ChartStyles.chartTitle}>Calories</Text>
             <LineChart
                 data={calorieChartData}
                 width={chartWidth}
@@ -71,7 +72,7 @@ export default function NutritionChart({ history }: Props) {
                 chartConfig={{
                     decimalPlaces: 1,
                     color: () => "#20ca17",
-                    labelColor: () => "#1e1e1e",
+                    labelColor: () => "#f1f1f1",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -80,12 +81,12 @@ export default function NutritionChart({ history }: Props) {
                 yAxisSuffix=""
                 fromZero={false}
                 segments={5}
-                style={styles.chart}
+                style={ChartStyles.chart}
                 bezier
                 transparent
             />
 
-            {/* <Text style={styles.chartTitle}>Protein</Text>
+            {/* <Text style={ChartStyles.chartTitle}>Protein</Text>
             <LineChart
                 data={proteinChartData}
                 width={chartWidth}
@@ -102,38 +103,10 @@ export default function NutritionChart({ history }: Props) {
                 yAxisSuffix=""
                 fromZero={false}
                 segments={5}
-                style={styles.chart}
+                style={ChartStyles.chart}
                 bezier
                 transparent
             /> */}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        margin: "auto",
-        marginBottom: 0,
-        padding: 0,
-        borderRadius: 12,
-    },
-    emptyContainer: {
-        marginTop: 16,
-        padding: 20,
-        alignItems: "center",
-    },
-    emptyText: {
-        color: "#6b6b6b",
-        fontSize: 14,
-    },
-    chartTitle: {
-        color: "#1e1e1e",
-        fontSize: 13,
-        fontWeight: "600",
-        marginBottom: 8,
-        textAlign: "center"
-    },
-    chart: {
-        marginLeft: -23,
-    },
-});

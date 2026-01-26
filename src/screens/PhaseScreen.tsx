@@ -7,6 +7,7 @@ import StartPhaseModal from "../modal/StartPhaseModal";
 import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";
 import ActivePhase from "../components/Phase/ActivePhase";
 import PhaseChart from "../components/Phase/PhaseChart";
+import { CommonStyles } from "../styles/CommonStyles";
 
 
 export default function PhaseScreen() {
@@ -106,7 +107,7 @@ export default function PhaseScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
+		<View style={[CommonStyles.container, { alignItems: "center" }]}>
 			{isPhaseActive ? (
 				<View>
 					<ActivePhase 
@@ -132,10 +133,10 @@ export default function PhaseScreen() {
 					/>
 				</View>
 			) : (
-				<View style={styles.phaseContainer}>
-					<Text style={styles.text}>No active phase</Text>
-					<Pressable style={styles.startButton} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-						<Text style={styles.startButtonText}>Start phase</Text>
+				<View style={CommonStyles.notActiveContainer}>
+					<Text style={CommonStyles.text}>No active phase</Text>
+					<Pressable style={CommonStyles.button} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+						<Text style={CommonStyles.buttonText}>Start phase</Text>
 					</Pressable>
 				</View>
 			)}
@@ -159,49 +160,3 @@ export default function PhaseScreen() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "flex-start",
-		padding: 16,
-	},
-	phaseContainer: {
-		width: "100%",
-		height: "100%",
-	},
-	text: {
-		fontSize: 20,
-		fontWeight: 600,
-		textAlign: "center",
-		margin: "auto",
-		marginBottom: 10,
-	},
-	startButton: {
-		backgroundColor: "#20ca17",
-		borderRadius: 10,
-		paddingVertical: 12,
-		paddingHorizontal: 16,
-		margin: "auto",
-		marginTop: 10,
-	},
-	startButtonText: {
-		color: "#ffffff",
-		fontWeight: "600",
-		textAlign: "center",
-	},
-	listContent: {
-		flexDirection: "row",
-		flexWrap: "nowrap",
-		flexGrow: 0,
-	},
-	list: {
-		flexGrow: 0,
-	},
-	empty: {
-		color: "#6b6b6b",
-		textAlign: "center",
-		marginTop: 24,
-	},
-});

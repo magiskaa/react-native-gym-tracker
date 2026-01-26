@@ -1,6 +1,7 @@
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { Circle } from "react-native-progress";
 import { SetCount } from "../../services/database";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     setCounts: SetCount[];
@@ -9,13 +10,13 @@ type Props = {
 export default function SetsPerWeek({ setCounts }: Props) {
     return (
         <View>
-            <Text style={styles.title}>Sets / Week</Text>
+            <Text style={CommonStyles.title}>Sets / Week</Text>
             <FlatList
                 data={setCounts}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => item.muscle_group}
-                style={styles.list}
+                style={CommonStyles.list}
                 renderItem={({ item }) => {	
                     return (
                         <View style={styles.setsPerWeekContainer}>
@@ -33,9 +34,9 @@ export default function SetsPerWeek({ setCounts }: Props) {
                         </View>
                     )
                 }}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
                 ListEmptyComponent={
-                    <Text style={styles.empty}>No exercises yet</Text>
+                    <Text style={CommonStyles.empty}>No exercises yet</Text>
                 }
             />
         </View>
@@ -43,16 +44,8 @@ export default function SetsPerWeek({ setCounts }: Props) {
 }
 
 const styles = StyleSheet.create({
-    title: {
-        fontSize: 24,
-        marginTop: 24,
-		marginBottom: 4,
-		marginHorizontal: 12,
-        fontWeight: "600",
-        color: "#1e1e1e",
-    },
 	setsPerWeekContainer: {
-		backgroundColor: "#e3e3e3",
+		backgroundColor: "#2b2b2b",
 		padding: 8,
 		width: 100,
 		height: 125,
@@ -65,20 +58,6 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		margin: "auto",
 		marginBottom: 4,
-	},
-	listContent: {
-		flexDirection: "row",
-		flexWrap: "nowrap",
-		flexGrow: 0,
-		paddingVertical: 0,
-		paddingHorizontal: 8,
-	},
-	list: {
-		flexGrow: 0,
-	},
-	empty: {
-		color: "#6b6b6b",
-		textAlign: "center",
-		marginTop: 24,
+        color: "#f1f1f1"
 	},
 });

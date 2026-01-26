@@ -9,6 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { ExerciseRow, getExercises } from "../services/database";
 import ExerciseSelectModal from "../modal/ExerciseSelectModal";
 import ActiveWorkout from "../components/Workout/ActiveWorkout";
+import { CommonStyles } from "../styles/CommonStyles";
 
 
 export default function WorkoutScreen() {
@@ -65,7 +66,7 @@ export default function WorkoutScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
+		<View style={CommonStyles.container}>
 			{isWorkoutActive ? (
 				<ActiveWorkout
 					exercises={exercises}
@@ -77,10 +78,10 @@ export default function WorkoutScreen() {
 					setSelectedIds={setSelectedIds}
 				/>
 			) : (
-				<View style={styles.workoutContainer}>
-					<Text style={styles.text}>No active workout</Text>
-					<Pressable style={styles.logButton} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-						<Text style={styles.logButtonText}>Log workout</Text>
+				<View style={CommonStyles.notActiveContainer}>
+					<Text style={CommonStyles.text}>No active workout</Text>
+					<Pressable style={CommonStyles.button} onPress={() => { openModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+						<Text style={CommonStyles.buttonText}>Log workout</Text>
 					</Pressable>
 				</View>
 			)}
@@ -98,39 +99,3 @@ export default function WorkoutScreen() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 16,
-	},
-	error: {
-		color: "#b00020",
-		marginBottom: 8,
-		textAlign: "center"
-	},
-	workoutContainer: {
-		width: "100%",
-		height: "100%",
-	},
-	text: {
-		fontSize: 20,
-		fontWeight: 600,
-		textAlign: "center",
-		margin: "auto",
-		marginBottom: 10,
-	},
-	logButton: {
-		backgroundColor: "#20ca17",
-		borderRadius: 10,
-		paddingVertical: 12,
-		paddingHorizontal: 16,
-		margin: "auto",
-		marginTop: 10,
-	},
-	logButtonText: {
-		color: "#ffffff",
-		fontWeight: "600",
-		textAlign: "center",
-	},
-});

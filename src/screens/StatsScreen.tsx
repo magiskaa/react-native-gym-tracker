@@ -4,7 +4,6 @@ import {
 	Pressable,
 	StyleSheet,
 	Text,
-	TextInput,
 	View,
 } from "react-native";
 import * as Haptics from 'expo-haptics';
@@ -12,6 +11,7 @@ import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getEx
 import ExerciseChart from "../components/Stats/ExerciseChart";
 import AddExerciseModal from "../modal/AddExerciseModal";
 import FilterExercisesModal from "../modal/FilterExercisesModal";
+import { CommonStyles } from "../styles/CommonStyles";
 
 
 export default function StatsScreen() {
@@ -93,12 +93,11 @@ export default function StatsScreen() {
 			await loadExercises();
 			setExerciseName("");
 			setMuscleGroup("");
+			closeModal();
 		} catch (err) {
 			setError("Failed to add exercise");
 			console.error(err);
-		} finally {
-			closeModal();
-		}
+		} 
 	};
 
 	const closeModal = () => {
@@ -118,7 +117,7 @@ export default function StatsScreen() {
 	};
 
 	return (
-		<View style={styles.container}>	
+		<View style={CommonStyles.container}>	
 			<FlatList
 				data={exercises}
 				keyExtractor={(item) => item.id.toString()}
@@ -174,7 +173,7 @@ export default function StatsScreen() {
 				}}
 				contentContainerStyle={styles.listContent}
 				ListEmptyComponent={
-					<Text style={styles.empty}>No exercises yet</Text>
+					<Text style={CommonStyles.empty}>No exercises yet</Text>
 				}
 			/>
 
@@ -244,10 +243,6 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 16,
-	},
 	footer: {
 		flexDirection: "row",
 		alignItems: "center",
@@ -255,7 +250,7 @@ const styles = StyleSheet.create({
 		paddingTop: 14,
 		gap: 12,
 		borderTopWidth: 1,
-		borderTopColor: "#2c2c2c",
+		borderTopColor: "#2b2b2b",
 	},
 	footerButton: {
 		borderWidth: 1,
@@ -271,43 +266,11 @@ const styles = StyleSheet.create({
 		color: "#20ca17",
 		fontWeight: "600",
 	},
-	error: {
-		color: "#b00020",
-		marginBottom: 8,
-	},
 	listContent: {
 		paddingBottom: 24,
 	},
-	form: {
-		gap: 10,
-		marginBottom: 12,
-	},
-	input: {
-		backgroundColor: "#3d3d3dff",
-		borderRadius: 10,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
-		color: "#ffffff",
-	},
-	addButton: {
-		backgroundColor: "#20ca17",
-		borderRadius: 10,
-		paddingVertical: 10,
-		paddingHorizontal: 14,
-	},
-	addButtonPressed: {
-		opacity: 0.85,
-	},
-	addButtonDisabled: {
-		opacity: 0.6,
-	},
-	addButtonText: {
-		color: "#ffffff",
-		fontWeight: "600",
-		textAlign: "center",
-	},
 	card: {
-		backgroundColor: "#e3e3e3",
+		backgroundColor: "#2b2b2b",
 		borderRadius: 12,
 		padding: 16,
 		marginBottom: 12,
@@ -319,26 +282,21 @@ const styles = StyleSheet.create({
 		gap: 4,
 	},
 	cardTitle: {
-		color: "#1e1e1e",
+		color: "#f1f1f1",
 		fontSize: 16,
 		fontWeight: "600",
 	},
 	cardSubtitle: {
-		color: "#505050",
+		color: "#767676",
 		fontSize: 13,
 	},
 	statsPreview: {
 		marginTop: 12,
 		paddingTop: 12,
 		borderTopWidth: 1,
-		borderTopColor: "#2c2c2c",
+		borderTopColor: "#1e1e1e",
 	},
 	statsText: {
-		color: "#1e1e1e",
-	},
-	empty: {
-		color: "#6b6b6b",
-		textAlign: "center",
-		marginTop: 24,
+		color: "#f1f1f1",
 	},
 });

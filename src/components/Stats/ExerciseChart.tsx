@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { ExerciseHistory } from "../../services/database";
+import { ChartStyles } from "../../styles/ChartStyles";
 
 type ExerciseChartProps = {
     history: ExerciseHistory[];
@@ -9,8 +10,8 @@ type ExerciseChartProps = {
 export default function ExerciseChart({ history }: ExerciseChartProps) {
     if (history.length === 0) {
         return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Not enough data to display chart</Text>
+            <View style={ChartStyles.emptyContainer}>
+                <Text style={ChartStyles.emptyText}>Not enough data to display chart</Text>
             </View>
         );
     }
@@ -40,8 +41,8 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.chartTitle}>Reps per Set</Text>
+        <View style={ChartStyles.container}>
+            <Text style={ChartStyles.chartTitle}>Reps per Set</Text>
             <LineChart
                 data={repsChartData}
                 width={chartWidth}
@@ -49,7 +50,7 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 chartConfig={{
                     decimalPlaces: 1,
                     color: () => "#20ca17",
-                    labelColor: () => "#1e1e1e",
+                    labelColor: () => "#f1f1f1",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -58,12 +59,12 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 yAxisSuffix=""
                 fromZero={false}
                 segments={3}
-                style={styles.chart}
+                style={ChartStyles.chart}
                 bezier
                 transparent
             />
 
-            <Text style={styles.chartTitle}>Weight per Set</Text>
+            <Text style={ChartStyles.chartTitle}>Weight per Set</Text>
             <LineChart
                 data={weightChartData}
                 width={chartWidth}
@@ -71,7 +72,7 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 chartConfig={{
                     decimalPlaces: 1,
                     color: () => "#4a9eff",
-                    labelColor: () => "#1e1e1e",
+                    labelColor: () => "#f1f1f1",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -80,36 +81,10 @@ export default function ExerciseChart({ history }: ExerciseChartProps) {
                 yAxisSuffix=""
                 fromZero={false}
                 segments={3}
-                style={{ ...styles.chart, marginBottom: 0 }}
+                style={{ ...ChartStyles.chart, marginBottom: 0 }}
                 bezier
                 transparent
             />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        marginTop: 16,
-    },
-    emptyContainer: {
-        marginTop: 16,
-        padding: 20,
-        alignItems: "center",
-    },
-    emptyText: {
-        color: "#6b6b6b",
-        fontSize: 14,
-    },
-    chartTitle: {
-        color: "#1e1e1e",
-        fontSize: 13,
-        fontWeight: "600",
-        marginBottom: 4,
-        textAlign: "center"
-    },
-    chart: {
-        marginBottom: 12,
-        marginLeft: -23
-    },
-});

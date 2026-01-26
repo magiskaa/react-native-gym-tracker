@@ -1,6 +1,7 @@
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { formatDate } from "../../utils/Utils";
 import { WorkoutRow } from "../../services/database";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     workouts: WorkoutRow[];
@@ -15,7 +16,7 @@ export default function RecentWorkouts({ workouts }: Props) {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={(item) => String(item.id)}
-                style={styles.list}
+                style={CommonStyles.list}
                 renderItem={({ item }) => {	
                     return (
                         <View style={styles.workoutContainer}>
@@ -25,9 +26,9 @@ export default function RecentWorkouts({ workouts }: Props) {
                         </View>
                     )
                 }}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
                 ListEmptyComponent={
-                    <Text style={styles.empty}>No exercises yet</Text>
+                    <Text style={CommonStyles.empty}>No exercises yet</Text>
                 }
             />
         </View>
@@ -38,13 +39,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         marginTop: 24,
-		marginBottom: 4,
+		marginBottom: 8,
 		marginHorizontal: 12,
         fontWeight: "600",
-        color: "#1e1e1e",
+        color: "#f1f1f1",
     },
 	workoutContainer: {
-		backgroundColor: "#e3e3e3",
+		backgroundColor: "#2b2b2b",
 		padding: 12,
 		width: 150,
 		height: 100,
@@ -58,26 +59,14 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		margin: "auto",
 		marginTop: 0,
+		color: "#f1f1f1",
 	},
 	workoutText: {
 		fontSize: 18,
 		textAlign: "center",
 		margin: "auto",
 		marginBottom: 2,
-	},
-	listContent: {
-		flexDirection: "row",
-		flexWrap: "nowrap",
-		flexGrow: 0,
-		paddingVertical: 0,
-		paddingHorizontal: 8,
-	},
-	list: {
-		flexGrow: 0,
-	},
-	empty: {
-		color: "#6b6b6b",
-		textAlign: "center",
-		marginTop: 24,
+		color: "#f1f1f1",
+
 	},
 });

@@ -21,6 +21,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from '../auth/AuthContext';
 import { formatLocalDateISO } from "../utils/Utils";
+import { CommonStyles } from "../styles/CommonStyles";
 
 
 export default function ProfileScreen() {
@@ -44,7 +45,7 @@ export default function ProfileScreen() {
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
 
 	const [isEditable, setIsEditable] = useState<boolean>(false);
-	const [editButtonColor, setEditButtonColor] = useState<string>("#1e1e1e");
+	const [editButtonColor, setEditButtonColor] = useState<string>("#f1f1f1");
 	
 	const loadData = async () => {
 		try {
@@ -127,7 +128,7 @@ export default function ProfileScreen() {
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-			<View style={styles.container}>
+			<View style={CommonStyles.container}>
 				<Pressable 
 					style={styles.logoutButton} 
 					onPress={() => {
@@ -139,7 +140,7 @@ export default function ProfileScreen() {
 						)
 					}}
 				>
-					<MaterialIcons name="logout" size={24} color="#1e1e1e" />
+					<MaterialIcons name="logout" size={24} color="#f1f1f1" />
 				</Pressable>
 
 				{isEditable ? (
@@ -168,7 +169,7 @@ export default function ProfileScreen() {
 										setEditedUsername(originalUsername);
 										setEditedImage(originalImage);
 										setIsEditable(false);
-										setEditButtonColor("#1e1e1e");
+										setEditButtonColor("#f1f1f1");
 									}
 								},
 								{ 
@@ -176,7 +177,7 @@ export default function ProfileScreen() {
 									onPress: async () => {
 										await saveChanges();
 										setIsEditable(false);
-										setEditButtonColor("#1e1e1e");
+										setEditButtonColor("#f1f1f1");
 									}
 								}
 							], 
@@ -200,7 +201,7 @@ export default function ProfileScreen() {
 							placeholder="Username"
 							autoCapitalize="none"
 							placeholderTextColor="#8b8b8b"
-							style={styles.input}
+							style={[CommonStyles.input, styles.input]}
 						/>
 					) : (
 						<Text style={styles.username}>{username}</Text>
@@ -209,16 +210,16 @@ export default function ProfileScreen() {
 
 				<WeightChart history={history} />
 				<Pressable 
-					style={styles.logButton} 
+					style={CommonStyles.button} 
 					onPress={() => {
 						openModal(); 
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
 					}}
 				>
-					<Text style={styles.logButtonText}>Log weight</Text>
+					<Text style={CommonStyles.buttonText}>Log weight</Text>
 				</Pressable>
 
-				{error && !isWeightModalVisible ? <Text style={styles.error}>{error}</Text> : null}
+				{error && !isWeightModalVisible ? <Text style={CommonStyles.error}>{error}</Text> : null}
 
 				{isWeightModalVisible ? (
 					<LogWeightModal 
@@ -238,15 +239,6 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		padding: 16,
-	},
-    error: {
-        color: "#b00020",
-        marginBottom: 12,
-        textAlign: "center",
-    },
 	logoutButton: {
 		position: "absolute",
 		top: 8,
@@ -261,25 +253,22 @@ const styles = StyleSheet.create({
 		marginBottom: 20,
 	},
 	usernameContainer: {
-		backgroundColor: "#dedede",
+		backgroundColor: "#2b2b2b",
 		height: 40,
 		borderRadius: 12,
 	},
 	username: {
-		color: "#1e1e1e",
+		color: "#f1f1f1",
 		textAlign: "center",
 		fontSize: 22,
 		marginVertical: "auto",
 	},
 	input: {
-		borderRadius: 10,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
 		width: "100%",
 		height: "100%",
-		color: "#1e1e1e",
 		textAlign: "center",
 		fontSize: 22,
+		backgroundColor: "#2b2b2b",
 	},
 	editButton: {
 		position: "absolute",
@@ -290,18 +279,5 @@ const styles = StyleSheet.create({
 		position: "absolute",
 		right: "40%",
 		top: 10,
-	},
-	logButton: {
-		backgroundColor: "#20ca17",
-		borderRadius: 10,
-		paddingVertical: 12,
-		paddingHorizontal: 16,
-		margin: "auto",
-		marginTop: 10,
-	},
-	logButtonText: {
-		color: "#ffffff",
-		fontWeight: "600",
-		textAlign: "center",
 	},
 });

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
+import { StyleSheet, Text, View, Pressable, FlatList, Dimensions } from "react-native";
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
@@ -23,6 +23,8 @@ export default function NutritionScreen() {
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
     const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
+
+    const windowWidth = Dimensions.get("window").width;
 
     const loadData = async () => {
         try {
@@ -210,7 +212,7 @@ export default function NutritionScreen() {
                 }}
                 contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
                 ListEmptyComponent={
-                    <Text style={CommonStyles.empty}>No data from recent days</Text>
+                    <Text style={[CommonStyles.empty, { marginHorizontal: windowWidth / 2 - 75 }]}>No data from recent days</Text>
                 }
             />
 

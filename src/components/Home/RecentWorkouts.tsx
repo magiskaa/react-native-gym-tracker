@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
 import { formatDate } from "../../utils/Utils";
 import { WorkoutRow } from "../../services/database";
 import { CommonStyles } from "../../styles/CommonStyles";
@@ -8,6 +8,8 @@ type Props = {
 };
 
 export default function RecentWorkouts({ workouts }: Props) {
+    const windowWidth = Dimensions.get("window").width;
+
     return (
         <View>
             <Text style={styles.title}>Recent Workouts</Text>
@@ -28,7 +30,7 @@ export default function RecentWorkouts({ workouts }: Props) {
                 }}
                 contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
                 ListEmptyComponent={
-                    <Text style={CommonStyles.empty}>No exercises yet</Text>
+                    <Text style={[CommonStyles.empty, { marginHorizontal: windowWidth / 2 - 50 }]}>No workouts yet</Text>
                 }
             />
         </View>

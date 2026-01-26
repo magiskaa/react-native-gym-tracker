@@ -1,4 +1,5 @@
 import * as SQLite from "expo-sqlite";
+import { formatLocalDateISO } from "../utils/Utils";
 
 export type ExerciseRow = {
 	id: number;
@@ -27,6 +28,8 @@ export type WeightHistory = {
 export type Profile = {
 	id: number;
 	username: string;
+	password_hash: string;
+	password_salt: string;
 	image: string | null;
 };
 
@@ -57,10 +60,10 @@ const db = SQLite.openDatabaseSync("gym.db");
 export const initDb = async () => {
 	await db.execAsync(
 		[
-			//"DROP TABLE IF EXISTS sets",
-            //"DROP TABLE IF EXISTS workout_exercises",
             //"DROP TABLE IF EXISTS workouts",
             //"DROP TABLE IF EXISTS exercises",
+            //"DROP TABLE IF EXISTS workout_exercises",
+			//"DROP TABLE IF EXISTS sets",
 			//"DROP TABLE IF EXISTS weight",
 			//"DROP TABLE IF EXISTS profile",
 			//"DROP TABLE IF EXISTS nutrition",
@@ -74,11 +77,23 @@ export const initDb = async () => {
 			)
 			`,
 			`
+			CREATE TABLE IF NOT EXISTS user_exercises (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user INTEGER NOT NULL,
+				name TEXT NOT NULL,
+				muscle_group TEXT NOT NULL,
+				FOREIGN KEY(user) REFERENCES profile(id),
+				UNIQUE(name, muscle_group)
+			)
+			`,
+			`
 			CREATE TABLE IF NOT EXISTS workouts (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user INTEGER NOT NULL,
 				name TEXT NOT NULL,
 				duration TEXT NOT NULL,
-				date DATE NOT NULL
+				date DATE NOT NULL,
+				FOREIGN KEY(user) REFERENCES profile(id)
 			)
 			`,
 			`
@@ -102,15 +117,22 @@ export const initDb = async () => {
 			`
 			CREATE TABLE IF NOT EXISTS weight (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user INTEGER NOT NULL,
 				weight REAL NOT NULL,
-				date DATE NOT NULL
+				date DATE NOT NULL,
+				FOREIGN KEY(user) REFERENCES profile(id),
+				UNIQUE(user, date)
 			)
 			`,
 			`
 			CREATE TABLE IF NOT EXISTS profile (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				username TEXT NOT NULL UNIQUE,
-				image TEXT
+				password_hash TEXT NOT NULL,
+				password_salt TEXT NOT NULL,
+				image TEXT,
+				calorie_goal INTEGER,
+				protein_goal INTEGER
 			)
 			`,
 			`
@@ -139,6 +161,7 @@ export const initDb = async () => {
 			`
 		].join("; ") + ";"
 	);
+
 	await db.runAsync(
 		`
 		INSERT OR IGNORE INTO exercises (name, muscle_group)
@@ -240,8 +263,8 @@ export const getSetCountForCurrentWeek = async () => {
 	const monday = new Date(now);
 	monday.setDate(now.getDate() - dayIndex);
 
-	const startDate = monday.toISOString().slice(0, 10);
-	const endDate = now.toISOString().slice(0, 10);
+	const startDate = formatLocalDateISO(monday);
+	const endDate = formatLocalDateISO(now);
 
 	return await db.getAllAsync<SetCount>(
 		`
@@ -366,21 +389,26 @@ export const addWeight = async (date: string, weight: number) => {
 */
 export const getProfile = async (username: string) => {
 	return await db.getAllAsync<Profile>(
-		"SELECT id, username, image FROM profile WHERE username = ?",
+		"SELECT id, username, password_hash, password_salt, image FROM profile WHERE username = ?",
 		[username]
 	);
 };
 
-export const addProfile = async (username: string, image: string | null) => {
+export const addProfile = async (username: string, image: string | null, passwordHash: string, passwordSalt: string) => {
 	await db.runAsync(
-		"INSERT INTO profile (username, image) VALUES (?, ?)",
-		[username, image]
+		"INSERT INTO profile (username, password_hash, password_salt, image) VALUES (?, ?, ?, ?)",
+		[username, passwordHash, passwordSalt, image]
 	);
 };
 
 export const updateProfile = async (
 	id: number,
-	updates: { username?: string; image?: string | null }
+	updates: {
+		username?: string;
+		image?: string | null;
+		password_hash?: string | null;
+		password_salt?: string | null;
+	}
 ) => {
 	const fields: string[] = [];
 	const values: (string | number | null)[] = [];
@@ -393,6 +421,16 @@ export const updateProfile = async (
 	if (updates.image !== undefined) {
 		fields.push("image = ?");
 		values.push(updates.image);
+	}
+
+	if (updates.password_hash !== undefined) {
+		fields.push("password_hash = ?");
+		values.push(updates.password_hash);
+	}
+
+	if (updates.password_salt !== undefined) {
+		fields.push("password_salt = ?");
+		values.push(updates.password_salt);
 	}
 
 	if (fields.length === 0) return;

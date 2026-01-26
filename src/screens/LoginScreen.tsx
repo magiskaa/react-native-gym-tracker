@@ -4,18 +4,19 @@ import Feather from '@expo/vector-icons/Feather';
 import { Formik } from "formik";
 import * as yup from "yup";
 import { useAuth } from "../auth/authContext";
-import { addProfile, getProfile } from "../services/database";
+import { addProfile, getProfile, updateProfile } from "../services/database";
+import { createPasswordHash, verifyPassword } from "../utils/Utils";
 import { CommonStyles } from "../styles/CommonStyles";
 
 
 const loginValidationSchema = yup.object().shape({
-  username: yup
-    .string()
-    .required("Username is required"),
-  password: yup
-    .string()
-    .min(6, ({ min }) => `Password must be at least ${min} characters`)
-    .required("Password is required"),
+    username: yup
+        .string()
+        .required("Username is required"),
+    password: yup
+        .string()
+        .min(8, ({ min }) => `Password must be at least ${min} characters`)
+        .required("Password is required"),
 });
 
 export default function LoginScreen() {
@@ -28,17 +29,29 @@ export default function LoginScreen() {
             let profile = existingProfiles[0];
 
             if (isRegisterActive) {
-                if (existingProfiles.length > 0) {
+                if (profile) {
                     Alert.alert("Register Failed", "Username is already in use.");
                     return;
                 }
+                
+                const { hash, salt } = await createPasswordHash(values.password);
+                await addProfile(values.username, null, hash, salt);
 
-                await addProfile(values.username, null);
                 const createdProfiles = await getProfile(values.username);
                 profile = createdProfiles[0];
             } else {
                 if (!profile) {
                     Alert.alert("Login Failed", "Please register first.");
+                    return;
+                }
+
+                const isValid = await verifyPassword(
+                    values.password,
+                    profile.password_salt,
+                    profile.password_hash
+                );
+                if (!isValid) {
+                    Alert.alert("Login Failed", "Invalid username or password.");
                     return;
                 }
             }
@@ -100,7 +113,7 @@ export default function LoginScreen() {
                             />
                         </View>
                         {errors.username && touched.username && (
-                        <Text style={CommonStyles.error}>{errors.username}</Text>
+                            <Text style={[CommonStyles.error, { marginTop: -12, marginBottom: 14 }]}>{errors.username}</Text>
                         )}
                         <View style={styles.inputContainer}>
                             <Feather name="lock" size={24} style={styles.icon} />
@@ -115,7 +128,7 @@ export default function LoginScreen() {
                             />
                         </View>
                         {errors.password && touched.password && (
-                        <Text style={CommonStyles.error}>{errors.password}</Text>
+                            <Text style={[CommonStyles.error, { marginTop: -12, marginBottom: 14 }]}>{errors.password}</Text>
                         )}
                         <TouchableOpacity
                             style={[CommonStyles.button, { margin: 0 }]}

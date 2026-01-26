@@ -1,3 +1,5 @@
+import * as Crypto from "expo-crypto";
+
 export const formatDate = (date: string) => {
     const parts = date.split("-");
     return `${parts[2].padStart(2, "0")}.${parts[1].padStart(2, "0")}.${parts[0]}`
@@ -25,4 +27,26 @@ export const capitalize = (word: string) => {
 export const dayDiff = (startDate: Date, endDate: Date) => {
     const msDiff = endDate.getTime() - startDate.getTime();
     return Math.round(msDiff / (1000 * 3600 * 24));
+};
+
+export const hashPassword = async (password: string, salt: string) => {
+    return await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        `${salt}:${password}`
+    );
+};
+
+export const createPasswordHash = async (password: string) => {
+    const salt = Crypto.randomUUID();
+    const hash = await hashPassword(password, salt);
+    return { salt, hash };
+};
+
+export const verifyPassword = async (
+    password: string,
+    salt: string,
+    expectedHash: string
+) => {
+    const hash = await hashPassword(password, salt);
+    return hash === expectedHash;
 };

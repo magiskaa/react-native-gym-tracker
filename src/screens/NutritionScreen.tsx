@@ -1,11 +1,11 @@
-import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
+import { StyleSheet, Text, View, Pressable, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
 import { useAuth } from "../auth/AuthContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
-import { formatDate, formatLocalDateISO } from "../utils/Utils";
+import { formatDateWOZeros, formatLocalDateISO } from "../utils/Utils";
 import NutritionChart from "../components/Nutrition/NutritionChart";
 import { CommonStyles } from "../styles/CommonStyles";
 
@@ -50,7 +50,18 @@ export default function NutritionScreen() {
     }, []);
 
     const logCalories = async (cal: number, prot: number) => { 
-        const formattedDate = formatLocalDateISO(date);
+        const formattedDate = formatLocalDateISO(date).slice(0, 10);
+        const today = formatLocalDateISO(new Date()).slice(0, 10);
+
+        if (formattedDate.localeCompare(today) > 0) {
+            setError("Please select a date that is not in the future");
+            return;
+        }
+
+        if (cal === 0 && prot === 0) {
+            setError("Please enter calories and protein");
+            return;
+        }
 
         try {
             if (formatLocalDateISO(date) !== today) {
@@ -82,7 +93,7 @@ export default function NutritionScreen() {
             setCalories(calories + cal);
             setProtein(protein + prot);
         } catch (error) {
-            setError(`Failed to log calories: ${error}`);
+            console.error(`Failed to log calories: ${error}`);
         } finally {
             closeModal();
             loadData();
@@ -93,6 +104,7 @@ export default function NutritionScreen() {
         setIsModalVisible(false);
         setError(null);
         setIsRemoveActive(false);
+        setDate(new Date());
     };
 
     const openModal = () => {
@@ -157,7 +169,7 @@ export default function NutritionScreen() {
                 renderItem={({ item }) => {	
                     return (
                         <View style={styles.recentDaysContainer}>
-                            <Text style={styles.dateText}>{formatDate(item.date).slice(0, 6)}</Text>
+                            <Text style={styles.dateText}>{formatDateWOZeros(item.date)}</Text>
                             <View style={styles.progressContainer}>
                                 <View>
                                     <Text style={styles.progressTitleSmall}>Calories</Text>
@@ -195,7 +207,7 @@ export default function NutritionScreen() {
                 }}
                 contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
                 ListEmptyComponent={
-                    <Text style={CommonStyles.empty}>No exercises yet</Text>
+                    <Text style={CommonStyles.empty}>No data from recent days</Text>
                 }
             />
 

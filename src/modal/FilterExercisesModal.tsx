@@ -7,6 +7,9 @@ import {
     FlatList
 } from "react-native";
 import * as Haptics from 'expo-haptics';
+import { ModalStyles } from "../styles/ModalStyles";
+import { CommonStyles } from "../styles/CommonStyles";
+import { capitalize } from "../utils/Utils";
 
 type Props = {
     visible: boolean;
@@ -32,13 +35,13 @@ export default function FilterExercisesModal({
             transparent
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalSheet}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Filter exercises</Text>
+            <View style={ModalStyles.modalOverlay}>
+                <View style={ModalStyles.modalSheet}>
+                    <View style={ModalStyles.modalHeader}>
+                        <Text style={ModalStyles.modalTitle}>Filter exercises</Text>
 
                         <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-                            <Text style={styles.modalClose}>Close</Text>
+                            <Text style={ModalStyles.modalClose}>Close</Text>
                         </Pressable>
                     </View>
 
@@ -51,13 +54,13 @@ export default function FilterExercisesModal({
                                 <Pressable
                                     onPress={() => { onToggleGroup(item); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                                     style={({ pressed }) => [
-                                        styles.exerciseRow,
-                                        isSelected && styles.exerciseRowSelected,
-                                        pressed && styles.exerciseRowPressed,
+                                        styles.muscleGroupRow,
+                                        isSelected && styles.muscleGroupRowSelected,
+                                        pressed && styles.muscleGroupRowPressed,
                                     ]}
                                 >
                                     <View>
-                                        <Text style={styles.exerciseName}>{item}</Text>
+                                        <Text style={styles.muscleGroupName}>{capitalize(item)}</Text>
                                     </View>
 
                                     <Text style={styles.exerciseSelected}>
@@ -67,22 +70,22 @@ export default function FilterExercisesModal({
                             );
                         }}
                         ListEmptyComponent={
-                            <Text style={styles.empty}>No muscle groups found</Text>
+                            <Text style={CommonStyles.empty}>No muscle groups found</Text>
                         }
-                        contentContainerStyle={styles.exerciseList}
+                        contentContainerStyle={styles.listContent}
                     />
 
-                    <View style={styles.modalFooter}>
-                        <Text style={styles.modalFooterText}>
+                    <View style={[ModalStyles.modalFooter, { justifyContent: "space-between" }]}>
+                        <Text style={ModalStyles.modalFooterText}>
                             Selected: {selectedCount}
                         </Text>
                         
-                        <Pressable style={styles.confirmButton} onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-                            <Text style={styles.confirmButtonText}>Filter</Text>
+                        <Pressable style={ModalStyles.button} onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+                            <Text style={CommonStyles.buttonText}>Filter</Text>
                         </Pressable>
                     </View>
 
-                    {error ? <Text style={styles.error}>{error}</Text> : null}
+                    {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
                 </View>
             </View>
         </Modal>
@@ -90,71 +93,24 @@ export default function FilterExercisesModal({
 }
 
 const styles = StyleSheet.create({
-    error: {
-        color: "#b00020",
-        marginRight: 30,
-        textAlign: "center"
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.55)",
-        justifyContent: "flex-end",
-    },
-    modalSheet: {
-        backgroundColor: "#0f0f0f",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 16,
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#ffffff",
-    },
-    modalClose: {
-        color: "#8c8c8c",
-        fontWeight: "500",
-        padding: 8,
-    },
-    modalFooter: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#1f1f1f",
-        paddingTop: 12,
-        paddingBottom: 30,
-    },
-    modalFooterText: {
-        color: "#9a9a9a",
-    },
-    exerciseList: {
-        paddingBottom: 16,
-    },
-    exerciseRow: {
+    muscleGroupRow: {
         padding: 12,
         borderRadius: 12,
-        backgroundColor: "#1a1a1a",
+        backgroundColor: "#1e1e1e",
         marginBottom: 10,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
-    exerciseRowSelected: {
+    muscleGroupRowSelected: {
         borderWidth: 1,
         borderColor: "#20ca17",
     },
-    exerciseRowPressed: {
+    muscleGroupRowPressed: {
         opacity: 0.85,
     },
-    exerciseName: {
-        color: "#ffffff",
+    muscleGroupName: {
+        color: "#f1f1f1",
         fontWeight: "600",
         fontSize: 16
     },
@@ -163,22 +119,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
     },
-    empty: {
-        color: "#9a9a9a",
-        textAlign: "center",
-        marginTop: 12,
-    },
-    confirmButton: {
-        backgroundColor: "#20ca17",
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        width: "25%",
-    },
-    confirmButtonText: {
-        color: "#ffffff",
-        fontWeight: "600",
-        textAlign:"center"
+    listContent: {
+        paddingBottom: 16,
     },
 });
 

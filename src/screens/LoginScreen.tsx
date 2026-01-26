@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, Switch } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, Switch, Image, Dimensions } from "react-native";
 import Feather from '@expo/vector-icons/Feather';
 import { Formik } from "formik";
 import * as yup from "yup";
@@ -20,9 +20,7 @@ const loginValidationSchema = yup.object().shape({
 
 export default function LoginScreen() {
     const { saveToken, saveUser } = useAuth();
-
     const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
-    
 
     const submit = async (values: { username: string; password: string }) => {
         try {
@@ -70,6 +68,8 @@ export default function LoginScreen() {
                         onValueChange={(value) => { setIsRegisterActive(value); }}
                     />
                 </View>
+
+                <Image source={require('../assets/icon.png')} style={styles.image}/>
 
                 <Text style={styles.title}>{isRegisterActive ? "Register" : "Login"}</Text>
                 <Formik
@@ -132,15 +132,28 @@ export default function LoginScreen() {
     );
 }
 
+const width = Dimensions.get("window").width;
+
 const styles = StyleSheet.create({
     switchContainer: {
         position: "absolute",
         bottom: "30%",
         right: "6%"
     },
+	image: {
+        position: "absolute",
+        top: 80,
+        left: width / 2 - 85,
+		width: 170,
+		height: 170,
+		borderRadius: 30,
+		margin: "auto",
+		marginTop: 30,
+		marginBottom: 20,
+	},
     title: {
         fontSize: 32,
-        marginBottom: 40,
+        marginBottom: 30,
         fontWeight: "700",
         color: "#f1f1f1",
         textAlign: "center",

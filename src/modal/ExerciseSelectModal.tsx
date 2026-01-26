@@ -1,6 +1,8 @@
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { ExerciseRow } from "../services/database";
+import { ModalStyles } from "../styles/ModalStyles";
+import { CommonStyles } from "../styles/CommonStyles";
 
 type Props = {
     visible: boolean;
@@ -30,13 +32,13 @@ export default function ExerciseSelectModal({
             transparent
             onRequestClose={onClose}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalSheet}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Select exercises</Text>
+            <View style={ModalStyles.modalOverlay}>
+                <View style={[ModalStyles.modalSheet, { height: "73%" }]}>
+                    <View style={ModalStyles.modalHeader}>
+                        <Text style={ModalStyles.modalTitle}>Select exercises</Text>
 
                         <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
-                            <Text style={styles.modalClose}>Close</Text>
+                            <Text style={ModalStyles.modalClose}>Close</Text>
                         </Pressable>
                     </View>
 
@@ -66,22 +68,22 @@ export default function ExerciseSelectModal({
                             );
                         }}
                         ListEmptyComponent={
-                            <Text style={styles.empty}>No exercises found</Text>
+                            <Text style={CommonStyles.empty}>No exercises found</Text>
                         }
-                        contentContainerStyle={styles.exerciseList}
+                        contentContainerStyle={styles.listContent}
                     />
 
-                    <View style={styles.modalFooter}>
-                        <Text style={styles.modalFooterText}>
+                    <View style={[ModalStyles.modalFooter, { justifyContent: "space-between" }]}>
+                        <Text style={ModalStyles.modalFooterText}>
                             Selected: {selectedCount}
                         </Text>
 
-                        <Pressable style={styles.confirmButton} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
-                            <Text style={styles.confirmButtonText}>Use selection</Text>
+                        <Pressable style={ModalStyles.button} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
+                            <Text style={CommonStyles.buttonText}>Use selection</Text>
                         </Pressable>
                     </View>
 
-                    {error ? <Text style={styles.error}>{error}</Text> : null}
+                    {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
                 </View>
             </View>
         </Modal>
@@ -89,46 +91,10 @@ export default function ExerciseSelectModal({
 }
 
 const styles = StyleSheet.create({
-    error: {
-        color: "#b00020",
-        marginBottom: 8,
-        textAlign: "center",
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.55)",
-        justifyContent: "flex-end",
-    },
-    modalSheet: {
-        backgroundColor: "#0f0f0f",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 16,
-        height: "70%",
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#ffffff",
-    },
-    modalClose: {
-        color: "#8c8c8c",
-        fontWeight: "500",
-        padding: 8,
-    },
-    exerciseList: {
-        paddingBottom: 16,
-    },
     exerciseRow: {
         padding: 12,
         borderRadius: 12,
-        backgroundColor: "#1a1a1a",
+        backgroundColor: "#1e1e1e",
         marginBottom: 10,
         flexDirection: "row",
         justifyContent: "space-between",
@@ -142,11 +108,11 @@ const styles = StyleSheet.create({
         opacity: 0.85,
     },
     exerciseName: {
-        color: "#ffffff",
+        color: "#f1f1f1",
         fontWeight: "600",
     },
     muscleGroup: {
-        color: "#9a9a9a",
+        color: "#767676",
         fontSize: 12,
     },
     exerciseSelected: {
@@ -154,31 +120,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "600",
     },
-    modalFooter: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#1f1f1f",
-        paddingTop: 12,
-        paddingBottom: 30,
-    },
-    modalFooterText: {
-        color: "#9a9a9a",
-    },
-    confirmButton: {
-        backgroundColor: "#20ca17",
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-    },
-    confirmButtonText: {
-        color: "#ffffff",
-        fontWeight: "600",
-    },
-    empty: {
-        color: "#9a9a9a",
-        textAlign: "center",
-        marginTop: 12,
+    listContent: {
+        paddingBottom: 16,
     },
 });

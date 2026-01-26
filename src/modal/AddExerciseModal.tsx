@@ -11,6 +11,8 @@ import {
     Platform
 } from "react-native";
 import * as Haptics from 'expo-haptics';
+import { ModalStyles } from "../styles/ModalStyles";
+import { CommonStyles } from "../styles/CommonStyles";
 
 type Props = {
     visible: boolean;
@@ -45,13 +47,13 @@ export default function AddExerciseModal({
                 style={styles.container}
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalSheet}>
-                            <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>Add exercise</Text>
+                    <View style={ModalStyles.modalOverlay}>
+                        <View style={ModalStyles.modalSheet}>
+                            <View style={ModalStyles.modalHeader}>
+                                <Text style={ModalStyles.modalTitle}>Add exercise</Text>
 
                                 <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
-                                    <Text style={styles.modalClose}>Close</Text>
+                                    <Text style={ModalStyles.modalClose}>Close</Text>
                                 </Pressable>
                             </View>
 
@@ -61,21 +63,21 @@ export default function AddExerciseModal({
                                     onChangeText={setExerciseName}
                                     placeholder="Exercise name"
                                     placeholderTextColor="#8b8b8b"
-                                    style={styles.input}
+                                    style={[CommonStyles.input, { marginBottom: 8 }]}
                                 />
                                 <TextInput
                                     value={muscleGroup}
                                     onChangeText={setMuscleGroup}
                                     placeholder="Muscle group"
                                     placeholderTextColor="#8b8b8b"
-                                    style={styles.input}
+                                    style={[CommonStyles.input, { marginBottom: 12 }]}
                                 />
                             </View>
 
-                            <View style={styles.modalFooter}>
-                                {error ? <Text style={styles.error}>{error}</Text> : null}
-                                <Pressable style={styles.confirmButton} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
-                                    <Text style={styles.confirmButtonText}>Add</Text>
+                            <View style={ModalStyles.modalFooter}>
+                                {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
+                                <Pressable style={ModalStyles.button} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
+                                    <Text style={CommonStyles.buttonText}>Add</Text>
                                 </Pressable>
                             </View>
                         </View>
@@ -89,69 +91,10 @@ export default function AddExerciseModal({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.55)",
         justifyContent: "flex-end",
-    },
-    error: {
-        color: "#b00020",
-        marginRight: 30,
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: "flex-end",
-    },
-    modalSheet: {
-        backgroundColor: "#0f0f0f",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 16,
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#ffffff",
-    },
-    modalClose: {
-        color: "#8c8c8c",
-        fontWeight: "500",
-        padding: 8,
     },
 	form: {
 		gap: 10,
 		marginBottom: 12,
 	},
-	input: {
-		backgroundColor: "#1e1e1e",
-		borderRadius: 10,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
-		color: "#ffffff",
-	},
-    modalFooter: {
-        flexDirection: "row",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#1f1f1f",
-        paddingTop: 12,
-        paddingBottom: 30,
-    },
-    confirmButton: {
-        backgroundColor: "#20ca17",
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        width: "25%",
-    },
-    confirmButtonText: {
-        color: "#ffffff",
-        fontWeight: "600",
-        textAlign:"center"
-    },
 });

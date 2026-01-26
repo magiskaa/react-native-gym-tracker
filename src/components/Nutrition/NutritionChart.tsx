@@ -41,6 +41,11 @@ export default function NutritionChart({ history }: Props) {
                 strokeWidth: 2,
                 withDots: false,
             },
+            {
+                data: [0],
+                strokeWidth: 0,
+                withDots: false,
+            },
         ],
     };
     

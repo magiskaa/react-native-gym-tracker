@@ -97,9 +97,17 @@ export default function ProfileScreen() {
 
 	const logWeight = async () => {
 		if (!weightInput) {
-			setError("Fill weight");
+			setError("Please fill weight");
 			return;
 		}
+
+		const formattedDate = formatLocalDateISO(dateInput).slice(0, 10);
+        const today = formatLocalDateISO(new Date()).slice(0, 10);
+
+        if (formattedDate.localeCompare(today) > 0) {
+            setError("Please select a date that is not in the future");
+            return;
+        }
 
 		try {
 			const date = formatLocalDateISO(dateInput);
@@ -107,10 +115,9 @@ export default function ProfileScreen() {
 
 			await addWeight(date, weight);
 		} catch (error) {
-			setError(`Failed to log weight: ${error}`);
+			console.error(`Failed to log weight: ${error}`);
 		} finally {
-			setIsWeightModalVisible(false);
-			setWeightInput("");
+			closeModal();
 			loadData();
 		}
 	};

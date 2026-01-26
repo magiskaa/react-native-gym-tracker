@@ -71,8 +71,8 @@ export default function PhaseScreen() {
 		
 		if (endDate) {
 			end = formatLocalDateISO(endDate);
-			if (start.localeCompare(end) === 1 || start.localeCompare(end) === 0) {
-				setError("End date can't be before the start date.");
+			if (start.localeCompare(end) >= 0) {
+				setError("End date can't be before the start date");
 				return;
 			}
 		}

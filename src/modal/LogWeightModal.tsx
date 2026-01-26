@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { ModalStyles } from "../styles/ModalStyles";
+import { CommonStyles } from "../styles/CommonStyles";
 
 type Props = {
     visible: boolean;
@@ -40,13 +42,13 @@ export default function LogWeightModal({
             onRequestClose={onClose}
         >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalSheet}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Log weight</Text>
+                <View style={ModalStyles.modalOverlay}>
+                    <View style={ModalStyles.modalSheet}>
+                        <View style={ModalStyles.modalHeader}>
+                            <Text style={ModalStyles.modalTitle}>Log weight</Text>
 
                             <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-                                <Text style={styles.modalClose}>Close</Text>
+                                <Text style={ModalStyles.modalClose}>Close</Text>
                             </Pressable>
                         </View>
 
@@ -56,7 +58,7 @@ export default function LogWeightModal({
                             placeholder="Weight (kg)"
                             placeholderTextColor="#8b8b8b"
                             keyboardType="numeric"
-                            style={styles.input}
+                            style={CommonStyles.input}
                         />
 
                         <DateTimePicker
@@ -67,13 +69,13 @@ export default function LogWeightModal({
                             mode="date"
                             display="spinner"
                             themeVariant="dark"
-                            style={styles.datePicker}
+                            style={ModalStyles.datePicker}
                         />
 
-                        <View style={styles.modalFooter}>
-                            {error ? <Text style={styles.error}>{error}</Text> : null}
-                            <Pressable style={styles.confirmButton} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
-                                <Text style={styles.confirmButtonText}>Log</Text>
+                        <View style={ModalStyles.modalFooter}>
+                            {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
+                            <Pressable style={ModalStyles.button} onPress={() => { onConfirm(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+                                <Text style={CommonStyles.buttonText}>Log</Text>
                             </Pressable>
                         </View>
                     </View>
@@ -82,78 +84,3 @@ export default function LogWeightModal({
         </Modal>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "flex-end",
-    },
-    error: {
-        color: "#b00020",
-        marginRight: 80,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.55)",
-        justifyContent: "flex-end",
-    },
-    modalSheet: {
-        backgroundColor: "#0f0f0f",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 16,
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#ffffff",
-    },
-    modalClose: {
-        color: "#8c8c8c",
-        fontWeight: "500",
-        padding: 8,
-    },
-    modalFooter: {
-        flexDirection: "row",
-        justifyContent: "flex-end",
-        alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#1f1f1f",
-        paddingTop: 12,
-        paddingBottom: 30,
-    },
-    modalFooterText: {
-        color: "#9a9a9a",
-    },
-	input: {
-		backgroundColor: "#1e1e1e",
-		borderRadius: 10,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
-        marginBottom: 20,
-		color: "#ffffff",
-	},
-    datePicker: {
-        marginHorizontal: "auto",
-        marginBottom: 12,
-    },
-    confirmButton: {
-        backgroundColor: "#20ca17",
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
-        width: "25%",
-    },
-    confirmButtonText: {
-        color: "#ffffff",
-        fontWeight: "600",
-        textAlign:"center"
-    },
-});
-

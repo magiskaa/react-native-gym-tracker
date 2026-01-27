@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import * as Haptics from 'expo-haptics';
 import { useAuth } from "../auth/authContext";
 import { formatLocalDateISO } from "../utils/Utils";
-import StartPhaseModal from "../modal/StartPhaseModal";
+import StartPhaseModal from "../modal/Phase/StartPhaseModal";
 import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";
 import ActivePhase from "../components/Phase/ActivePhase";
 import PhaseChart from "../components/Phase/PhaseChart";
@@ -53,7 +53,7 @@ export default function PhaseScreen() {
 			setPhaseWeightHistory([]);
 			return;
 		}
-		const history = await getCurrentPhaseWeight(formatLocalDateISO(date));
+		const history = await getCurrentPhaseWeight(user.id, formatLocalDateISO(date));
 		if (history.length !== 0) {
 			setPhaseWeightHistory(history);
 		} else {

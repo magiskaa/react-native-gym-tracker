@@ -10,8 +10,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import { ExerciseRow, ExerciseHistory, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory } from "../services/database";
 import ExerciseChart from "../components/Stats/ExerciseChart";
-import AddExerciseModal from "../modal/AddExerciseModal";
-import FilterExercisesModal from "../modal/FilterExercisesModal";
+import AddExerciseModal from "../modal/Stats/AddExerciseModal";
+import FilterExercisesModal from "../modal/Stats/FilterExercisesModal";
 import { CommonStyles } from "../styles/CommonStyles";
 import { useAuth } from "../auth/authContext";
 import { capitalize } from "../utils/Utils";

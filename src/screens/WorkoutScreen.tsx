@@ -4,12 +4,14 @@ import {
 	StyleSheet,
 	Text,
 	View,
+	Alert
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { ExerciseRow, getExercises } from "../services/database";
-import ExerciseSelectModal from "../modal/ExerciseSelectModal";
+import ExerciseSelectModal from "../modal/Workout/ExerciseSelectModal";
 import ActiveWorkout from "../components/Workout/ActiveWorkout";
 import { CommonStyles } from "../styles/CommonStyles";
+import { useAuth } from "../auth/authContext";
 
 
 export default function WorkoutScreen() {
@@ -18,15 +20,22 @@ export default function WorkoutScreen() {
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 	const [error, setError] = useState<string | null>(null);
 
+	const { user } = useAuth();
+
 	const [isWorkoutActive, setIsWorkoutActive] = useState<boolean>(false);
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 
-	useEffect(() => {
-		const loadExercises = async () => {
-			const rows = await getExercises();
+	const loadExercises = async () => {
+		try {
+			const rows = await getExercises(user.id);
 			setExercises(rows);
-		};
+		} catch (error) {
+			Alert.alert("Failed to load exercises", "Please try again later");
+			console.error(error);
+		}
+	};
 
+	useEffect(() => {
 		loadExercises();
 	}, []);
 

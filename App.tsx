@@ -2,6 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from "react";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Toast from 'react-native-toast-message';
+import { toastConfig } from './src/components/ToastConfig';
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from 'expo-haptics';
 import HomeScreen from "./src/screens/HomeScreen";
@@ -27,7 +29,7 @@ const Theme = {
 }
 
 function AppContent() {
-    const { token } = useAuth();
+    const { user } = useAuth();
 
     useEffect(() => {
         initDb().catch((error) => {
@@ -35,7 +37,7 @@ function AppContent() {
         });
     }, []);
 
-    if (!token) {
+    if (!user?.uid) {
         return <LoginScreen />;
     }
 
@@ -79,13 +81,14 @@ function AppContent() {
                     },
                 }}
             >
-                <Tab.Screen name="Home" component={HomeScreen} />
+                {/* <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="Workout" component={WorkoutScreen} />
                 <Tab.Screen name="Nutrition" component={NutritionScreen} />
                 <Tab.Screen name="Phase" component={PhaseScreen} />
-                <Tab.Screen name="Stats" component={StatsScreen} />
+                <Tab.Screen name="Stats" component={StatsScreen} /> */}
                 <Tab.Screen name="Profile" component={ProfileScreen} />
             </Tab.Navigator>
+            <Toast config={toastConfig} />
         </NavigationContainer>
     );
 }

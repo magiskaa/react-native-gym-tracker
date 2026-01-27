@@ -86,6 +86,9 @@ export default function LoginScreen() {
                                 onBlur={handleBlur("email")}
                                 value={values.email}
                                 autoCapitalize="none"
+                                keyboardType="email-address"
+                                textContentType="emailAddress"
+                                autoComplete="email"
                             />
                         </View>
                         {errors.email && touched.email && (

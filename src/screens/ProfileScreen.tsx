@@ -23,6 +23,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from '../auth/authContext';
 import { formatLocalDateISO } from "../utils/Utils";
 import { CommonStyles } from "../styles/CommonStyles";
+import { useToast } from "../components/ToastConfig";
 
 
 export default function ProfileScreen() {
@@ -35,8 +36,8 @@ export default function ProfileScreen() {
 
 	const { user, loading, logout } = useAuth();
 
-	const [editedUsername, setEditedUsername] = useState<string | null>(null);
-	const [editedImage, setEditedImage] = useState<string | null>(null);
+	const [username, setUsername] = useState<string | null>(null);
+	const [image, setImage] = useState<string | null>(null);
 
 	const [originalUsername, setOriginalUsername] = useState<string | null>(null);
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -53,9 +54,9 @@ export default function ProfileScreen() {
 
 			const profileData = await getProfile(user.uid);
 			if (profileData.length > 0) {
-				setEditedUsername(profileData[0].username);
+				setUsername(profileData[0].username);
 				if (profileData[0].image) {
-					setEditedImage(profileData[0].image);
+					setImage(profileData[0].image);
 				}
 			}
 		} catch (error) {
@@ -86,21 +87,31 @@ export default function ProfileScreen() {
 		});
 
 		if (!result.canceled) {
-			setEditedImage(result.assets[0].uri);
+			setImage(result.assets[0].uri);
 		}
 	};
 
 	const saveChanges = async () => {
-		if (!user?.uid) { return; }
+		if (!user?.uid) { 
+			useToast("error", "Save failed", "Your changes could not be saved");
+			return; 
+		}
 
 		const existing = await getProfile(user.uid);
 
-		if (existing.length > 0) {
-			await updateProfile(user.uid, editedUsername ?? existing[0].username, editedImage ?? existing[0].image);
-		} else {
-			await addProfile(user.uid, editedUsername ?? user.email ?? "", editedImage);
+		try {
+			if (existing.length > 0) {
+				await updateProfile(user.uid, username ?? existing[0].username ?? user.email, image ?? existing[0].image);
+			} else {
+				await addProfile(user.uid, username ?? user.email ?? "", image);
+			}
+			useToast("success", "Profile saved", "Your changes were saved succesfully");
+		} catch (error) {
+			useToast("error", "Failed to save profile", "Please try again" );
+			console.error(`Failed to save profile: ${error}`);
+		} finally {
+			loadData();
 		}
-		loadData();
 	};
 
 	const logWeight = async () => {
@@ -126,8 +137,9 @@ export default function ProfileScreen() {
 			await addWeight(user.uid, weight, formattedDate);
 
 			closeModal();
+			useToast("success", "Weight logged", "Your weight entry was saved successfully");
 		} catch (error) {
-			Alert.alert("Failed to log weight", "Please try again");
+			useToast("error", "Failed to log weight", "Please try again");
 			console.error(`Failed to log weight: ${error}`);
 		} finally {
 			loadData();
@@ -138,6 +150,7 @@ export default function ProfileScreen() {
 		setIsWeightModalVisible(false);
 		setError(null);
 		setWeightInput("");
+		setDateInput(new Date());
 	};
 
 	const openModal = () => {
@@ -167,8 +180,8 @@ export default function ProfileScreen() {
 						<Button title="Select image" onPress={() =>{ pickImage(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}} />
 					</View>
 				) : null}
-				{(editedImage) ? (
-					<Image source={{ uri: editedImage }} style={styles.image}/>
+				{(image) ? (
+					<Image source={{ uri: image }} style={styles.image}/>
 				) : (
 					<View style={[styles.image, { backgroundColor: "#d0d0d0" }]}>
 						<Ionicons name={"person"} size={150} color={"#9f9f9f"} style={{ margin: "auto" }} />
@@ -185,8 +198,8 @@ export default function ProfileScreen() {
 									text: "No", 
 									style: "cancel",
 									onPress: () => {
-										setEditedUsername(originalUsername);
-										setEditedImage(originalImage);
+										setUsername(originalUsername);
+										setImage(originalImage);
 										setIsEditable(false);
 										setEditButtonColor("#f1f1f1");
 									}
@@ -204,8 +217,8 @@ export default function ProfileScreen() {
 						)
 						return;
 					}
-					setOriginalUsername(editedUsername);
-					setOriginalImage(editedImage);
+					setOriginalUsername(username);
+					setOriginalImage(image);
 					setIsEditable(true);
 					setEditButtonColor("#20ca17");
 				}}>
@@ -215,15 +228,15 @@ export default function ProfileScreen() {
 				<View style={styles.usernameContainer}>
 					{isEditable ? (
 						<TextInput 
-							value={editedUsername || ""}
-							onChangeText={setEditedUsername}
+							value={username || ""}
+							onChangeText={setUsername}
 							placeholder="Username"
 							autoCapitalize="none"
 							placeholderTextColor="#8b8b8b"
 							style={[CommonStyles.input, styles.input]}
 						/>
 					) : (
-						<Text style={styles.username}>{editedUsername || ""}</Text>
+						<Text style={styles.username}>{username || ""}</Text>
 					)}
 				</View>
 

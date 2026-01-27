@@ -33,6 +33,11 @@ export type Profile = {
 	image: string | null;
 };
 
+export type NutritionGoals = {
+	calorie_goal: number | null;
+	protein_goal: number | null;
+};
+
 export type SetCount = {
 	muscle_group: string; 
 	setCount: number;
@@ -346,39 +351,37 @@ export const getLatestExerciseSession = async (exercise_id: number) => {
 |                                    WEIGHT                                   |
 ===============================================================================
 */
-export const getWeight = async () => {
-    const history = await db.getAllAsync<WeightHistory>(
-        "SELECT weight, date FROM weight ORDER BY date ASC"
+export const getWeight = async (user: number) => {
+    return await db.getAllAsync<WeightHistory>(
+        "SELECT weight, date FROM weight WHERE user = ? ORDER BY date ASC",
+		[user]
     );
-
-	return history.map(row => ({
-		date: row.date,
-		weight: row.weight,
-	}));
 };
 
-export const getCurrentWeight = async () => {
+export const getCurrentWeight = async (user: number) => {
 	return await db.getAllAsync<{weight: number}>(
-		"SELECT weight FROM weight ORDER BY date DESC LIMIT 1"
+		"SELECT weight FROM weight WHERE user = ? ORDER BY date DESC LIMIT 1",
+		[user]
 	);
 };
 
-export const getCurrentPhaseWeight = async (start_date: string) => {
+export const getCurrentPhaseWeight = async (user: number, start_date: string) => {
 	return await db.getAllAsync<WeightHistory>(
 		`
 		SELECT weight, date 
 		FROM weight
-		WHERE date >= ?
+		WHERE user = ?
+		AND date >= ?
 		ORDER BY date ASC
 		`,
-		[start_date]
+		[user, start_date]
 	);
 };
 
-export const addWeight = async (date: string, weight: number) => {
+export const addWeight = async (user: number, weight: number, date: string) => {
 	await db.runAsync(
-		"INSERT INTO weight (date, weight) VALUES (?, ?)",
-		[date, weight]
+		"INSERT INTO weight (user, weight, date) VALUES (?, ?, ?)",
+		[user, weight, date]
 	);
 };
 
@@ -394,10 +397,26 @@ export const getProfile = async (username: string) => {
 	);
 };
 
-export const addProfile = async (username: string, image: string | null, passwordHash: string, passwordSalt: string) => {
+export const addProfile = async (
+	username: string, 
+	image: string | null, 
+	passwordHash: string, 
+	passwordSalt: string, 
+	calorie_goal: number | null, 
+	protein_goal: number | null
+) => {
 	await db.runAsync(
-		"INSERT INTO profile (username, password_hash, password_salt, image) VALUES (?, ?, ?, ?)",
-		[username, passwordHash, passwordSalt, image]
+		`
+		INSERT INTO profile (
+			username, 
+			password_hash, 
+			password_salt, 
+			image, 
+			calorie_goal, 
+			protein_goal
+		) VALUES (?, ?, ?, ?, ?, ?)
+		`,
+		[username, passwordHash, passwordSalt, image, calorie_goal, protein_goal]
 	);
 };
 
@@ -502,6 +521,25 @@ export const updateNutrition = async (user: number, calories: number, protein: n
 		[calories, protein, user, date]
 	);
 };
+
+export const getNutritionGoals = async (user: number) => {
+	return await db.getAllAsync<NutritionGoals>(
+		"SELECT calorie_goal, protein_goal FROM profile WHERE id = ?",
+		[user]
+	);
+};
+
+export const updateNutritionGoals = async (user: number, calorie_goal: number, protein_goal: number) => {
+	await db.runAsync(
+		`
+		UPDATE profile 
+		SET calorie_goal = ?, protein_goal = ?
+		WHERE id = ?
+		`,
+		[calorie_goal, protein_goal, user]
+	);
+};
+
 
 /* 
 ===============================================================================

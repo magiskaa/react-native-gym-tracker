@@ -1,10 +1,11 @@
-import { StyleSheet, Text, View, Pressable, FlatList, Dimensions } from "react-native";
+import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
-import { NutritionRow, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/database";
+import { NutritionRow, NutritionGoals, getNutrition, getNutritionGoals, getNutritionByDate, addNutrition, updateNutrition, updateNutritionGoals } from "../services/database";
 import { useAuth } from "../auth/authContext";
 import LogCaloriesModal from "../modal/LogCaloriesModal";
+import SetNutritionGoalsModal from "../modal/SetNutritionGoalsModal";
 import { formatDateWOZeros, formatLocalDateISO } from "../utils/Utils";
 import NutritionChart from "../components/Nutrition/NutritionChart";
 import { CommonStyles } from "../styles/CommonStyles";
@@ -12,7 +13,11 @@ import { CommonStyles } from "../styles/CommonStyles";
 
 export default function NutritionScreen() {
     const [nutrition, setNutrition] = useState<NutritionRow[]>([]);
+    const [nutritionGoals, setNutritionGoals] = useState<NutritionGoals[]>([]);
     const { user } = useAuth();
+
+    const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
+    const [proteinGoal, setProteinGoal] = useState<number | null>(null);
 
     const [calories, setCalories] = useState<number>(0);
     const [protein, setProtein] = useState<number>(0);
@@ -21,6 +26,7 @@ export default function NutritionScreen() {
 
     const [error, setError] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [isGoalModalVisible, setIsGoalModalVisible] = useState<boolean>(false);
 
     const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
 
@@ -38,10 +44,15 @@ export default function NutritionScreen() {
             if (nutritionData.length === 0) {
                 nutritionData = await addNutrition(user.id, today);
             }
+            const nutritionGoalsData = await getNutritionGoals(user.id);
+            setNutritionGoals(nutritionGoalsData);
+            setCalorieGoal(nutritionGoalsData[0].calorie_goal);
+            setProteinGoal(nutritionGoalsData[0].protein_goal);
 
             setNutrition(nutritionData);
             setCalories(nutritionData[0].calories || 0);
             setProtein(nutritionData[0].protein || 0);
+
         } catch (error) {
             console.log(error);
         }
@@ -52,8 +63,8 @@ export default function NutritionScreen() {
     }, []);
 
     const logCalories = async (cal: number, prot: number) => { 
-        const formattedDate = formatLocalDateISO(date).slice(0, 10);
-        const today = formatLocalDateISO(new Date()).slice(0, 10);
+        const formattedDate = formatLocalDateISO(date);
+        const today = formatLocalDateISO(new Date());
 
         if (formattedDate.localeCompare(today) > 0) {
             setError("Please select a date that is not in the future");
@@ -95,10 +106,40 @@ export default function NutritionScreen() {
             setCalories(calories + cal);
             setProtein(protein + prot);
         } catch (error) {
+            Alert.alert("Failed to log calories", "Please try again");
             console.error(`Failed to log calories: ${error}`);
         } finally {
             closeModal();
             loadData();
+        }
+    };
+
+    const updateGoals = async (calGoal: number, protGoal: number) => {
+        if (calGoal === 0 && protGoal === 0) {
+            setError("Please fill nutrition goals");
+            return;
+        }
+
+        try {
+            if (!calorieGoal && !proteinGoal) {
+                if (calGoal === 0 || protGoal === 0) {
+                    setError("Please set both goals");
+                    return;
+                }
+                await updateNutritionGoals(user.id, calGoal, protGoal);
+            }
+
+            if (calorieGoal && proteinGoal) {
+                await updateNutritionGoals(user.id, calGoal === 0 ? calorieGoal : calGoal, protGoal === 0 ? proteinGoal : protGoal);
+            }
+
+            setCalorieGoal(calGoal);
+            setProteinGoal(protGoal);
+        } catch (error) {
+            Alert.alert("Failed to set goals", "Please try again");
+            console.error(`Failed to set goals: ${error}`);
+        } finally {
+            closeGoalModal();
         }
     };
 
@@ -115,6 +156,16 @@ export default function NutritionScreen() {
         setIsRemoveActive(false);
     };
 
+    const closeGoalModal = () => {
+        setIsGoalModalVisible(false);
+        setError(null);
+    };
+
+    const openGoalModal = () => {
+        setIsGoalModalVisible(true);
+        setError(null);
+    };
+
     return (
         <View style={[CommonStyles.container, { paddingHorizontal: 0 }]}>
             <View style={styles.nutritionContainer}>
@@ -122,7 +173,7 @@ export default function NutritionScreen() {
                     <View>
                         <Text style={styles.progressTitle}>Calories</Text>
                         <Circle
-                            progress={(Number(calories || 0) / 3000) > 1 ? 1 : (Number(calories || 0) / 3000)}
+                            progress={(Number(calories || 0) / (calorieGoal || 3000)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 3000))}
                             size={120}
                             thickness={10}
                             borderWidth={0}
@@ -130,14 +181,15 @@ export default function NutritionScreen() {
                             animated
                             showsText
                             formatText={() => `${calories}`}
-                            textStyle={{ fontSize: 34 }}
+                            textStyle={{ fontSize: 32 }}
                             style={styles.progress}
                         />
                     </View>
+                    <Text style={[styles.progressTitle, { position: "absolute", top: -16 }]}>{formatDateWOZeros(formatLocalDateISO(new Date()))}</Text>
                     <View>
                         <Text style={styles.progressTitle}>Protein</Text>
                         <Circle
-                            progress={(Number(protein || 0) / 150) > 1 ? 1 : (Number(protein || 0) / 150)}
+                            progress={(Number(protein || 0) / (proteinGoal || 150)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 150))}
                             size={120}
                             thickness={10}
                             borderWidth={0}
@@ -145,24 +197,41 @@ export default function NutritionScreen() {
                             animated
                             showsText
                             formatText={() => `${protein}`}
-                            textStyle={{ fontSize: 34 }}
+                            textStyle={{ fontSize: 32 }}
                             style={styles.progress}
                         />
                     </View>
                 </View>
 
-                <Pressable 
-                    onPress={() => {
-                        openModal(); 
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                    }}
-                    style={({ pressed }) => [
-                        CommonStyles.button,
-                        pressed && CommonStyles.buttonPressed
-                    ]}
-                >
-                    <Text style={CommonStyles.buttonText}>Log calories</Text>
-                </Pressable>
+                <View style={styles.buttonContainer}>
+                    <Pressable 
+                        onPress={() => {
+                            openGoalModal(); 
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                        }}
+                        style={({ pressed }) => [
+                            CommonStyles.button,
+                            pressed && CommonStyles.buttonPressed,
+                            { width: "35%" }
+                        ]}
+                    >
+                        <Text style={CommonStyles.buttonText}>Set goals</Text>
+                    </Pressable>
+
+                    <Pressable 
+                        onPress={() => {
+                            openModal(); 
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                        }}
+                        style={({ pressed }) => [
+                            CommonStyles.button,
+                            pressed && CommonStyles.buttonPressed,
+                            { width: "35%" }
+                        ]}
+                    >
+                        <Text style={CommonStyles.buttonText}>Log calories</Text>
+                    </Pressable>
+                </View>
             </View>
             
             <FlatList
@@ -232,6 +301,15 @@ export default function NutritionScreen() {
                     onConfirm={logCalories}
                 />
             ) : null}
+
+            {isGoalModalVisible ? (
+                <SetNutritionGoalsModal 
+                    visible={isGoalModalVisible}
+                    error={error}
+                    onClose={closeGoalModal}
+                    onConfirm={updateGoals}
+                />
+            ) : null}
         </View>
     );
 }
@@ -256,6 +334,9 @@ const styles = StyleSheet.create({
     },
     progress: {
         marginHorizontal: 8,
+    },
+    buttonContainer: {
+        flexDirection: "row",
     },
     recentDaysContainer: {
         backgroundColor: "#2b2b2b",

@@ -35,7 +35,7 @@ export default function LoginScreen() {
                 }
                 
                 const { hash, salt } = await createPasswordHash(values.password);
-                await addProfile(values.username, null, hash, salt);
+                await addProfile(values.username, null, hash, salt, null, null);
 
                 const createdProfiles = await getProfile(values.username);
                 profile = createdProfiles[0];

@@ -1,14 +1,28 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { NutritionRow } from "../../services/database";
+import { NutritionRow, getNutritionGoals } from "../../services/database";
 import { formatDate, formatDateWOZeros } from "../../utils/Utils";
 import { ChartStyles } from "../../styles/ChartStyles";
+import { useAuth } from "../../auth/authContext";
+import { useEffect, useState } from "react";
 
 type Props = {
     history: NutritionRow[];
 };
 
 export default function NutritionChart({ history }: Props) {
+    const { user } = useAuth();
+    const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
+
+    const loadData = async () => {
+        const data = await getNutritionGoals(user.id);
+        setCalorieGoal(data[0].calorie_goal);
+    };
+
+    useEffect(() => {
+        loadData();
+    });
+
     if (history.length === 0) {
         return (
             <View style={ChartStyles.emptyContainer}>
@@ -19,7 +33,7 @@ export default function NutritionChart({ history }: Props) {
 
     const chartWidth = Dimensions.get("window").width - 50;
 
-    const reversed = history.reverse();
+    const reversed = [...history].reverse();
 
     const maxLabels = 7;
     const rawLabels = reversed.map((h) => formatDateWOZeros(h.date));
@@ -36,7 +50,7 @@ export default function NutritionChart({ history }: Props) {
                 withDots: true,
             },
             {
-                data: reversed.map(() => 3000),
+                data: reversed.map(() => (calorieGoal || 0)),
                 color: () => "#626262",
                 strokeWidth: 2,
                 withDots: false,
@@ -59,7 +73,7 @@ export default function NutritionChart({ history }: Props) {
                 withDots: true,
             },
             {
-                data: reversed.map(() => 3000),
+                data: reversed.map(() => 150),
                 color: () => "#626262",
                 strokeWidth: 2,
                 withDots: false,

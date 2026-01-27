@@ -49,7 +49,7 @@ export default function ProfileScreen() {
 	
 	const loadData = async () => {
 		try {
-			const weightData = await getWeight();
+			const weightData = await getWeight(user.id);
 			setHistory(weightData);
 
 			const profileData = await getProfile(username);
@@ -59,8 +59,9 @@ export default function ProfileScreen() {
 			if (profileData[0].image) {
 				setEditedImage(profileData[0].image);
 			}
-		} catch (err) {
-			console.error("Failed to load weight history", err);
+		} catch (error) {
+			Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
 		}
 	};
 
@@ -101,8 +102,8 @@ export default function ProfileScreen() {
 			return;
 		}
 
-		const formattedDate = formatLocalDateISO(dateInput).slice(0, 10);
-        const today = formatLocalDateISO(new Date()).slice(0, 10);
+		const formattedDate = formatLocalDateISO(dateInput);
+        const today = formatLocalDateISO(new Date());
 
         if (formattedDate.localeCompare(today) > 0) {
             setError("Please select a date that is not in the future");
@@ -110,11 +111,10 @@ export default function ProfileScreen() {
         }
 
 		try {
-			const date = formatLocalDateISO(dateInput);
 			const weight = Number(weightInput.replace(",", "."));
-
-			await addWeight(date, weight);
+			await addWeight(user.id, weight, formattedDate);
 		} catch (error) {
+			Alert.alert("Failed to log weight", "Please try again");
 			console.error(`Failed to log weight: ${error}`);
 		} finally {
 			closeModal();

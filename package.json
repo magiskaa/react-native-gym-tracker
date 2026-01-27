@@ -21,6 +21,7 @@
     "expo-image-picker": "~17.0.10",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
+    "firebase": "^12.8.0",
     "formik": "^2.4.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",

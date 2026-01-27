@@ -13,7 +13,8 @@ import {
 import { useState, useEffect } from "react";
 import WeightChart from "../components/Profile/WeightChart";
 import LogWeightModal from "../modal/Profile/LogWeightModal";
-import { WeightHistory, addWeight, getWeight, getProfile, updateProfile } from "../services/database";
+import { WeightHistory, addWeight, getWeight } from "../services/weights";
+import { getProfile, addProfile, updateProfile } from "../services/profile";
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -32,16 +33,12 @@ export default function ProfileScreen() {
 	const [weightInput, setWeightInput] = useState<string>("");
 	const [dateInput, setDateInput] = useState<Date>(new Date());
 
-	const [profileId, setProfileId] = useState<number>(0);
+	const { user, loading, logout } = useAuth();
 
-	const { user, saveUser, logout } = useAuth();
-	const username = user?.username || "";
-	const image = user?.image || null;
+	const [editedUsername, setEditedUsername] = useState<string | null>(null);
+	const [editedImage, setEditedImage] = useState<string | null>(null);
 
-	const [editedUsername, setEditedUsername] = useState<string>(username);
-	const [editedImage, setEditedImage] = useState<string | null>(image);
-
-	const [originalUsername, setOriginalUsername] = useState<string>("");
+	const [originalUsername, setOriginalUsername] = useState<string | null>(null);
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
 
 	const [isEditable, setIsEditable] = useState<boolean>(false);
@@ -49,15 +46,17 @@ export default function ProfileScreen() {
 	
 	const loadData = async () => {
 		try {
-			const weightData = await getWeight(user.id);
+			if (!user?.uid) { return; }
+
+			const weightData = await getWeight(user.uid);
 			setHistory(weightData);
 
-			const profileData = await getProfile(username);
-			if (profileData.length === 0) { return; }
-
-			setProfileId(profileData[0].id);
-			if (profileData[0].image) {
-				setEditedImage(profileData[0].image);
+			const profileData = await getProfile(user.uid);
+			if (profileData.length > 0) {
+				setEditedUsername(profileData[0].username);
+				if (profileData[0].image) {
+					setEditedImage(profileData[0].image);
+				}
 			}
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
@@ -66,8 +65,10 @@ export default function ProfileScreen() {
 	};
 
 	useEffect(() => {
-		loadData();
-	}, []);
+		if (!loading) {
+			loadData();
+		}
+	}, [loading, user?.uid]);
 	
 	const pickImage = async () => {
 		const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -90,10 +91,16 @@ export default function ProfileScreen() {
 	};
 
 	const saveChanges = async () => {
-		if (user) {
-			await saveUser({ ...user, username: editedUsername, image: editedImage });
-			await updateProfile(profileId, { username: editedUsername, image: editedImage });
+		if (!user?.uid) { return; }
+
+		const existing = await getProfile(user.uid);
+
+		if (existing.length > 0) {
+			await updateProfile(user.uid, editedUsername ?? existing[0].username, editedImage ?? existing[0].image);
+		} else {
+			await addProfile(user.uid, editedUsername ?? user.email ?? "", editedImage);
 		}
+		loadData();
 	};
 
 	const logWeight = async () => {
@@ -111,13 +118,18 @@ export default function ProfileScreen() {
         }
 
 		try {
+			if (!user?.uid) {
+				Alert.alert("Failed to log weight", "Please sign in again");
+				return;
+			}
 			const weight = Number(weightInput.replace(",", "."));
-			await addWeight(user.id, weight, formattedDate);
+			await addWeight(user.uid, weight, formattedDate);
+
+			closeModal();
 		} catch (error) {
 			Alert.alert("Failed to log weight", "Please try again");
 			console.error(`Failed to log weight: ${error}`);
 		} finally {
-			closeModal();
 			loadData();
 		}
 	};
@@ -203,7 +215,7 @@ export default function ProfileScreen() {
 				<View style={styles.usernameContainer}>
 					{isEditable ? (
 						<TextInput 
-							value={editedUsername}
+							value={editedUsername || ""}
 							onChangeText={setEditedUsername}
 							placeholder="Username"
 							autoCapitalize="none"
@@ -211,7 +223,7 @@ export default function ProfileScreen() {
 							style={[CommonStyles.input, styles.input]}
 						/>
 					) : (
-						<Text style={styles.username}>{username}</Text>
+						<Text style={styles.username}>{editedUsername || ""}</Text>
 					)}
 				</View>
 

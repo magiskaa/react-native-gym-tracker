@@ -249,7 +249,7 @@ export default function NutritionScreen() {
                                 <View>
                                     <Text style={styles.progressTitleSmall}>Calories</Text>
                                     <Circle
-                                        progress={(Number(item.calories || 0) / 3000) > 1 ? 1 : (Number(item.calories || 0) / 3000)}
+                                        progress={(Number(item.calories || 0) / (calorieGoal || 3000)) > 1 ? 1 : (Number(item.calories || 0) / (calorieGoal || 3000))}
                                         size={60}
                                         thickness={5}
                                         borderWidth={0}
@@ -264,7 +264,7 @@ export default function NutritionScreen() {
                                 <View>
                                     <Text style={styles.progressTitleSmall}>Protein</Text>
                                     <Circle
-                                        progress={(Number(item.protein || 0) / 150) > 1 ? 1 : (Number(item.protein || 0) / 150)}
+                                        progress={(Number(item.protein || 0) / (proteinGoal || 150)) > 1 ? 1 : (Number(item.protein || 0) / (proteinGoal || 150))}
                                         size={60}
                                         thickness={5}
                                         borderWidth={0}

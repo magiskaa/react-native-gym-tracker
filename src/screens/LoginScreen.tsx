@@ -4,15 +4,17 @@ import Feather from '@expo/vector-icons/Feather';
 import { Formik } from "formik";
 import * as yup from "yup";
 import { useAuth } from "../auth/authContext";
-import { addProfile, getProfile, updateProfile } from "../services/database";
-import { createPasswordHash, verifyPassword } from "../utils/Utils";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebase";
 import { CommonStyles } from "../styles/CommonStyles";
+import { getProfile, addProfile } from "../services/profile";
 
 
 const loginValidationSchema = yup.object().shape({
-    username: yup
+    email: yup
         .string()
-        .required("Username is required"),
+        .email("Enter a valid email")
+        .required("Email is required"),
     password: yup
         .string()
         .min(8, ({ min }) => `Password must be at least ${min} characters`)
@@ -20,52 +22,26 @@ const loginValidationSchema = yup.object().shape({
 });
 
 export default function LoginScreen() {
-    const { saveToken, saveUser } = useAuth();
+    const { user, loading } = useAuth();
     const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
 
-    const submit = async (values: { username: string; password: string }) => {
+    const submit = async (values: { email: string; password: string }) => {
         try {
-            const existingProfiles = await getProfile(values.username);
-            let profile = existingProfiles[0];
-
             if (isRegisterActive) {
-                if (profile) {
-                    Alert.alert("Register Failed", "Username is already in use.");
-                    return;
+                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+                const uid = userCredential.user.uid;
+                const existing = await getProfile(uid);
+                if (existing.length === 0) {
+                    await addProfile(uid, values.email, null);
                 }
-                
-                const { hash, salt } = await createPasswordHash(values.password);
-                await addProfile(values.username, null, hash, salt, null, null);
-
-                const createdProfiles = await getProfile(values.username);
-                profile = createdProfiles[0];
             } else {
-                if (!profile) {
-                    Alert.alert("Login Failed", "Please register first.");
-                    return;
-                }
-
-                const isValid = await verifyPassword(
-                    values.password,
-                    profile.password_salt,
-                    profile.password_hash
-                );
-                if (!isValid) {
-                    Alert.alert("Login Failed", "Invalid username or password.");
-                    return;
-                }
+                await signInWithEmailAndPassword(auth, values.email, values.password);
             }
-            if (!profile) {
-                Alert.alert("Login or Register Failed", "Unable to load profile.");
+
+            if (!auth.currentUser) {
+                Alert.alert("Login or Register Failed", "Unable to load user.");
                 return;
             }
-            const token = `profile-${profile.id}`;
-            await saveToken(token);
-            await saveUser({
-                id: profile.id,
-                username: profile.username,
-                image: profile.image ?? null,
-            });
         } catch (error) {
             Alert.alert("Login or Register Failed", "Please try again.");
             console.log(error);
@@ -87,7 +63,7 @@ export default function LoginScreen() {
                 <Text style={styles.title}>{isRegisterActive ? "Register" : "Login"}</Text>
                 <Formik
                     validationSchema={loginValidationSchema}
-                    initialValues={{ username: "", password: "" }}
+                    initialValues={{ email: "", password: "" }}
                     onSubmit={submit}
                 >
                     {({
@@ -101,19 +77,19 @@ export default function LoginScreen() {
                     }) => (
                     <>
                         <View style={styles.inputContainer}>
-                            <Feather name="user" size={24} style={styles.icon} />
+                            <Feather name="mail" size={24} style={styles.icon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Username"
+                                placeholder="Email"
                                 placeholderTextColor="#8b8b8b"
-                                onChangeText={handleChange("username")}
-                                onBlur={handleBlur("username")}
-                                value={values.username}
+                                onChangeText={handleChange("email")}
+                                onBlur={handleBlur("email")}
+                                value={values.email}
                                 autoCapitalize="none"
                             />
                         </View>
-                        {errors.username && touched.username && (
-                            <Text style={[CommonStyles.error, { marginTop: -12, marginBottom: 14 }]}>{errors.username}</Text>
+                        {errors.email && touched.email && (
+                            <Text style={[CommonStyles.error, { marginTop: -12, marginBottom: 14 }]}>{errors.email}</Text>
                         )}
                         <View style={styles.inputContainer}>
                             <Feather name="lock" size={24} style={styles.icon} />

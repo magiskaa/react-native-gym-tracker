@@ -59,7 +59,7 @@ export default function ActivePhase({
 
     const loadData = async () => {
         try {
-            const weight = await getCurrentWeight();
+            const weight = await getCurrentWeight(user);
             setCurrentWeight(weight[0].weight || null);
             return weight[0].weight || null;
         } catch (error) {

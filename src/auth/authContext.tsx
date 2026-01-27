@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { auth } from "../services/firebase";
 
 interface AuthContextType {
-    token: string | null;
-    user: any;
-    saveToken: (token: string) => Promise<void>;
-    saveUser: (user: any) => Promise<void>;
-    logout: () => Promise<void>;
+	user: User | null;
+	loading: boolean;
+	logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,42 +19,23 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-	const [token, setToken] = useState<string | null>(null);
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<User | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
-		const loadStoredData = async () => {
-		try {
-			const storedToken = await AsyncStorage.getItem('token');
-			const storedUser = await AsyncStorage.getItem('user');
-			if (storedToken) setToken(storedToken);
-			if (storedUser) setUser(JSON.parse(storedUser));
-		} catch (error) {
-			console.error('Failed to load stored auth data', error);
-		}
-		};
-		loadStoredData();
+		const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+			setUser(firebaseUser);
+			setLoading(false);
+		});
+		return unsubscribe;
   	}, []);
 
-	const saveToken = async (newToken: string) => {
-		setToken(newToken);
-		await AsyncStorage.setItem('token', newToken);
-	};
-
-	const saveUser = async (newUser: any) => {
-		setUser(newUser);
-		await AsyncStorage.setItem('user', JSON.stringify(newUser));
-	};
-
 	const logout = async () => {
-		setToken(null);
-		setUser(null);
-		await AsyncStorage.removeItem('token');
-		await AsyncStorage.removeItem('user');
+		await signOut(auth);
 	};
 
 	return (
-		<AuthContext.Provider value={{ token, user, saveToken, saveUser, logout }}>
+		<AuthContext.Provider value={{ user, loading, logout }}>
 		{children}
 		</AuthContext.Provider>
 	);

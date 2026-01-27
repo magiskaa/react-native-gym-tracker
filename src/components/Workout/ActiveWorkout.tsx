@@ -16,6 +16,7 @@ import { addSet, addWorkout, addWorkoutExercise, ExerciseRow } from "../../servi
 import { useEffect, useState } from "react";
 import { formatLocalDateISO } from "../../utils/Utils";
 import { CommonStyles } from "../../styles/CommonStyles";
+import { useAuth } from "../../auth/authContext";
 
 type Props = {
     exercises: ExerciseRow[];
@@ -36,6 +37,7 @@ export default function ActiveWorkout({
     setIsWorkoutActive,
     setSelectedIds
 }: Props) {
+    const { user } = useAuth();
     const [startTime, setStartTime] = useState<number>(Date.now() / 1000);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
     
@@ -140,7 +142,7 @@ export default function ActiveWorkout({
             const duration = formattedDuration;
             const workoutName = name.trim() || "Workout";
 
-            const workoutId = await addWorkout(workoutName, duration, date);
+            const workoutId = await addWorkout(user.id, workoutName, duration, date);
 
             for (const exercise of selectedExercises) {
                 const workoutExerciseId = await addWorkoutExercise(
@@ -164,6 +166,7 @@ export default function ActiveWorkout({
             setIsWorkoutActive(false);
             setSelectedIds(new Set());
         } catch (error) {
+            Alert.alert("Failed to save workout", "Please try again");
             console.error("Failed to save workout", error);
         }
     };

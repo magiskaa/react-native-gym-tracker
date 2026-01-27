@@ -241,10 +241,10 @@ export const getWorkouts = async () => {
     );
 };
 
-export const addWorkout = async (name: string, duration: string, date: string) => {
+export const addWorkout = async (user: number, name: string, duration: string, date: string) => {
 	const result = await db.runAsync(
-		"INSERT INTO workouts (name, duration, date) VALUES (?, ?, ?)",
-		[name, duration, date]
+		"INSERT INTO workouts (user, name, duration, date) VALUES (?, ?, ?, ?)",
+		[user, name, duration, date]
 	);
 	return result.lastInsertRowId as number;
 };

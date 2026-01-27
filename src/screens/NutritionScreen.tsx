@@ -54,6 +54,7 @@ export default function NutritionScreen() {
             setProtein(nutritionData[0].protein || 0);
 
         } catch (error) {
+			Alert.alert("Failed to load data", "Please try again later");
             console.log(error);
         }
     };

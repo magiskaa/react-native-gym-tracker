@@ -76,18 +76,9 @@ export const initDb = async () => {
 			`
 			CREATE TABLE IF NOT EXISTS exercises (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user INTEGER,
 				name TEXT NOT NULL,
 				muscle_group TEXT NOT NULL,
-				UNIQUE(name, muscle_group)
-			)
-			`,
-			`
-			CREATE TABLE IF NOT EXISTS user_exercises (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				user INTEGER NOT NULL,
-				name TEXT NOT NULL,
-				muscle_group TEXT NOT NULL,
-				FOREIGN KEY(user) REFERENCES profile(id),
 				UNIQUE(name, muscle_group)
 			)
 			`,
@@ -217,16 +208,25 @@ export const initDb = async () => {
 |                                  EXERCISES                                  |
 ===============================================================================
 */
-export const getExercises = async () => {
+export const getExercises = async (user: number) => {
 	return await db.getAllAsync<ExerciseRow>(
-		"SELECT id, name, muscle_group FROM exercises ORDER BY name ASC"
+		`
+		SELECT 
+			id, 
+			name, 
+			muscle_group 
+		FROM exercises 
+		WHERE (user IS NULL OR user = ?)
+		ORDER BY name ASC
+		`,
+		[user]
 	);
 };
 
-export const addExercise = async (name: string, muscleGroup: string) => {
+export const addExercise = async (user: number, name: string, muscleGroup: string) => {
 	await db.runAsync(
-		"INSERT INTO exercises (name, muscle_group) VALUES (?, ?)",
-		[name, muscleGroup]
+		"INSERT INTO exercises (user, name, muscle_group) VALUES (?, ?, ?)",
+		[user, name, muscleGroup]
 	);
 };
 

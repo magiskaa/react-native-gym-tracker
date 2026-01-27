@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import {
+	Alert,
 	FlatList,
 	Pressable,
 	StyleSheet,
@@ -7,11 +8,13 @@ import {
 	View,
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { ExerciseRow, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory, ExerciseHistory } from "../services/database";
+import { ExerciseRow, ExerciseHistory, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory } from "../services/database";
 import ExerciseChart from "../components/Stats/ExerciseChart";
 import AddExerciseModal from "../modal/AddExerciseModal";
 import FilterExercisesModal from "../modal/FilterExercisesModal";
 import { CommonStyles } from "../styles/CommonStyles";
+import { useAuth } from "../auth/authContext";
+import { capitalize } from "../utils/Utils";
 
 
 export default function StatsScreen() {
@@ -20,6 +23,10 @@ export default function StatsScreen() {
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
 	const [muscleGroup, setMuscleGroup] = useState<string>("");
+
+	const { user } = useAuth();
+
+	const allowedGroups = ["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"];
 
 	const [latestSessions, setLatestSessions] = useState<Record<number, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
 
@@ -51,20 +58,22 @@ export default function StatsScreen() {
 			
 			const history = await getExerciseHistory(exerciseId);
 			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: history }));
-		} catch (e) {
-			console.error("Failed to load latest session", e);
+		} catch (error) {
+			Alert.alert("Failed to load exercise data", "Please try again later");
+			console.error(`Failed to load exercise data ${error}`);
+
 			setLatestSessions((prev) => ({ ...prev, [exerciseId]: null }));
-			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: [] }));
+			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: [] }));  
 		}
 	};
 
 	const loadExercises = async () => {
 		try {
-			const rows = await getExercises();
+			const rows = await getExercises(user.id);
 			setExercises(rows);
-		} catch (err) {
-			setError("Failed to load exercises");
-			console.error(err);
+		} catch (error) {
+			Alert.alert("Failed to load exercises", "Please try again later");
+			console.error(error);
 		}
 	};
 
@@ -76,20 +85,13 @@ export default function StatsScreen() {
 		setError(null);
 		try {
 			const trimmedName = exerciseName.trim();
-			const trimmedGroup = muscleGroup.trim();
 
-			if (!trimmedName || !trimmedGroup) {
-				setError("Please enter a name and muscle group");
+			if (!trimmedName) {
+				setError("Please enter a name");
 				return;
 			}
 
-			const allowedGroups = ["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"];
-			if (!allowedGroups.includes(trimmedGroup.toLowerCase())) {
-				setError("Please enter a valid muscle group");
-				return;
-			}
-
-			await addExercise(trimmedName, trimmedGroup);
+			await addExercise(user.id, trimmedName, capitalize(muscleGroup));
 			await loadExercises();
 			setExerciseName("");
 			setMuscleGroup("");
@@ -224,6 +226,7 @@ export default function StatsScreen() {
 					error={error}
 					exerciseName={exerciseName}
 					muscleGroup={muscleGroup}
+					allowedGroups={allowedGroups}
 					setExerciseName={setExerciseName}
 					setMuscleGroup={setMuscleGroup}
 					onClose={closeModal}

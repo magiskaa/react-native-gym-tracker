@@ -7,9 +7,9 @@ import {
     FlatList
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { ModalStyles } from "../styles/ModalStyles";
-import { CommonStyles } from "../styles/CommonStyles";
-import { capitalize } from "../utils/Utils";
+import { ModalStyles } from "../../styles/ModalStyles";
+import { CommonStyles } from "../../styles/CommonStyles";
+import { capitalize } from "../../utils/Utils";
 
 type Props = {
     visible: boolean;

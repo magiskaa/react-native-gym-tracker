@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { ModalStyles } from "../styles/ModalStyles";
-import { CommonStyles } from "../styles/CommonStyles";
+import { ModalStyles } from "../../styles/ModalStyles";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     visible: boolean;

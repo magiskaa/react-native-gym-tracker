@@ -13,8 +13,8 @@ import { useState } from "react";
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from '@react-native-picker/picker';
-import { ModalStyles } from "../styles/ModalStyles";
-import { CommonStyles } from "../styles/CommonStyles";
+import { ModalStyles } from "../../styles/ModalStyles";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 const Item: any = Picker.Item;
 

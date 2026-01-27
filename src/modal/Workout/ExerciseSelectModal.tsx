@@ -1,8 +1,8 @@
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { ExerciseRow } from "../services/database";
-import { ModalStyles } from "../styles/ModalStyles";
-import { CommonStyles } from "../styles/CommonStyles";
+import { ExerciseRow } from "../../services/database";
+import { ModalStyles } from "../../styles/ModalStyles";
+import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     visible: boolean;

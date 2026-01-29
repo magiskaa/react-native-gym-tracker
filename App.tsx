@@ -13,8 +13,8 @@ import PhaseScreen from "./src/screens/PhaseScreen";
 import StatsScreen from "./src/screens/StatsScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import LoginScreen from "./src/screens/LoginScreen";
-import { initDb } from "./src/services/database";
-import { AuthProvider, useAuth } from './src/auth/authContext';
+import { useAuthContext } from './src/auth/UseAuthContext';
+import AuthProvider from './src/auth/AuthProvider';
 
 const Tab = createBottomTabNavigator();
 
@@ -29,15 +29,9 @@ const Theme = {
 }
 
 function AppContent() {
-    const { user } = useAuth();
+    const { session, isLoading } = useAuthContext();
 
-    useEffect(() => {
-        initDb().catch((error) => {
-            console.error("Failed to initialize database", error);
-        });
-    }, []);
-
-    if (!user?.uid) {
+    if (!session?.user.id && !isLoading) {
         return <LoginScreen />;
     }
 

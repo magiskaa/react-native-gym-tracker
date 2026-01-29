@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import { NutritionRow, NutritionGoals, getNutrition, getNutritionGoals, getNutritionByDate, addNutrition, updateNutrition, updateNutritionGoals } from "../services/database";
-import { useAuth } from "../auth/authContext";
+import { useAuth } from "../auth/ni";
 import LogCaloriesModal from "../modal/Nutrition/LogCaloriesModal";
 import SetNutritionGoalsModal from "../modal/Nutrition/SetNutritionGoalsModal";
 import { formatDateWOZeros, formatLocalDateISO } from "../utils/Utils";

@@ -3,7 +3,7 @@ import { LineChart } from "react-native-chart-kit";
 import { NutritionRow, getNutritionGoals } from "../../services/database";
 import { formatDate, formatDateWOZeros } from "../../utils/Utils";
 import { ChartStyles } from "../../styles/ChartStyles";
-import { useAuth } from "../../auth/authContext";
+import { useAuth } from "../../auth/ni";
 import { useEffect, useState } from "react";
 
 type Props = {

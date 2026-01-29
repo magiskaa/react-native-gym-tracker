@@ -13,28 +13,28 @@ import {
 import { useState, useEffect } from "react";
 import WeightChart from "../components/Profile/WeightChart";
 import LogWeightModal from "../modal/Profile/LogWeightModal";
-import { WeightHistory, addWeight, getWeight } from "../services/weights";
-import { getProfile, addProfile, updateProfile } from "../services/profile";
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from '../auth/authContext';
 import { formatLocalDateISO } from "../utils/Utils";
 import { CommonStyles } from "../styles/CommonStyles";
 import { useToast } from "../components/ToastConfig";
+import { supabase } from "../services/supabase";
+import { useAuthContext } from "../auth/UseAuthContext";
+import { updateProfile, addProfile } from "../services/profile";
 
 
 export default function ProfileScreen() {
 	const [error, setError] = useState<string | null>(null);
-	const [history, setHistory] = useState<WeightHistory[]>([]);
+	const [history, setHistory] = useState<[]>([]);
 	const [isWeightModalVisible, setIsWeightModalVisible] = useState<boolean>(false);
 	
 	const [weightInput, setWeightInput] = useState<string>("");
 	const [dateInput, setDateInput] = useState<Date>(new Date());
 
-	const { user, loading, logout } = useAuth();
+	const { profile, session, isLoading } = useAuthContext();
 
 	const [username, setUsername] = useState<string | null>(null);
 	const [image, setImage] = useState<string | null>(null);
@@ -45,7 +45,22 @@ export default function ProfileScreen() {
 	const [isEditable, setIsEditable] = useState<boolean>(false);
 	const [editButtonColor, setEditButtonColor] = useState<string>("#f1f1f1");
 	
-	const loadData = async () => {
+	const signOut = async () => {
+		const { error } = await supabase.auth.signOut();
+		if (error) {
+			useToast("error", "Error signing out", "Please try again");
+			console.error('Error signing out:', error);
+		}
+	};
+
+	useEffect(() => {
+		if (profile) {
+			setUsername(profile.username ?? null);
+			setImage(profile.image ?? null);
+		}
+	}, [profile]);
+
+	/* const loadData = async () => {
 		try {
 			if (!user?.uid) { return; }
 
@@ -69,7 +84,7 @@ export default function ProfileScreen() {
 		if (!loading) {
 			loadData();
 		}
-	}, [loading, user?.uid]);
+	}, [loading, user?.uid]); */
 	
 	const pickImage = async () => {
 		const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -92,29 +107,28 @@ export default function ProfileScreen() {
 	};
 
 	const saveChanges = async () => {
-		if (!user?.uid) { 
-			useToast("error", "Save failed", "Your changes could not be saved");
+		if (!session?.user.id) { 
+			Alert.alert("Failed to save changes", "Please sign in again");
 			return; 
 		}
 
-		const existing = await getProfile(user.uid);
-
 		try {
-			if (existing.length > 0) {
-				await updateProfile(user.uid, username ?? existing[0].username ?? user.email, image ?? existing[0].image);
+			if (profile) {
+				await updateProfile(session.user.id, username ?? session.user.email ?? "", image ?? null);
 			} else {
-				await addProfile(user.uid, username ?? user.email ?? "", image);
+				await addProfile(session.user.id, username ?? session.user.email ?? "", image ?? null);
 			}
 			useToast("success", "Profile saved", "Your changes were saved succesfully");
+		
 		} catch (error) {
 			useToast("error", "Failed to save profile", "Please try again" );
 			console.error(`Failed to save profile: ${error}`);
-		} finally {
-			loadData();
 		}
 	};
 
-	const logWeight = async () => {
+	const logWeight = async () => {};
+
+	/* const logWeight = async () => {
 		if (!weightInput) {
 			setError("Please fill weight");
 			return;
@@ -137,14 +151,13 @@ export default function ProfileScreen() {
 			await addWeight(user.uid, weight, formattedDate);
 
 			closeModal();
+			loadData();
 			useToast("success", "Weight logged", "Your weight entry was saved successfully");
 		} catch (error) {
 			useToast("error", "Failed to log weight", "Please try again");
 			console.error(`Failed to log weight: ${error}`);
-		} finally {
-			loadData();
 		}
-	};
+	}; */
 
 	const closeModal = () => {
 		setIsWeightModalVisible(false);
@@ -167,7 +180,7 @@ export default function ProfileScreen() {
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
 						Alert.alert(
 							"Logout?", "Are you sure you want to logout?", 
-							[{ text: "No", style: "cancel" }, { text: "Yes", onPress: logout }], 
+							[{ text: "No", style: "cancel" }, { text: "Yes", onPress: signOut }], 
 							{ cancelable: true }
 						)
 					}}

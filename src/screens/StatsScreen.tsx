@@ -8,29 +8,29 @@ import {
 	View,
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { ExerciseRow, ExerciseHistory, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory } from "../services/database";
 import ExerciseChart from "../components/Stats/ExerciseChart";
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
 import FilterExercisesModal from "../modal/Stats/FilterExercisesModal";
 import { CommonStyles } from "../styles/CommonStyles";
-import { useAuth } from "../auth/authContext";
+import { useAuth } from "../auth/ni";
 import { capitalize } from "../utils/Utils";
+import { Exercise, ExerciseHistory, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory } from "../services/exercises"
+import { useToast } from "../components/ToastConfig";
 
 
 export default function StatsScreen() {
-	const [exercises, setExercises] = useState<ExerciseRow[]>([]);
-	const [expandedId, setExpandedId] = useState<number | null>(null);
+	const [exercises, setExercises] = useState<Exercise[]>([]);
+	const [expandedId, setExpandedId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
 	const [muscleGroup, setMuscleGroup] = useState<string>("");
 
-	const { user } = useAuth();
+	const { user, loading } = useAuth();
 
 	const allowedGroups = ["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"];
 
-	const [latestSessions, setLatestSessions] = useState<Record<number, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
-
-	const [exerciseHistories, setExerciseHistories] = useState<Record<number, ExerciseHistory[]>>({});
+	const [latestSessions, setLatestSessions] = useState<Record<string, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
+	const [exerciseHistories, setExerciseHistories] = useState<Record<string, ExerciseHistory[]>>({});
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
@@ -51,7 +51,7 @@ export default function StatsScreen() {
 		});
 	};
 
-	const loadExerciseHistory = async (exerciseId: number) => {
+	const loadExerciseHistory = async (exerciseId: string) => {
 		try {
 			const session = await getLatestExerciseSession(exerciseId);
 			setLatestSessions((prev) => ({ ...prev, [exerciseId]: session }));
@@ -67,39 +67,46 @@ export default function StatsScreen() {
 		}
 	};
 
-	const loadExercises = async () => {
+	const loadData = async () => {
 		try {
-			const rows = await getExercises(user.id);
+			if (!user?.uid) { return; }
+
+			const rows = await getExercises(user?.uid);
 			setExercises(rows);
 		} catch (error) {
-			Alert.alert("Failed to load exercises", "Please try again later");
+			Alert.alert("Failed to load data", "Please try again later");
 			console.error(error);
 		}
 	};
 
 	useEffect(() => {
-		loadExercises();
-	}, []);
+		if (!loading) {
+			loadData();
+		}
+	}, [loading, user?.uid]);
 
 	const handleAddExercise = async () => {
-		setError(null);
 		try {
-			const trimmedName = exerciseName.trim();
+			if (!user?.uid) { 
+				Alert.alert("Failed to add exercise", "Please sign in again");
+				return; 
+			}
 
+			const trimmedName = exerciseName.trim();
 			if (!trimmedName) {
 				setError("Please enter a name");
 				return;
 			}
 
-			await addExercise(user.id, trimmedName, capitalize(muscleGroup));
-			await loadExercises();
-			setExerciseName("");
-			setMuscleGroup("");
+			await addExercise(user.uid, capitalize(trimmedName), capitalize(muscleGroup));
+			
 			closeModal();
+			loadData();
+			useToast("success", "Exercise added", "Your exercise was added succesfully");
 		} catch (err) {
-			setError("Failed to add exercise");
+			useToast("error", "Failed to add exercise", "Please try again");
 			console.error(err);
-		} 
+		}
 	};
 
 	const closeModal = () => {
@@ -122,11 +129,11 @@ export default function StatsScreen() {
 		<View style={CommonStyles.container}>	
 			<FlatList
 				data={exercises}
-				keyExtractor={(item) => item.id.toString()}
+				keyExtractor={(item) => item.id}
 				renderItem={({ item }) => {
 					const isExpanded = expandedId === item.id;
 
-					if (!selectedGroups.has(item.muscle_group.toLowerCase()) && selectedGroups.size !== 0) {
+					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
 						return (<View></View>);
 					}
 
@@ -148,7 +155,7 @@ export default function StatsScreen() {
 							<View style={styles.cardHeader}>
 								<Text style={styles.cardTitle}>{item.name}</Text>
 								<Text style={styles.cardSubtitle}>
-									{item.muscle_group}
+									{item.muscleGroup}
 								</Text>
 							</View>
 							{isExpanded ? (

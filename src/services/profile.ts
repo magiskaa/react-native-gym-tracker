@@ -1,45 +1,50 @@
-import { collection, getDocs, query, where, orderBy, addDoc, updateDoc, doc } from "firebase/firestore";
-import { db } from "./firebase";
+import { supabase } from "./supabase";
+import { useAuthContext } from "../auth/UseAuthContext";
+import { Alert } from "react-native";
+import { useToast } from "../components/ToastConfig";
 
-export type Profile = {
-    username: string;
-    image: string | null;
+export const getProfile = async (userId?: string | null) => {
+    if (!userId) { 
+        useToast("error", "No user id found", "Please log in again");
+        return null; 
+    }
+    const { data, error } = await supabase
+        .from("profiles")
+        .select(`userId, username, image`)
+        .eq(`userId`, userId)
+        .maybeSingle();
+    if (error) {
+        Alert.alert("getProfile", error.message);
+        return null;
+    }
+    return data;
 };
 
-const profileCollection = collection(db, "profile");
-
-export const getProfile = async (userId: string): Promise<Profile[]> => {
-    const q = query(profileCollection, where("userId", "==", userId));
-    const snap = await getDocs(q);
-
-    return snap.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            username: String(data.username),
-            image: data.image === undefined ? null : String(data.image),
-        };
-    });
+export const addProfile = async (userId: string | null, username: string, image: string | null = null) => {
+    if (!userId) {
+        Alert.alert("createProfile", "Missing user id");
+        return;
+    }
+    const { error } = await supabase
+        .from("profiles")
+        .insert({ userId, username, image });
+    if (error) {
+        Alert.alert("createProfile", error.message);
+        return;
+    }
 };
 
-export const addProfile = async (userId: string, username: string, image: string | null) => {
-    await addDoc(profileCollection, {
-        userId,
-        username,
-        image
-    });
-};
-
-export const updateProfile = async (userId: string, username: string | null, image: string | null) => {
-    const q = query(profileCollection, where("userId", "==", userId));
-    const snap = await getDocs(q);
-    const docRef = doc(profileCollection, snap.docs[0].id);
-
-    const updates: { username?: string | null; image?: string | null } = {};
-
-    if (username !== null) { updates.username = username };
-    if (image !== null) { updates.image = image };
-
-    if (Object.keys(updates).length > 0) {
-        await updateDoc(docRef, updates);
+export const updateProfile = async (userId: string, username: string, image: string | null) => {
+    if (!userId) { 
+        useToast("error", "No user id found", "Please log in again");
+        return; 
+    }
+    const { error } = await supabase
+        .from("profiles")
+        .update({ username, image })
+        .eq("userId", userId);
+    if (error) {
+        Alert.alert("updateProfile", error.message);
+        return;
     }
 };

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import * as Haptics from 'expo-haptics';
-import { useAuth } from "../auth/authContext";
+import { useAuth } from "../auth/ni";
 import { formatLocalDateISO } from "../utils/Utils";
 import StartPhaseModal from "../modal/Phase/StartPhaseModal";
 import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";

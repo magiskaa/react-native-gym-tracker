@@ -12,20 +12,21 @@ import {
     Platform
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { addSet, addWorkout, addWorkoutExercise, ExerciseRow } from "../../services/database";
+import { addSet, addWorkout, addWorkoutExercise } from "../../services/workouts";
+import { Exercise } from "../../services/exercises"
 import { useEffect, useState } from "react";
 import { formatLocalDateISO } from "../../utils/Utils";
 import { CommonStyles } from "../../styles/CommonStyles";
-import { useAuth } from "../../auth/authContext";
+import { useAuth } from "../../auth/ni";
 
 type Props = {
-    exercises: ExerciseRow[];
-    selectedIds: Set<number>;
-    expandedId: number | null;
-    setExpandedId: (id: number | null) => void;
+    exercises: Exercise[];
+    selectedIds: Set<string>;
+    expandedId: string | null;
+    setExpandedId: (id: string | null) => void;
     setIsModalVisible: (visible: boolean) => void;
     setIsWorkoutActive: (active: boolean) => void;
-    setSelectedIds: (ids: Set<number>) => void;
+    setSelectedIds: (ids: Set<string>) => void;
 };
 
 export default function ActiveWorkout({
@@ -41,14 +42,14 @@ export default function ActiveWorkout({
     const [startTime, setStartTime] = useState<number>(Date.now() / 1000);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
     
-    const [setsByExercise, setSetsByExercise] = useState<Record<number, { reps: string; weight: string }[]>>({});
+    const [setsByExercise, setSetsByExercise] = useState<Record<string, { reps: string; weight: string }[]>>({});
     const [name, setName] = useState<string>("");
 
     const [validationError, setValidationError] = useState<string | null>(null);
 
     useEffect(() => {
         setSetsByExercise((prev) => {
-            const next: Record<number, { reps: string; weight: string }[]> = {};
+            const next: Record<string, { reps: string; weight: string }[]> = {};
             const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
 
             selectedExercises.forEach((ex) => {
@@ -138,11 +139,13 @@ export default function ActiveWorkout({
         }
 
         try {
+            if (!user?.uid) { return; }
+
             const date = formatLocalDateISO(new Date());
             const duration = formattedDuration;
             const workoutName = name.trim() || "Workout";
 
-            const workoutId = await addWorkout(user.id, workoutName, duration, date);
+            const workoutId = await addWorkout(user?.uid, workoutName, duration, date);
 
             for (const exercise of selectedExercises) {
                 const workoutExerciseId = await addWorkoutExercise(

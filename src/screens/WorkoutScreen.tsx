@@ -11,7 +11,7 @@ import { ExerciseRow, getExercises } from "../services/database";
 import ExerciseSelectModal from "../modal/Workout/ExerciseSelectModal";
 import ActiveWorkout from "../components/Workout/ActiveWorkout";
 import { CommonStyles } from "../styles/CommonStyles";
-import { useAuth } from "../auth/authContext";
+import { useAuth } from "../auth/ni";
 
 
 export default function WorkoutScreen() {

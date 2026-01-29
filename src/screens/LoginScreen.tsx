@@ -1,14 +1,34 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, Switch, Image, Dimensions } from "react-native";
+import { 
+    View, 
+    Text, 
+    TextInput, 
+    TouchableOpacity, 
+    StyleSheet, 
+    Alert, 
+    TouchableWithoutFeedback, 
+    Keyboard, 
+    Switch, 
+    Image, 
+    Dimensions, 
+    AppState 
+} from "react-native";
 import Feather from '@expo/vector-icons/Feather';
 import { Formik } from "formik";
 import * as yup from "yup";
-import { useAuth } from "../auth/authContext";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../services/firebase";
 import { CommonStyles } from "../styles/CommonStyles";
+import { useAuthContext } from '../auth/UseAuthContext';
+import { supabase } from "../services/supabase";
 import { getProfile, addProfile } from "../services/profile";
 
+
+AppState.addEventListener('change', (state) => {
+  if (state === 'active') {
+    supabase.auth.startAutoRefresh()
+  } else {
+    supabase.auth.stopAutoRefresh()
+  }
+})
 
 const loginValidationSchema = yup.object().shape({
     email: yup
@@ -22,28 +42,44 @@ const loginValidationSchema = yup.object().shape({
 });
 
 export default function LoginScreen() {
-    const { user, loading } = useAuth();
+    const { session, profile, isLoading } = useAuthContext();
     const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
 
     const submit = async (values: { email: string; password: string }) => {
         try {
             if (isRegisterActive) {
-                const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-                const uid = userCredential.user.uid;
-                const existing = await getProfile(uid);
-                if (existing.length === 0) {
-                    await addProfile(uid, values.email, null);
+                const { error } = await supabase.auth.signUp({
+                    email: values.email, 
+                    password: values.password
+                });
+                if (error) {
+                    Alert.alert("signUp", error.message);
+                    return;
                 }
             } else {
-                await signInWithEmailAndPassword(auth, values.email, values.password);
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: values.email, 
+                    password: values.password
+                });
+                if (error) {
+                    Alert.alert("signIn", error.message);
+                    return;
+                }
             }
 
-            if (!auth.currentUser) {
-                Alert.alert("Login or Register Failed", "Unable to load user.");
+            const { data: userData, error: userErr } = await supabase.auth.getUser();
+            if (userErr) {
+                Alert.alert("Auth user", userErr.message);
                 return;
             }
+            const userId = userData?.user?.id;
+            const profileData = await getProfile(userId);
+            if (!profileData) {
+                await addProfile(userId, values.email);
+            }
+
         } catch (error) {
-            Alert.alert("Login or Register Failed", "Please try again.");
+            Alert.alert("Login or Register Failed", "Please try again");
             console.log(error);
         }
     };

@@ -50,3 +50,7 @@ export const verifyPassword = async (
     const hash = await hashPassword(password, salt);
     return hash === expectedHash;
 };
+
+export const epleyCalc = (weight: number, reps: number) => {
+    return (0.033 * reps * weight) + weight;
+};

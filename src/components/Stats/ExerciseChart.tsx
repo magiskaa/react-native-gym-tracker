@@ -1,10 +1,9 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { ExerciseHistory } from "../../services/database";
 import { ChartStyles } from "../../styles/ChartStyles";
 
 type ExerciseChartProps = {
-    history: ExerciseHistory[];
+    history: { avgReps: number, avgWeight: number, date: string }[];
 };
 
 export default function ExerciseChart({ history }: ExerciseChartProps) {

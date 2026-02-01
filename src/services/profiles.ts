@@ -1,9 +1,8 @@
 import { supabase } from "./supabase";
-import { useAuthContext } from "../auth/UseAuthContext";
 import { Alert } from "react-native";
 import { useToast } from "../components/ToastConfig";
 
-export const getProfile = async (userId?: string | null) => {
+export const getProfile = async (userId: string) => {
     if (!userId) { 
         useToast("error", "No user id found", "Please log in again");
         return null; 
@@ -20,16 +19,16 @@ export const getProfile = async (userId?: string | null) => {
     return data;
 };
 
-export const addProfile = async (userId: string | null, username: string, image: string | null = null) => {
+export const addProfile = async (userId: string, username: string, image: string | null = null) => {
     if (!userId) {
-        Alert.alert("createProfile", "Missing user id");
+        useToast("error", "No user id found", "Please log in again");
         return;
     }
     const { error } = await supabase
         .from("profiles")
         .insert({ userId, username, image });
     if (error) {
-        Alert.alert("createProfile", error.message);
+        Alert.alert("addProfile", error.message);
         return;
     }
 };

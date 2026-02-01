@@ -12,25 +12,25 @@ import ExerciseChart from "../components/Stats/ExerciseChart";
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
 import FilterExercisesModal from "../modal/Stats/FilterExercisesModal";
 import { CommonStyles } from "../styles/CommonStyles";
-import { useAuth } from "../auth/ni";
 import { capitalize } from "../utils/Utils";
-import { Exercise, ExerciseHistory, addExercise, getExercises, getLatestExerciseSession, getExerciseHistory } from "../services/exercises"
 import { useToast } from "../components/ToastConfig";
+import { useAuthContext } from "../auth/UseAuthContext";
+import { Exercise, getExercises, addExercise, getExerciseHistory } from "../services/exercises";
 
 
 export default function StatsScreen() {
-	const [exercises, setExercises] = useState<Exercise[]>([]);
-	const [expandedId, setExpandedId] = useState<string | null>(null);
+	const [exercises, setExercises] = useState<Exercise[] | null>([]);
+	const [expandedId, setExpandedId] = useState<number | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
-	const [muscleGroup, setMuscleGroup] = useState<string>("");
+	const [muscleGroup, setMuscleGroup] = useState<string>("rinta");
 
-	const { user, loading } = useAuth();
+	const { profile, session, isLoading } = useAuthContext();
 
 	const allowedGroups = ["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"];
 
 	const [latestSessions, setLatestSessions] = useState<Record<string, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
-	const [exerciseHistories, setExerciseHistories] = useState<Record<string, ExerciseHistory[]>>({});
+	const [exerciseHistories, setExerciseHistories] = useState<Record<string, { avgReps: number, avgWeight: number, date: string }[]>>({});
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
@@ -38,23 +38,11 @@ export default function StatsScreen() {
 	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
 
 	const selectedCount = useMemo(() => selectedGroups.size, [selectedGroups]);
-	
-	const toggleGroup = (name: string) => {
-		setSelectedGroups((prev) => {
-			const next = new Set(prev);
-			if (next.has(name)) {
-				next.delete(name);
-			} else {
-				next.add(name);
-			}
-			return next;
-		});
-	};
 
-	const loadExerciseHistory = async (exerciseId: string) => {
+	const loadExerciseHistory = async (exerciseId: number) => {
 		try {
-			const session = await getLatestExerciseSession(exerciseId);
-			setLatestSessions((prev) => ({ ...prev, [exerciseId]: session }));
+			// const latestSession = await getLatestExerciseSession(exerciseId);
+			// setLatestSessions((prev) => ({ ...prev, [exerciseId]: latestSession }));
 			
 			const history = await getExerciseHistory(exerciseId);
 			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: history }));
@@ -68,45 +56,65 @@ export default function StatsScreen() {
 	};
 
 	const loadData = async () => {
-		try {
-			if (!user?.uid) { return; }
+		if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
 
-			const rows = await getExercises(user?.uid);
-			setExercises(rows);
+		try {
+			const exerciseData = await getExercises(session.user.id);
+			setExercises(exerciseData);
+
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
-			console.error(error);
+			console.error(`Failed to load data: ${error}`);
 		}
 	};
 
 	useEffect(() => {
-		if (!loading) {
+		if (!isLoading) {
 			loadData();
 		}
-	}, [loading, user?.uid]);
+	}, [isLoading]);
 
 	const handleAddExercise = async () => {
-		try {
-			if (!user?.uid) { 
-				Alert.alert("Failed to add exercise", "Please sign in again");
-				return; 
-			}
+		if (!session?.user.id) { 
+			Alert.alert("Failed to add exercise", "Please sign in again");
+			return; 
+		}
 
+		try {
 			const trimmedName = exerciseName.trim();
 			if (!trimmedName) {
 				setError("Please enter a name");
 				return;
 			}
-
-			await addExercise(user.uid, capitalize(trimmedName), capitalize(muscleGroup));
+			if (!allowedGroups.includes(muscleGroup.toLowerCase())) {
+				setError("Please enter a valid muscle group");
+				return;
+			}
+			await addExercise(session.user.id, capitalize(trimmedName), capitalize(muscleGroup));
 			
 			closeModal();
 			loadData();
 			useToast("success", "Exercise added", "Your exercise was added succesfully");
-		} catch (err) {
+
+		} catch (error) {
 			useToast("error", "Failed to add exercise", "Please try again");
-			console.error(err);
+			console.error(`Failed to add exercise: ${error}`);
 		}
+	};
+
+	const toggleGroup = (name: string) => {
+		setSelectedGroups((prev) => {
+			const next = new Set(prev);
+			if (next.has(name)) {
+				next.delete(name);
+			} else {
+				next.add(name);
+			}
+			return next;
+		});
 	};
 
 	const closeModal = () => {
@@ -129,7 +137,7 @@ export default function StatsScreen() {
 		<View style={CommonStyles.container}>	
 			<FlatList
 				data={exercises}
-				keyExtractor={(item) => item.id}
+				keyExtractor={(item) => item.id.toString()}
 				renderItem={({ item }) => {
 					const isExpanded = expandedId === item.id;
 
@@ -160,16 +168,16 @@ export default function StatsScreen() {
 							</View>
 							{isExpanded ? (
 								<View style={styles.statsPreview}>
-									{latestSessions[item.id] == null ? (
+									{exerciseHistories[item.id] == null ? (
 										<Text style={styles.statsText}>No logged sets yet</Text>
 									) : (
 										<View>
-											<Text style={styles.statsText}>Latest session: {latestSessions[item.id]!.workoutDate}</Text>
+											{/* <Text style={styles.statsText}>Latest session: {latestSessions[item.id]!.workoutDate}</Text>
 											{latestSessions[item.id]!.sets.map((s, idx) => (
 												<Text key={idx} style={styles.statsText}>
 													Set {idx + 1}: {s.reps} reps @ {s.weight}kg
 												</Text>
-											))}
+											))} */}
 											<ExerciseChart
 												history={exerciseHistories[item.id] || []}
 											/>

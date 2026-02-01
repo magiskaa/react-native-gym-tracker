@@ -1,12 +1,12 @@
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { ExerciseRow } from "../../services/database";
+import { Exercise } from "../../services/exercises"; 
 import { ModalStyles } from "../../styles/ModalStyles";
 import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     visible: boolean;
-    exercises: ExerciseRow[];
+    exercises: Exercise[] | null;
     selectedIds: Set<number>;
     selectedCount: number;
     error: string | null;
@@ -58,7 +58,7 @@ export default function ExerciseSelectModal({
                                 >
                                     <View>
                                         <Text style={styles.exerciseName}>{item.name}</Text>
-                                        <Text style={styles.muscleGroup}>{item.muscle_group}</Text>
+                                        <Text style={styles.muscleGroup}>{item.muscleGroup}</Text>
                                     </View>
 
                                     <Text style={styles.exerciseSelected}>

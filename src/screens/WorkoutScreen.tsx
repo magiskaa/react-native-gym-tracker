@@ -7,36 +7,42 @@ import {
 	Alert
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { ExerciseRow, getExercises } from "../services/database";
 import ExerciseSelectModal from "../modal/Workout/ExerciseSelectModal";
 import ActiveWorkout from "../components/Workout/ActiveWorkout";
 import { CommonStyles } from "../styles/CommonStyles";
-import { useAuth } from "../auth/ni";
+import { useAuthContext } from "../auth/UseAuthContext";
+import { Exercise, getExercises } from "../services/exercises";
 
 
 export default function WorkoutScreen() {
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-	const [exercises, setExercises] = useState<ExerciseRow[]>([]);
+	const [exercises, setExercises] = useState<Exercise[] | null>([]);
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 	const [error, setError] = useState<string | null>(null);
 
-	const { user } = useAuth();
+	const { session } = useAuthContext();
 
 	const [isWorkoutActive, setIsWorkoutActive] = useState<boolean>(false);
 	const [expandedId, setExpandedId] = useState<number | null>(null);
 
-	const loadExercises = async () => {
+	const loadData = async () => {
+		if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return;
+		}
+
 		try {
-			const rows = await getExercises(user.id);
-			setExercises(rows);
+			const exerciseData = await getExercises(session.user.id);
+			setExercises(exerciseData);
+
 		} catch (error) {
-			Alert.alert("Failed to load exercises", "Please try again later");
-			console.error(error);
+			Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
 		}
 	};
 
 	useEffect(() => {
-		loadExercises();
+		loadData();
 	}, []);
 
 	const selectedCount = useMemo(() => selectedIds.size, [selectedIds]);

@@ -23,12 +23,13 @@ import { CommonStyles } from "../styles/CommonStyles";
 import { useToast } from "../components/ToastConfig";
 import { supabase } from "../services/supabase";
 import { useAuthContext } from "../auth/UseAuthContext";
-import { updateProfile, addProfile } from "../services/profile";
+import { updateProfile, addProfile } from "../services/profiles";
+import { WeightEntry, getWeightHistory, addWeight } from "../services/weights";
 
 
 export default function ProfileScreen() {
 	const [error, setError] = useState<string | null>(null);
-	const [history, setHistory] = useState<[]>([]);
+	const [history, setHistory] = useState<WeightEntry[] | undefined>([]);
 	const [isWeightModalVisible, setIsWeightModalVisible] = useState<boolean>(false);
 	
 	const [weightInput, setWeightInput] = useState<string>("");
@@ -44,47 +45,33 @@ export default function ProfileScreen() {
 
 	const [isEditable, setIsEditable] = useState<boolean>(false);
 	const [editButtonColor, setEditButtonColor] = useState<string>("#f1f1f1");
-	
-	const signOut = async () => {
-		const { error } = await supabase.auth.signOut();
-		if (error) {
-			useToast("error", "Error signing out", "Please try again");
-			console.error('Error signing out:', error);
-		}
-	};
 
-	useEffect(() => {
-		if (profile) {
-			setUsername(profile.username ?? null);
-			setImage(profile.image ?? null);
+	const loadData = async () => {
+		if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
 		}
-	}, [profile]);
 
-	/* const loadData = async () => {
 		try {
-			if (!user?.uid) { return; }
+			if (profile) {
+				setUsername(profile.username ?? null);
+				setImage(profile.image ?? null);
+			}
 
-			const weightData = await getWeight(user.uid);
+			const weightData = await getWeightHistory(session.user.id);
 			setHistory(weightData);
 
-			const profileData = await getProfile(user.uid);
-			if (profileData.length > 0) {
-				setUsername(profileData[0].username);
-				if (profileData[0].image) {
-					setImage(profileData[0].image);
-				}
-			}
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
 		}
-	};
-
+	}; 
+	
 	useEffect(() => {
-		if (!loading) {
+		if (!isLoading) {
 			loadData();
 		}
-	}, [loading, user?.uid]); */
+	}, [isLoading, profile]);
 	
 	const pickImage = async () => {
 		const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -103,6 +90,14 @@ export default function ProfileScreen() {
 
 		if (!result.canceled) {
 			setImage(result.assets[0].uri);
+		}
+	};
+
+	const signOut = async () => {
+		const { error } = await supabase.auth.signOut();
+		if (error) {
+			useToast("error", "Error signing out", "Please try again");
+			console.error('Error signing out:', error);
 		}
 	};
 
@@ -126,9 +121,13 @@ export default function ProfileScreen() {
 		}
 	};
 
-	const logWeight = async () => {};
+	const logWeight = async () => {
+		if (!session?.user.id) { 
+			Alert.alert("Failed to log weight", "Please sign in again");
+			closeModal();
+			return; 
+		}
 
-	/* const logWeight = async () => {
 		if (!weightInput) {
 			setError("Please fill weight");
 			return;
@@ -143,21 +142,18 @@ export default function ProfileScreen() {
         }
 
 		try {
-			if (!user?.uid) {
-				Alert.alert("Failed to log weight", "Please sign in again");
-				return;
-			}
 			const weight = Number(weightInput.replace(",", "."));
-			await addWeight(user.uid, weight, formattedDate);
+			await addWeight(session.user.id, weight, formattedDate);
 
 			closeModal();
 			loadData();
-			useToast("success", "Weight logged", "Your weight entry was saved successfully");
+			useToast("success", "Weight logged", "Your weight entry was added successfully");
+
 		} catch (error) {
 			useToast("error", "Failed to log weight", "Please try again");
 			console.error(`Failed to log weight: ${error}`);
 		}
-	}; */
+	};
 
 	const closeModal = () => {
 		setIsWeightModalVisible(false);
@@ -253,7 +249,7 @@ export default function ProfileScreen() {
 					)}
 				</View>
 
-				<WeightChart history={history} />
+				<WeightChart history={history ?? []} />
 				<Pressable 
 					onPress={() => {
 						openModal(); 

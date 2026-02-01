@@ -12,21 +12,25 @@ import {
     Platform
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { addSet, addWorkout, addWorkoutExercise } from "../../services/workouts";
+import { addWorkout } from "../../services/workouts";
+import { addWorkoutExercise } from "../../services/workoutExercises";
+import { addSet } from "../../services/sets";
 import { Exercise } from "../../services/exercises"
 import { useEffect, useState } from "react";
-import { formatLocalDateISO } from "../../utils/Utils";
+import { formatLocalDateISO, formatDuration } from "../../utils/Utils";
 import { CommonStyles } from "../../styles/CommonStyles";
-import { useAuth } from "../../auth/ni";
+import { useAuthContext } from "../../auth/UseAuthContext";
+import { useToast } from "../ToastConfig";
+
 
 type Props = {
-    exercises: Exercise[];
-    selectedIds: Set<string>;
-    expandedId: string | null;
-    setExpandedId: (id: string | null) => void;
+    exercises: Exercise[] | null;
+    selectedIds: Set<number>;
+    expandedId: number | null;
+    setExpandedId: (id: number | null) => void;
     setIsModalVisible: (visible: boolean) => void;
     setIsWorkoutActive: (active: boolean) => void;
-    setSelectedIds: (ids: Set<string>) => void;
+    setSelectedIds: (ids: Set<number>) => void;
 };
 
 export default function ActiveWorkout({
@@ -38,7 +42,7 @@ export default function ActiveWorkout({
     setIsWorkoutActive,
     setSelectedIds
 }: Props) {
-    const { user } = useAuth();
+    const { session } = useAuthContext();
     const [startTime, setStartTime] = useState<number>(Date.now() / 1000);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
     
@@ -49,6 +53,8 @@ export default function ActiveWorkout({
 
     useEffect(() => {
         setSetsByExercise((prev) => {
+            if (!exercises) { return prev; }
+
             const next: Record<string, { reps: string; weight: string }[]> = {};
             const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
 
@@ -60,17 +66,10 @@ export default function ActiveWorkout({
         });
     }, [exercises, selectedIds]);
 
-    const formatDuration = (elapsed: number) => {
-        const h = Math.floor(elapsed / 3600);
-        const m = Math.floor(elapsed / 60);
-        const s = Math.round(elapsed - h*3600 - m*60);
-        setFormattedDuration(`${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`)
-    };
-
     useEffect(() => {
         const interval = setInterval(() => {
             const elapsed = Date.now() / 1000 - startTime;
-            formatDuration(elapsed);
+            setFormattedDuration(formatDuration(elapsed));
         }, 1000);
 
         return () => clearInterval(interval);
@@ -122,6 +121,11 @@ export default function ActiveWorkout({
     };
 
     const endWorkout = async () => {
+        if (!exercises) {
+            setValidationError("No exercises selected");
+            return;
+        }
+
         const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
         const hasInvalidSet = selectedExercises.some((exercise) => {
             const sets = setsByExercise[exercise.id] ?? [];
@@ -139,19 +143,27 @@ export default function ActiveWorkout({
         }
 
         try {
-            if (!user?.uid) { return; }
+            if (!session?.user.id) {
+                useToast("error", "No user id found", "Please log in again");
+                return;
+            }
 
             const date = formatLocalDateISO(new Date());
             const duration = formattedDuration;
             const workoutName = name.trim() || "Workout";
 
-            const workoutId = await addWorkout(user?.uid, workoutName, duration, date);
+            const workoutId = await addWorkout(session.user.id, workoutName, duration, date);
+            if (!workoutId) {
+                useToast("error", "Adding workout failed", "Please try again");
+                return;
+            }
 
             for (const exercise of selectedExercises) {
-                const workoutExerciseId = await addWorkoutExercise(
-                    workoutId,
-                    exercise.id
-                );
+                const workoutExerciseId = await addWorkoutExercise(workoutId, exercise.id);
+                if (!workoutExerciseId) {
+                    useToast("error", "Adding workout exercise failed", "Please try again");
+                    return;
+                }
 
                 const sets = setsByExercise[exercise.id] ?? [];
                 for (const set of sets) {
@@ -168,6 +180,8 @@ export default function ActiveWorkout({
 
             setIsWorkoutActive(false);
             setSelectedIds(new Set());
+            useToast("success", "Workout logged", "Your workout was added succesfully");
+
         } catch (error) {
             Alert.alert("Failed to save workout", "Please try again");
             console.error("Failed to save workout", error);
@@ -195,7 +209,7 @@ export default function ActiveWorkout({
                 ) : null}
 
                 <FlatList
-                    data={exercises.filter(ex => selectedIds.has(ex.id))}
+                    data={exercises ? exercises.filter(ex => selectedIds.has(ex.id)) : []}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
                         const isExpanded = expandedId === item.id;
@@ -215,7 +229,7 @@ export default function ActiveWorkout({
                                     <View style={styles.cardTitles}>
                                         <Text style={styles.cardTitle}>{item.name}</Text>
                                         <Text style={styles.cardSubtitle}>
-                                            {item.muscle_group}
+                                            {item.muscleGroup}
                                         </Text>
                                     </View>
 

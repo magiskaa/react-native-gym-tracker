@@ -17,6 +17,13 @@ export const formatLocalDateISO = (date: Date) => {
     return `${y}-${m}-${d}`;
 };
 
+export const formatDuration = (elapsed: number) => {
+    const h = Math.floor(elapsed / 3600);
+    const m = Math.floor(elapsed / 60);
+    const s = Math.round(elapsed - h*3600 - m*60);
+    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+};
+
 export const capitalize = (word: string) => {
     const firstLetter = word.charAt(0);
     const firstLetterCap = firstLetter.toUpperCase();

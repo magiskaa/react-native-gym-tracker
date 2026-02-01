@@ -46,17 +46,18 @@ export const toastConfig = {
     ),
     error: ({ text1, text2 }: any) => (
         <View style={[styles.errorContainer, styles.baseContainer]}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}></View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Feather name="x-octagon" size={24} color="#f1f1f1" />
                 <View>
                     <Text style={styles.title}>{text1}</Text>
                     {text2 ? <Text style={styles.message}>{text2}</Text> : null}
                 </View>
+            </View>
         </View>
     ),
 };
 
-export const useToast = (type: string, text1: string, text2: string, time: number = 4000) => {
+export const useToast = (type: string, text1: string, text2: string, time: number = 6000) => {
     Toast.show({
         type,
         text1,

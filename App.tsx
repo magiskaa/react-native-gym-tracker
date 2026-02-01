@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from "react";
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Toast from 'react-native-toast-message';
@@ -31,7 +31,20 @@ const Theme = {
 function AppContent() {
     const { session, isLoading } = useAuthContext();
 
-    if (!session?.user.id && !isLoading) {
+    if (isLoading) {
+        return (
+            <View style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: Theme.colors.background,
+            }}>
+                <ActivityIndicator size="large" color="#20ca17" />
+            </View>
+        );
+    }
+
+    if (!session?.user.id) {
         return <LoginScreen />;
     }
 
@@ -76,10 +89,10 @@ function AppContent() {
                 }}
             >
                 {/* <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Workout" component={WorkoutScreen} />
                 <Tab.Screen name="Nutrition" component={NutritionScreen} />
-                <Tab.Screen name="Phase" component={PhaseScreen} />
-                <Tab.Screen name="Stats" component={StatsScreen} /> */}
+                <Tab.Screen name="Phase" component={PhaseScreen} /> */}
+                <Tab.Screen name="Workout" component={WorkoutScreen} />
+                <Tab.Screen name="Stats" component={StatsScreen} />
                 <Tab.Screen name="Profile" component={ProfileScreen} />
             </Tab.Navigator>
             <Toast config={toastConfig} />

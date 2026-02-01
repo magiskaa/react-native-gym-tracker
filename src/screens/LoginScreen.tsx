@@ -19,7 +19,7 @@ import * as yup from "yup";
 import { CommonStyles } from "../styles/CommonStyles";
 import { useAuthContext } from '../auth/UseAuthContext';
 import { supabase } from "../services/supabase";
-import { getProfile, addProfile } from "../services/profile";
+import { getProfile, addProfile } from "../services/profiles";
 
 
 AppState.addEventListener('change', (state) => {

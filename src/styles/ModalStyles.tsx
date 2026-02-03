@@ -56,7 +56,7 @@ export const ModalStyles = StyleSheet.create({
     },
     datePicker: {
         marginHorizontal: "auto",
-        marginBottom: 12,
+        marginVertical: 12,
     },
 });
 

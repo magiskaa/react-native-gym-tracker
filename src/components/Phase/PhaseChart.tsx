@@ -1,16 +1,16 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { WeightHistory } from "../../services/database";
+import { WeightEntry } from "../../services/weights";
 import { formatDateWOZeros } from "../../utils/Utils";
 import { ChartStyles } from "../../styles/ChartStyles";
 
-type WeightChartProps = {
-    history: WeightHistory[];
+type Props = {
+    history: WeightEntry[];
     startingWeight: number;
     weightGoal: number | null;
 };
 
-export default function PhaseChart({ history, startingWeight, weightGoal }: WeightChartProps) {
+export default function PhaseChart({ history, startingWeight, weightGoal }: Props) {
     if (history.length === 0) {
         return (
             <View style={ChartStyles.emptyContainer}>
@@ -31,7 +31,7 @@ export default function PhaseChart({ history, startingWeight, weightGoal }: Weig
         datasets: [
             {
                 data: history.map((h) => h.weight),
-                color: () => "#20ca17",
+                color: () => "#4a9eff",
                 strokeWidth: 2,
                 withDots: true,
             },
@@ -57,7 +57,7 @@ export default function PhaseChart({ history, startingWeight, weightGoal }: Weig
                 height={220}
                 chartConfig={{
                     decimalPlaces: 1,
-                    color: () => "#20ca17",
+                    color: () => "#4a9eff",
                     labelColor: () => "#f1f1f1",
                     propsForLabels: {
                         fontSize: 12,

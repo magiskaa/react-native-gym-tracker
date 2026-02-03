@@ -53,8 +53,15 @@ function AppContent() {
             <StatusBar style="light" />
             <Tab.Navigator
                 screenOptions={({ route }) => ({
+                    headerShown: false,
                     tabBarActiveTintColor: "#20ca17",
                     tabBarInactiveTintColor: "#e3e3e3",
+                    tabBarStyle: {
+                        borderTopWidth: 0,
+                        elevation: 0,
+                        shadowOpacity: 0.25,
+                        paddingTop: 7
+                    },
                     tabBarIcon: ({ color, size }) => {
                         let iconName: keyof typeof Ionicons.glyphMap;
 

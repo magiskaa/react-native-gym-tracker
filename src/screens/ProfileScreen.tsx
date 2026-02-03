@@ -285,8 +285,8 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
 	logoutButton: {
 		position: "absolute",
-		top: 8,
-		left: 8,
+		top: 72,
+		left: 16,
 	},
 	image: {
 		width: 200,
@@ -317,11 +317,11 @@ const styles = StyleSheet.create({
 	editButton: {
 		position: "absolute",
 		right: 24,
-		top: "34%",
+		top: "38%",
 	},
 	selectImageButton: {
 		position: "absolute",
 		right: "40%",
-		top: 10,
+		top: 64,
 	},
 });

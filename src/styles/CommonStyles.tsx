@@ -5,6 +5,7 @@ export const CommonStyles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "flex-start",
         padding: 16,
+		paddingTop: 72,
 	},
 	error: {
 		color: "#b00020",

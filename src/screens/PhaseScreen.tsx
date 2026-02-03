@@ -4,11 +4,10 @@ import * as Haptics from 'expo-haptics';
 import { formatLocalDateISO } from "../utils/Utils";
 import StartPhaseModal from "../modal/Phase/StartPhaseModal";
 import ActivePhase from "../components/Phase/ActivePhase";
-import PhaseChart from "../components/Phase/PhaseChart";
 import { CommonStyles } from "../styles/CommonStyles";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { useToast } from "../components/ToastConfig";
-import { getCurrentPhase, addPhase, updatePhase, getCurrentPhaseWeight } from "../services/phase";
+import { getCurrentPhase, addPhase } from "../services/phase";
 import { WeightEntry, getWeightHistory } from "../services/weights";
 
 
@@ -124,24 +123,6 @@ export default function PhaseScreen() {
 		}
 	};
 
-	const updateCurrentPhase = async () => {
-        if (!session?.user.id) { 
-			Alert.alert("Failed to load data", "Please sign in again");
-			return; 
-		}
-		
-		try {
-			const start = formatLocalDateISO(startDate); 
-			let end = null;
-			if (endDate) { end = formatLocalDateISO(endDate); }
-			
-			await updatePhase(session.user.id, phaseId, type, start, end, startingWeight, weightGoal);
-		} catch (error) {
-			Alert.alert("Failed to update phase", "Please try again");
-			console.error(`Failed to update phase: ${error}`);
-		}
-	};
-
 	const endPhase = async () => {
         if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
@@ -169,26 +150,21 @@ export default function PhaseScreen() {
 	return (
 		<View style={[CommonStyles.container, { alignItems: "center" }]}>
 			{isPhaseActive ? (
-				<View>
+				<View style={{ width: "100%" }}>
 					<ActivePhase 
 						error={error}
+						phaseId={phaseId}
 						startDate={startDate}
 						endDate={endDate}
-						phase={type}
-						startingWeight={startingWeight}
-						weightGoal={weightGoal}
-						setStartDate={setStartDate}
-						setEndDate={setEndDate}
-						setPhase={setType}
-						setStartingWeight={setStartingWeight}
-						setWeightGoal={setWeightGoal}
-						onWeightUpdate={loadWeightData}
-					/>
-
-					<PhaseChart 
+						type={type}
 						history={phaseWeightHistory}
 						startingWeight={startingWeight}
 						weightGoal={weightGoal}
+						setError={setError}
+						onWeightUpdate={loadWeightData}
+						onPhaseUpdate={() => {
+							loadCurrentPhaseData().then(({ startDate, endDate }) => loadWeightData(startDate, endDate));
+						}}
 					/>
 				</View>
 			) : (

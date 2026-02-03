@@ -10,7 +10,8 @@ import {
     KeyboardAvoidingView,
     Platform,
     Dimensions,
-    Alert
+    Alert,
+    ScrollView
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState, useCallback } from "react";
@@ -20,43 +21,47 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useFocusEffect } from "@react-navigation/native";
 import { CommonStyles } from "../../styles/CommonStyles";
 import { useAuthContext } from "../../auth/UseAuthContext";
-import { getCurrentWeight } from "../../services/weights";
+import { WeightEntry, getCurrentWeight } from "../../services/weights";
+import PhaseChart from "./PhaseChart";
+import { updatePhase } from "../../services/phase";
+import { useToast } from "../ToastConfig";
+import UpdatePhaseModal from "../../modal/Phase/UpdatePhaseModal";
 
 
 type Props = {
     error: string | null;
+    phaseId: number;
     startDate: Date;
     endDate: Date | null;
-    phase: string;
+    type: string;
+    history: WeightEntry[];
     startingWeight: number;
     weightGoal: number | null;
-    setStartDate: (date: Date) => void;
-    setEndDate: (date: Date | null) => void;
-    setPhase: (phase: string) => void;
-    setStartingWeight: (weight: number) => void;
-    setWeightGoal: (goal: number | null) => void;
+    setError: (error: string | null) => void;
     onWeightUpdate: () => void;
+    onPhaseUpdate: () => void;
 };
 
 export default function ActivePhase({
     error,
+    phaseId,
     startDate,
     endDate,
-    phase,
+    type,
+    history,
     startingWeight,
     weightGoal,
-    setStartDate,
-    setEndDate, 
-    setPhase,
-    setStartingWeight,
-    setWeightGoal,
-    onWeightUpdate
+    setError,
+    onWeightUpdate,
+    onPhaseUpdate
 }: Props) {
     const [phaseProgress, setPhaseProgress] = useState<number>(0);
     const [phaseWeightProgress, setPhaseWeightProgress] = useState<number>(0);
     const [currentWeight, setCurrentWeight] = useState<number | null>(null);
 
     const { session } = useAuthContext();
+
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
     const screenWidth = Dimensions.get("window").width;
 
@@ -65,6 +70,11 @@ export default function ActivePhase({
 			Alert.alert("Failed to load data", "Please sign in again");
 			return null; 
 		}
+        if (formatLocalDateISO(startDate).localeCompare(formatLocalDateISO(new Date())) >= 0) {
+            setCurrentWeight(null);
+            setPhaseWeightProgress(0);
+            return null;
+        }
 
         try {
             const weightData = await getCurrentWeight(session.user.id);
@@ -97,71 +107,154 @@ export default function ActivePhase({
         }, [startDate, endDate, weightGoal, startingWeight, onWeightUpdate])
     );
 
+    const updateCurrentPhase = async (
+        updatedType: string | null = null,
+        updatedStartDate: Date | null = null, 
+        updatedEndDate: Date | null = null, 
+        updatedStartingWeight: number | null = null, 
+        updatedWeightGoal: number | null = null
+    ) => {
+
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+		
+		try {
+            const newStartDate = formatLocalDateISO(updatedStartDate ?? startDate);
+            let newEndDate: string | null;
+            if (updatedEndDate !== null && updatedEndDate !== undefined) {
+                newEndDate = formatLocalDateISO(updatedEndDate);
+            } else if (endDate) {
+                newEndDate = formatLocalDateISO(endDate);
+            } else {
+                newEndDate = null;
+            }
+
+            if (newEndDate) {
+                if (newStartDate.localeCompare(newEndDate) >= 0) {
+                    setError("Start date can't be after end date");
+                    return;
+                }
+            }
+
+            const newType = updatedType ?? type;
+            const newStartingWeight = updatedStartingWeight !== 0 && updatedStartingWeight ? updatedStartingWeight : startingWeight;
+            const newWeightGoal = updatedWeightGoal !== 0 && updatedWeightGoal ? updatedWeightGoal : weightGoal;
+
+			await updatePhase(session.user.id, phaseId, newType, newStartDate, newEndDate, newStartingWeight, newWeightGoal);
+
+            closeModal();
+            onPhaseUpdate();
+            useToast("success", "Phase updated", "Your phase details were updated successfully");
+
+		} catch (error) {
+			Alert.alert("Failed to update phase", "Please try again");
+			console.error(`Failed to update phase: ${error}`);
+		}
+	};
+
+    const closeModal = () => {
+		setIsModalVisible(false);
+		setError(null);
+	};
+
+	const openModal = () => {
+		setIsModalVisible(true);
+		setError(null);
+	};
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={[CommonStyles.container, { padding: 0 }]}>
+            <View style={{ margin: 0, padding: 0 }}>
                 <View style={styles.phaseManagementContainer}>
                     <Pressable>
                         <FontAwesome6 name="trash-can" size={24} color="red" />
                     </Pressable>
-                    {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
-                    <Pressable>
+                    <Text style={styles.phaseText}>{capitalize(type)}</Text>
+                    <Pressable 
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                            openModal();
+                        }}
+                    >
                         <FontAwesome6 name="pencil" size={24} color="#f1f1f1" />
                     </Pressable>
                 </View>
 
-                {endDate ? (
-                    <View>
-                        <Text style={styles.centeredText}>{formatDate(formatLocalDateISO(new Date()))}</Text>
-                        <Bar 
-                            progress={phaseProgress}
-                            animated
-                            color="#20ca17"
-                            width={screenWidth - 32}
-                            height={8}
-                            animationConfig={{ bounciness: 1 }}
-                            style={{ marginBottom: 16 }}
-                        />
-                    </View>
-                ) : null}
-                {weightGoal ? (
-                    <View>
-                        <Text style={styles.centeredText}>{currentWeight}kg</Text>
-                        <Bar 
-                            progress={phaseWeightProgress}
-                            animated
-                            color="#4a9eff"
-                            width={screenWidth - 32}
-                            height={8}
-                            animationConfig={{ bounciness: 1 }}
-                            style={{ marginBottom: 16 }}
-                        />
-                    </View>
-                ) : null}
-                
-                <View style={styles.phaseInfoContainer}>
-                    <Text style={styles.phaseText}>{capitalize(phase)}</Text>
-                    <View style={styles.dateContainer}>
+                <ScrollView>
+                    {endDate ? (
                         <View>
+                            <Text style={styles.centeredText}>{formatDate(formatLocalDateISO(new Date()))}</Text>
+                            <Bar 
+                                progress={phaseProgress}
+                                animated
+                                color="#20ca17"
+                                width={screenWidth - 32}
+                                height={8}
+                                animationConfig={{ bounciness: 1 }}
+                                style={{ marginVertical: 8 }}
+                            />
+                        </View>
+                    ) : null}
+
+                    <View style={styles.phaseInfoContainer}>
+                        <View style={styles.infoBox}>
                             <Text style={[styles.centeredText, { color: "#20ca17" }]}>Start date:</Text>
                             <Text style={styles.dateText}>{formatDate(formatLocalDateISO(startDate))}</Text>
                         </View>
-                        <View>
-                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight:</Text>
-                            <Text style={styles.weightText}>{startingWeight.toString()}kg</Text>
-                        </View>
-                        <View>
-                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal:</Text>
-                            <Text style={styles.weightText}>{weightGoal ? weightGoal.toString() : "?"}kg</Text>
-                        </View>
-                        <View>
+                        <View style={styles.infoBox}>
                             <Text style={[styles.centeredText, { color: "#20ca17" }]}>End date:</Text>
                             <Text style={styles.dateText}>{endDate ? formatDate(formatLocalDateISO(endDate)) : "?"}</Text>
                         </View>
                     </View>
-                </View>
 
-                
+                    {weightGoal ? (
+                        <View>
+                            <Text style={styles.centeredText}>{currentWeight || "?"}kg</Text>
+                            <Bar 
+                                progress={phaseWeightProgress}
+                                animated
+                                color="#4a9eff"
+                                width={screenWidth - 32}
+                                height={8}
+                                animationConfig={{ bounciness: 1 }}
+                                style={{ marginVertical: 8 }}
+                            />
+                        </View>
+                    ) : null}
+
+                    <View style={styles.phaseInfoContainer}>
+                        <View style={styles.infoBox}>
+                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight:</Text>
+                            <Text style={styles.weightText}>{startingWeight.toString()}kg</Text>
+                        </View>
+                        <View style={styles.infoBox}>
+                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal:</Text>
+                            <Text style={styles.weightText}>{weightGoal ? weightGoal.toString() : "?"}kg</Text>
+                        </View>
+                    </View>
+
+                    <PhaseChart 
+                        history={history}
+                        startingWeight={startingWeight}
+                        weightGoal={weightGoal}
+                    />
+                </ScrollView>
+
+                {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
+
+                {isModalVisible ? (
+                    <UpdatePhaseModal 
+                        visible={isModalVisible}
+                        error={error}
+                        oldStartDate={startDate}
+                        oldEndDate={endDate}
+                        oldType={type}
+                        onClose={closeModal}
+                        onConfirm={updateCurrentPhase}
+                    />
+                ) : null}
             </View>
         </TouchableWithoutFeedback>
     );
@@ -171,26 +264,22 @@ const styles = StyleSheet.create({
     phaseManagementContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginBottom: 4,
-        marginTop: -6,
-    },
-    phaseInfoContainer: {
-        backgroundColor: "#2b2b2b",
-        borderRadius: 12,
-        padding: 6,
+        marginBottom: 16,
+        marginTop: 0,
     },
     phaseText: {
         textAlign: "center",
         fontSize: 28,
         fontWeight: "500",
-        marginBottom: 16,
         color: "#f1f1f1",
     },
-    dateContainer: {
+    phaseInfoContainer: {
         flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
+        justifyContent: "space-evenly",
+        marginVertical: 12,
+    },
+    infoBox: {
+        width: "35%",
     },
     dateText: {
         textAlign: "center",

@@ -62,7 +62,7 @@ export const updatePhase = async (
     startDate: string, 
     endDate: string | null, 
     startingWeight: number, 
-    weightGoal: number | null  
+    weightGoal: number | null
 ) => {
 
     if (!userId) {
@@ -70,7 +70,7 @@ export const updatePhase = async (
         return;
     }
     const { error } = await supabase
-        .from("nutrition")
+        .from("phase")
         .update({ type, startDate, endDate, startingWeight, weightGoal })
         .eq("userId", userId)
         .eq("id", id);
@@ -78,23 +78,4 @@ export const updatePhase = async (
         Alert.alert("updatePhase", error.message);
         return;
     }
-};
-
-
-
-export const getCurrentPhaseWeight = async (userId: string, startDate: string) => {
-    if (!userId) {
-        useToast("error", "No user id found", "Please log in again");
-        return [];
-    }
-    const { data, error } = await supabase
-        .from("weights")
-        .select(`weight, date`)
-        .eq("userId", userId)
-        .gte("date", startDate);
-    if (error) {
-        Alert.alert("getCurrentPhaseWeight", error.message);
-        return [];
-    }
-    return data;
 };

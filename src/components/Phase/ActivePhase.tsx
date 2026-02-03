@@ -23,7 +23,7 @@ import { CommonStyles } from "../../styles/CommonStyles";
 import { useAuthContext } from "../../auth/UseAuthContext";
 import { WeightEntry, getCurrentWeight } from "../../services/weights";
 import PhaseChart from "./PhaseChart";
-import { updatePhase } from "../../services/phase";
+import { updatePhase, deletePhase } from "../../services/phase";
 import { useToast } from "../ToastConfig";
 import UpdatePhaseModal from "../../modal/Phase/UpdatePhaseModal";
 
@@ -154,6 +154,24 @@ export default function ActivePhase({
 		}
 	};
 
+    const deleteCurrentPhase = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+
+        try {
+			await deletePhase(session.user.id, phaseId);
+
+            onPhaseUpdate();
+            useToast("success", "Phase deleted", "Current phase was deleted successfully");
+
+		} catch (error) {
+			Alert.alert("Failed to delete phase", "Please try again");
+			console.error(`Failed to delete phase: ${error}`);
+		}
+    };
+
     const closeModal = () => {
 		setIsModalVisible(false);
 		setError(null);
@@ -168,7 +186,16 @@ export default function ActivePhase({
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ margin: 0, padding: 0 }}>
                 <View style={styles.phaseManagementContainer}>
-                    <Pressable>
+                    <Pressable
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                            Alert.alert(
+                                "Delete phase?", "Are you sure you want to delete this phase?", 
+                                [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteCurrentPhase }], 
+                                { cancelable: true }
+                            )
+                        }}
+                    >
                         <FontAwesome6 name="trash-can" size={24} color="red" />
                     </Pressable>
                     <Text style={styles.phaseText}>{capitalize(type)}</Text>
@@ -264,7 +291,7 @@ const styles = StyleSheet.create({
     phaseManagementContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginBottom: 16,
+        marginBottom: 20,
         marginTop: 0,
     },
     phaseText: {

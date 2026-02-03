@@ -36,6 +36,12 @@ export default function PhaseScreen() {
 			const currentPhaseData = await getCurrentPhase(session.user.id);
 			if (currentPhaseData.length === 0) {
 				setIsPhaseActive(false);
+				setPhaseId(0);
+				setType("maintain");
+				setStartDate(new Date());
+				setEndDate(null);
+				setStartingWeight(0);
+				setWeightGoal(null);
 				setPhaseWeightHistory([]);
 				return { startDate: null, endDate: null};
 			}
@@ -53,7 +59,7 @@ export default function PhaseScreen() {
 			if (currentPhaseData[0].weightGoal) { setWeightGoal(currentPhaseData[0].weightGoal); }
 
 			setIsPhaseActive(true);
-			return { start, end };
+			return { startDate: start, endDate: end };
 
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
@@ -90,7 +96,7 @@ export default function PhaseScreen() {
 	}, [startDate, endDate]);
 
 	useEffect(() => {
-		loadCurrentPhaseData().then(({startDate, endDate}) => loadWeightData(startDate, endDate));
+		loadCurrentPhaseData().then(({ startDate, endDate }) => loadWeightData(startDate, endDate));
 	}, [session?.user.id]);
 
 	const startPhase = async () => {

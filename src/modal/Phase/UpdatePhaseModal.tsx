@@ -146,7 +146,7 @@ export default function UpdatePhaseModal({
                                     pressed && CommonStyles.buttonPressed
                                 ]}    
                             >
-                                <Text style={CommonStyles.buttonText}>Start</Text>
+                                <Text style={CommonStyles.buttonText}>Update</Text>
                             </Pressable>
                         </View>
                     </View>

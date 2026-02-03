@@ -79,3 +79,19 @@ export const updatePhase = async (
         return;
     }
 };
+
+export const deletePhase = async (userId: string, phaseId: number) => {
+    if (!userId) {
+        useToast("error", "No user id found", "Please log in again");
+        return;
+    }
+    const { error } = await supabase
+        .from("phase")
+        .delete()
+        .eq("userId", userId)
+        .eq("id", phaseId);
+    if (error) {
+        Alert.alert("deletePhase", error.message);
+        return;
+    }
+};

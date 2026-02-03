@@ -1,22 +1,29 @@
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, Alert } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { NutritionRow, getNutritionGoals } from "../../services/database";
 import { formatDate, formatDateWOZeros } from "../../utils/Utils";
 import { ChartStyles } from "../../styles/ChartStyles";
-import { useAuth } from "../../auth/ni";
 import { useEffect, useState } from "react";
+import { Nutrition } from "../../services/nutrition";
+import { getNutritionGoals } from "../../services/nutritionGoals";
+import { useAuthContext } from "../../auth/UseAuthContext";
+
 
 type Props = {
-    history: NutritionRow[];
+    history: Nutrition[];
 };
 
 export default function NutritionChart({ history }: Props) {
-    const { user } = useAuth();
+    const { session } = useAuthContext();
     const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
 
     const loadData = async () => {
-        const data = await getNutritionGoals(user.id);
-        setCalorieGoal(data[0].calorie_goal);
+        if (!session?.user.id) { 
+            Alert.alert("Failed to load data", "Please sign in again");
+            return; 
+        }
+
+        const data = await getNutritionGoals(session.user.id);
+        setCalorieGoal(data[0].calorieGoal);
     };
 
     useEffect(() => {

@@ -2,10 +2,17 @@ import { supabase } from "./supabase";
 import { Alert } from "react-native";
 import { useToast } from "../components/ToastConfig";
 
-export const getWorkouts = async (userId: string) => {
+export type Workout = {
+    id: number;
+    name: string;
+    duration: string;
+    date: string;
+};
+
+export const getWorkouts = async (userId: string): Promise<Workout[]> => {
     if (!userId) { 
         useToast("error", "No user id found", "Please log in again");
-        return null; 
+        return []; 
     }
     const { data, error } = await supabase
         .from("workouts")
@@ -14,9 +21,9 @@ export const getWorkouts = async (userId: string) => {
         .order("date", { ascending: false });
     if (error) {
         Alert.alert("getWorkouts", error.message);
-        return null;
+        return [];
     }
-    return data;
+    return data as Workout[];
 };
 
 export const addWorkout = async (userId: string, name: string, duration: string, date: string) => {

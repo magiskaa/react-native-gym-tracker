@@ -1,71 +1,105 @@
-import { StyleSheet, Text, View, Pressable, ScrollView, FlatList } from "react-native";
+import { StyleSheet, Text, View, Pressable, Alert } from "react-native";
 import { useEffect, useState, useCallback } from "react";
 import * as Haptics from 'expo-haptics';
-import { useAuth } from "../auth/ni";
 import { formatLocalDateISO } from "../utils/Utils";
 import StartPhaseModal from "../modal/Phase/StartPhaseModal";
-import { getCurrentPhase, addPhase, WeightHistory, getCurrentPhaseWeight } from "../services/database";
 import ActivePhase from "../components/Phase/ActivePhase";
 import PhaseChart from "../components/Phase/PhaseChart";
 import { CommonStyles } from "../styles/CommonStyles";
+import { useAuthContext } from "../auth/UseAuthContext";
+import { useToast } from "../components/ToastConfig";
+import { getCurrentPhase, addPhase, updatePhase, getCurrentPhaseWeight } from "../services/phase";
+import { WeightEntry, getWeightHistory } from "../services/weights";
 
 
 export default function PhaseScreen() {
 	const [isPhaseActive, setIsPhaseActive] = useState<boolean>(false);
-	const { user } = useAuth();
+	const { session } = useAuthContext();
 	const [error, setError] = useState<string | null>(null);
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
+	const [phaseId, setPhaseId] = useState<number>(0);
+	const [type, setType] = useState<string>("maintain");
 	const [startDate, setStartDate] = useState<Date>(new Date());
 	const [endDate, setEndDate] = useState<Date | null>(null);
-	const [phase, setPhase] = useState<string>("maintain");
 	const [startingWeight, setStartingWeight] = useState<number>(0);
 	const [weightGoal, setWeightGoal] = useState<number | null>(null);
 
-	const [phaseWeightHistory, setPhaseWeightHistory] = useState<WeightHistory[]>([]);
+	const [phaseWeightHistory, setPhaseWeightHistory] = useState<WeightEntry[]>([]);
 
 	const loadCurrentPhaseData = async () => {
+		if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return { startDate: null, endDate: null}; 
+		}
+
 		try {
-			const currentPhaseData = await getCurrentPhase(user.id);
+			const currentPhaseData = await getCurrentPhase(session.user.id);
 			if (currentPhaseData.length === 0) {
 				setIsPhaseActive(false);
 				setPhaseWeightHistory([]);
-				return null;
+				return { startDate: null, endDate: null};
 			}
 
-			const phaseStartDate = new Date(currentPhaseData[0].start_date);
-			setStartDate(phaseStartDate);
-			if (currentPhaseData[0].end_date) { setEndDate(new Date(currentPhaseData[0].end_date)); }
-			setPhase(currentPhaseData[0].type);
-			setStartingWeight(currentPhaseData[0].starting_weight);
-			if (currentPhaseData[0].weight_goal) { setWeightGoal(currentPhaseData[0].weight_goal); }
+			setPhaseId(currentPhaseData[0].id);
+			setType(currentPhaseData[0].type);
+
+			const start = currentPhaseData[0].startDate;
+			setStartDate(new Date(start));
+
+			const end = currentPhaseData[0].endDate;
+			if (end) { setEndDate(new Date(end)); }
+			
+			setStartingWeight(currentPhaseData[0].startingWeight);
+			if (currentPhaseData[0].weightGoal) { setWeightGoal(currentPhaseData[0].weightGoal); }
 
 			setIsPhaseActive(true);
-			return phaseStartDate;
+			return { start, end };
+
 		} catch (error) {
-			console.error(error);
-			return null;
+			Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
+			return { startDate: null, endDate: null};
 		}
 	};
 
-	const loadWeightData = useCallback(async (date: Date | null = startDate) => {
-		if (!date) {
+	const loadWeightData = useCallback(async (
+		start: string | null = formatLocalDateISO(startDate), 
+		end: string | null = endDate ? formatLocalDateISO(endDate) : null
+	) => {
+
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+		if (!start) {
 			setPhaseWeightHistory([]);
 			return;
 		}
-		const history = await getCurrentPhaseWeight(user.id, formatLocalDateISO(date));
-		if (history.length !== 0) {
-			setPhaseWeightHistory(history);
-		} else {
-			setPhaseWeightHistory([]);
+
+		try {
+			const history = await getWeightHistory(session.user.id, start, end);
+			if (history.length !== 0) {
+				setPhaseWeightHistory(history);
+			} else {
+				setPhaseWeightHistory([]);
+			}
+		} catch {
+			Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
 		}
-	}, [startDate]);
+	}, [startDate, endDate]);
 
 	useEffect(() => {
-		loadCurrentPhaseData().then((phaseStartDate) => loadWeightData(phaseStartDate));
-	}, [user.id]);
+		loadCurrentPhaseData().then(({startDate, endDate}) => loadWeightData(startDate, endDate));
+	}, [session?.user.id]);
 
 	const startPhase = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+
 		const start = formatLocalDateISO(startDate);
 		let end = null;
 		
@@ -78,21 +112,47 @@ export default function PhaseScreen() {
 		}
 
 		try {
-			await addPhase(user.id, phase, start, end, startingWeight, weightGoal);
-		} catch (error) {
-			console.error(error);
-		} finally {
+			await addPhase(session.user.id, type, start, startingWeight, end, weightGoal);
+
 			closeModal();
-			loadCurrentPhaseData().then((phaseStartDate) => loadWeightData(phaseStartDate));
+			loadCurrentPhaseData().then(({ startDate, endDate }) => loadWeightData(startDate, endDate));
+			useToast("success", "Phase started", "Your phase was started successfully");
+
+		} catch (error) {
+			Alert.alert("Failed to start phase", "Please try again");
+			console.error(`Failed to start phase: ${error}`);
+		}
+	};
+
+	const updateCurrentPhase = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+		
+		try {
+			const start = formatLocalDateISO(startDate); 
+			let end = null;
+			if (endDate) { end = formatLocalDateISO(endDate); }
+			
+			await updatePhase(session.user.id, phaseId, type, start, end, startingWeight, weightGoal);
+		} catch (error) {
+			Alert.alert("Failed to update phase", "Please try again");
+			console.error(`Failed to update phase: ${error}`);
 		}
 	};
 
 	const endPhase = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
 		
 		try {
 			
 		} catch (error) {
-			console.error(error);
+			Alert.alert("Failed to end phase", "Please try again");
+			console.error(`Failed to end phase: ${error}`);
 		}
 	};
 
@@ -112,15 +172,14 @@ export default function PhaseScreen() {
 				<View>
 					<ActivePhase 
 						error={error}
-						user={user.id}
 						startDate={startDate}
 						endDate={endDate}
-						phase={phase}
+						phase={type}
 						startingWeight={startingWeight}
 						weightGoal={weightGoal}
 						setStartDate={setStartDate}
 						setEndDate={setEndDate}
-						setPhase={setPhase}
+						setPhase={setType}
 						setStartingWeight={setStartingWeight}
 						setWeightGoal={setWeightGoal}
 						onWeightUpdate={loadWeightData}
@@ -156,10 +215,10 @@ export default function PhaseScreen() {
 					error={error}
 					startDate={startDate}
 					endDate={endDate}
-					phase={phase}
+					phase={type}
 					setStartDate={setStartDate}
 					setEndDate={setEndDate}
-					setPhase={setPhase}
+					setPhase={setType}
 					setStartingWeight={setStartingWeight}
 					setWeightGoal={setWeightGoal}
 					onClose={closeModal}

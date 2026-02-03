@@ -17,9 +17,9 @@ import Feather from '@expo/vector-icons/Feather';
 import { Formik } from "formik";
 import * as yup from "yup";
 import { CommonStyles } from "../styles/CommonStyles";
-import { useAuthContext } from '../auth/UseAuthContext';
 import { supabase } from "../services/supabase";
 import { getProfile, addProfile } from "../services/profiles";
+import { addNutritionGoals } from "../services/nutritionGoals";
 
 
 AppState.addEventListener('change', (state) => {
@@ -42,7 +42,6 @@ const loginValidationSchema = yup.object().shape({
 });
 
 export default function LoginScreen() {
-    const { session, profile, isLoading } = useAuthContext();
     const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
 
     const submit = async (values: { email: string; password: string }) => {
@@ -76,6 +75,7 @@ export default function LoginScreen() {
             const profileData = await getProfile(userId);
             if (!profileData) {
                 await addProfile(userId, values.email);
+                await addNutritionGoals(userId);
             }
 
         } catch (error) {

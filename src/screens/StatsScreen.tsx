@@ -46,6 +46,7 @@ export default function StatsScreen() {
 			
 			const history = await getExerciseHistory(exerciseId);
 			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: history }));
+
 		} catch (error) {
 			Alert.alert("Failed to load exercise data", "Please try again later");
 			console.error(`Failed to load exercise data ${error}`);

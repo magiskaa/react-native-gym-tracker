@@ -9,20 +9,22 @@ import {
     Keyboard,
     KeyboardAvoidingView,
     Platform,
-    Dimensions
+    Dimensions,
+    Alert
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import { updatePhase, getCurrentWeight } from "../../services/database";
 import { useEffect, useState, useCallback } from "react";
 import { formatDate, formatLocalDateISO, capitalize, dayDiff } from "../../utils/Utils";
 import { Bar } from "react-native-progress";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { useFocusEffect } from "@react-navigation/native";
 import { CommonStyles } from "../../styles/CommonStyles";
+import { useAuthContext } from "../../auth/UseAuthContext";
+import { getCurrentWeight } from "../../services/weights";
+
 
 type Props = {
     error: string | null;
-    user: number;
     startDate: Date;
     endDate: Date | null;
     phase: string;
@@ -38,7 +40,6 @@ type Props = {
 
 export default function ActivePhase({
     error,
-    user,
     startDate,
     endDate,
     phase,
@@ -55,23 +56,26 @@ export default function ActivePhase({
     const [phaseWeightProgress, setPhaseWeightProgress] = useState<number>(0);
     const [currentWeight, setCurrentWeight] = useState<number | null>(null);
 
+    const { session } = useAuthContext();
+
     const screenWidth = Dimensions.get("window").width;
 
     const loadData = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return null; 
+		}
+
         try {
-            const weight = await getCurrentWeight(user);
-            setCurrentWeight(weight[0].weight || null);
-            return weight[0].weight || null;
+            const weightData = await getCurrentWeight(session.user.id);
+            setCurrentWeight(weightData[0].weight || null);
+            return weightData[0].weight || null;
+        
         } catch (error) {
-            console.error(error);
+            Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
             return null;
         }
-    };
-
-    const updateCurrentPhase = async () => {
-		//const startDate = startDate.toISOString().slice(0, 10);
-		//const endDate = endDate.toISOString().slice(0, 10);
-        //await updatePhase(user, phase, startDate, endDate, startingWeight, weightGoal);
     };
 
     const calculatePhaseProgress = (currentWeight: number | null) => {

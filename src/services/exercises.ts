@@ -8,6 +8,13 @@ export type Exercise = {
     muscleGroup: string;
 };
 
+export type ExerciseHistory = {
+    date: string;
+    total_reps: number;
+    total_weight: number;
+    set_count: number;
+};
+
 export const getExercises = async (userId: string) => {
     if (!userId) {
         useToast("error", "No user id found", "Please log in again");
@@ -46,10 +53,13 @@ export const getExerciseHistory = async (exerciseId: number) => {
         return null;
     }
 
-    return (data ?? []).map((row: { date: string; totalreps: number; totalweight: number; setcount: number }) => {
+    return (data ?? []).map((row: ExerciseHistory) => {
         const [month, day] = row.date.slice(5).split("-");
-        const avgReps = row.setcount ? Math.round((row.totalreps / row.setcount) * 10) / 10 : 0;
-        const avgWeight = row.setcount ? Math.round((row.totalweight / row.setcount) * 10) / 10 : 0;
+        const totalReps = Number(row.total_reps ?? 0);
+        const totalWeight = Number(row.total_weight ?? 0);
+        const setCount = Number(row.set_count ?? 0);
+        const avgReps = setCount ? Math.round((totalReps / setCount) * 10) / 10 : 0;
+        const avgWeight = setCount ? Math.round((totalWeight / setCount) * 10) / 10 : 0;
 
         return {
             date: `${parseInt(day)}.${parseInt(month)}.`,

@@ -1,10 +1,10 @@
 import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
 import { formatDate } from "../../utils/Utils";
-import { WorkoutRow } from "../../services/database";
+import { Workout } from "../../services/workouts";
 import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
-    workouts: WorkoutRow[];
+    workouts: Workout[];
 };
 
 export default function RecentWorkouts({ workouts }: Props) {

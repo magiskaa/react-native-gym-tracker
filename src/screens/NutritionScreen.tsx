@@ -2,19 +2,20 @@ import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert } from "
 import { useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
-import { NutritionRow, NutritionGoals, getNutrition, getNutritionGoals, getNutritionByDate, addNutrition, updateNutrition, updateNutritionGoals } from "../services/database";
-import { useAuth } from "../auth/ni";
 import LogCaloriesModal from "../modal/Nutrition/LogCaloriesModal";
 import SetNutritionGoalsModal from "../modal/Nutrition/SetNutritionGoalsModal";
 import { formatDateWOZeros, formatLocalDateISO } from "../utils/Utils";
 import NutritionChart from "../components/Nutrition/NutritionChart";
 import { CommonStyles } from "../styles/CommonStyles";
+import { useAuthContext } from "../auth/UseAuthContext";
+import { Nutrition, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/nutrition";
+import { getNutritionGoals, updateNutritionGoals, addNutritionGoals } from "../services/nutritionGoals";
+import { useToast } from "../components/ToastConfig";
 
 
 export default function NutritionScreen() {
-    const [nutrition, setNutrition] = useState<NutritionRow[]>([]);
-    const [nutritionGoals, setNutritionGoals] = useState<NutritionGoals[]>([]);
-    const { user } = useAuth();
+    const [nutrition, setNutrition] = useState<Nutrition[]>([]);
+    const { session } = useAuthContext();
 
     const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
     const [proteinGoal, setProteinGoal] = useState<number | null>(null);
@@ -33,21 +34,30 @@ export default function NutritionScreen() {
     const windowWidth = Dimensions.get("window").width;
 
     const loadData = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+
         try {
-            let nutritionData = await getNutrition(user.id);
+            let nutritionData = await getNutrition(session.user.id);
+            let nutritionGoalsData = await getNutritionGoals(session.user.id);
 
             if (nutritionData.length > 0) {
                 if (nutritionData[0].date !== today) {
-                    nutritionData = await addNutrition(user.id, today);
+                    nutritionData = await addNutrition(session.user.id, today);
                 }
             }
             if (nutritionData.length === 0) {
-                nutritionData = await addNutrition(user.id, today);
+                nutritionData = await addNutrition(session.user.id, today);
+                if (nutritionGoalsData.length === 0) {
+                    await addNutritionGoals(session.user.id);
+                    nutritionGoalsData = await getNutritionGoals(session.user.id);
+                }
             }
-            const nutritionGoalsData = await getNutritionGoals(user.id);
-            setNutritionGoals(nutritionGoalsData);
-            setCalorieGoal(nutritionGoalsData[0].calorie_goal);
-            setProteinGoal(nutritionGoalsData[0].protein_goal);
+
+            setCalorieGoal(nutritionGoalsData[0].calorieGoal || null);
+            setProteinGoal(nutritionGoalsData[0].proteinGoal || null);
 
             setNutrition(nutritionData);
             setCalories(nutritionData[0].calories || 0);
@@ -55,7 +65,7 @@ export default function NutritionScreen() {
 
         } catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
-            console.log(error);
+			console.error(`Failed to load data: ${error}`);
         }
     };
 
@@ -64,6 +74,11 @@ export default function NutritionScreen() {
     }, []);
 
     const logCalories = async (cal: number, prot: number) => { 
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+
         const formattedDate = formatLocalDateISO(date);
         const today = formatLocalDateISO(new Date());
 
@@ -73,49 +88,52 @@ export default function NutritionScreen() {
         }
 
         if (cal === 0 && prot === 0) {
-            setError("Please enter calories and protein");
+            setError("Please enter calories and/or protein");
             return;
         }
 
         try {
-            if (formatLocalDateISO(date) !== today) {
-                let nutritionData = await getNutritionByDate(user.id, formattedDate);
+            const nutritionData = await getNutritionByDate(session.user.id, formattedDate);
 
-                if (nutritionData.length === 0) {
-                    nutritionData = await addNutrition(user.id, formattedDate);
-                }
-
-                const caloriesMap = new Map(nutritionData.map(row => [row.date, row.calories]))
-                const proteinMap = new Map(nutritionData.map(row => [row.date, row.protein]))
-                const c = (caloriesMap.get(formattedDate) || 0);
-                const p = (proteinMap.get(formattedDate) || 0);
+            if (nutritionData.length === 0) {
+                await addNutrition(session.user.id, formattedDate, cal, prot);
+            } else {
+                const existingCal = nutritionData[0].calories || 0;
+                const existingProt = nutritionData[0].protein || 0;
 
                 if (isRemoveActive) {
-                    await updateNutrition(user.id, (c - cal) < 0 ? 0 : (c - cal), (p - prot) < 0 ? 0 : (p - prot), formattedDate);
+                    await updateNutrition(session.user.id, formattedDate, (existingCal - cal) < 0 ? 0 : (existingCal - cal), (existingProt - prot) < 0 ? 0 : (existingProt - prot));
+
+                    if (formatLocalDateISO(date) === today) {
+                        setCalories(calories - cal);
+                        setProtein(protein - prot);
+                    }
                 } else {
-                    await updateNutrition(user.id, c + cal, p + prot, formattedDate);
+                    await updateNutrition(session.user.id, formattedDate, existingCal + cal, existingProt + prot);
+
+                    if (formatLocalDateISO(date) === today) {
+                        setCalories(calories + cal);
+                        setProtein(protein + prot);
+                    }
                 }
-                return;
             }
 
-            if (isRemoveActive) {
-                await updateNutrition(user.id, (calories - cal) < 0 ? 0 : (calories - cal), (protein - prot) < 0 ? 0 : (protein - prot), formattedDate);
-            } else {
-                await updateNutrition(user.id, calories + cal, protein + prot, formattedDate);
-            }
+            closeModal();
+            loadData();
+            useToast("success", "Nutrition updated", "Your nutrition entry was added successfully");
 
-            setCalories(calories + cal);
-            setProtein(protein + prot);
         } catch (error) {
             Alert.alert("Failed to log calories", "Please try again");
             console.error(`Failed to log calories: ${error}`);
-        } finally {
-            closeModal();
-            loadData();
         }
     };
 
     const updateGoals = async (calGoal: number, protGoal: number) => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+
         if (calGoal === 0 && protGoal === 0) {
             setError("Please fill nutrition goals");
             return;
@@ -127,20 +145,20 @@ export default function NutritionScreen() {
                     setError("Please set both goals");
                     return;
                 }
-                await updateNutritionGoals(user.id, calGoal, protGoal);
+                await updateNutritionGoals(session.user.id, calGoal, protGoal);
             }
 
             if (calorieGoal && proteinGoal) {
-                await updateNutritionGoals(user.id, calGoal === 0 ? calorieGoal : calGoal, protGoal === 0 ? proteinGoal : protGoal);
+                await updateNutritionGoals(session.user.id, calGoal === 0 ? calorieGoal : calGoal, protGoal === 0 ? proteinGoal : protGoal);
             }
 
-            setCalorieGoal(calGoal);
-            setProteinGoal(protGoal);
+            closeGoalModal();
+            loadData();
+            useToast("success", "Nutrition goals updated", "Your nutrition goals were saved successfully");
+
         } catch (error) {
             Alert.alert("Failed to set goals", "Please try again");
             console.error(`Failed to set goals: ${error}`);
-        } finally {
-            closeGoalModal();
         }
     };
 
@@ -174,7 +192,7 @@ export default function NutritionScreen() {
                     <View>
                         <Text style={styles.progressTitle}>Calories</Text>
                         <Circle
-                            progress={(Number(calories || 0) / (calorieGoal || 3000)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 3000))}
+                            progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
                             size={120}
                             thickness={10}
                             borderWidth={0}
@@ -190,7 +208,7 @@ export default function NutritionScreen() {
                     <View>
                         <Text style={styles.progressTitle}>Protein</Text>
                         <Circle
-                            progress={(Number(protein || 0) / (proteinGoal || 150)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 150))}
+                            progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
                             size={120}
                             thickness={10}
                             borderWidth={0}

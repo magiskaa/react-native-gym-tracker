@@ -1,6 +1,6 @@
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { Circle } from "react-native-progress";
-import { SetCount } from "../../services/database";
+import { SetCount } from "../../services/sets";
 import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
@@ -15,12 +15,12 @@ export default function SetsPerWeek({ setCounts }: Props) {
                 data={setCounts}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.muscle_group}
+                keyExtractor={(item) => item.muscleGroup}
                 style={CommonStyles.list}
                 renderItem={({ item }) => {	
                     return (
                         <View style={styles.setsPerWeekContainer}>
-                            <Text style={styles.muscleGroupText}>{item.muscle_group}</Text>
+                            <Text style={styles.muscleGroupText}>{item.muscleGroup}</Text>
                             <Circle 
                                 progress={(item.setCount / 10) > 1 ? 1 : (item.setCount / 10)}
                                 size={84}

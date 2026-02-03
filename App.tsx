@@ -88,11 +88,11 @@ function AppContent() {
                     },
                 }}
             >
-                {/* <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Nutrition" component={NutritionScreen} />
-                <Tab.Screen name="Phase" component={PhaseScreen} /> */}
+                <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="Workout" component={WorkoutScreen} />
                 <Tab.Screen name="Stats" component={StatsScreen} />
+                <Tab.Screen name="Nutrition" component={NutritionScreen} />
+                <Tab.Screen name="Phase" component={PhaseScreen} />
                 <Tab.Screen name="Profile" component={ProfileScreen} />
             </Tab.Navigator>
             <Toast config={toastConfig} />

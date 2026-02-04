@@ -16,7 +16,7 @@ export default function HomeScreen() {
 
 	const { session } = useAuthContext();
 
-	const loadData = useCallback(async () => {
+	const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
 			return; 
@@ -37,22 +37,33 @@ export default function HomeScreen() {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
 		}
-	}, []);
+	};
 
 	useFocusEffect(
 		useCallback(() => {
 			loadData();
-		},[loadData])
+		}, [session?.user.id])
 	);
 
 	return (
-		<View style={[CommonStyles.container, { paddingHorizontal: 0 }]}>
-			<SetsPerWeek 
-				setCounts={setCounts}
-			/>
-			<RecentWorkouts 
-				workouts={workouts}
-			/>
+		<View style={CommonStyles.container}>
+			<View style={styles.section}>
+				<SetsPerWeek 
+					setCounts={setCounts}
+				/>
+			</View>
+
+			<View style={styles.section}>
+				<RecentWorkouts 
+					workouts={workouts}
+				/>
+			</View>
 		</View>
 	);
 }
+
+const styles = StyleSheet.create({
+	section: {
+		marginBottom: 12,
+	},
+});

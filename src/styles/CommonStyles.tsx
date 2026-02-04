@@ -42,15 +42,15 @@ export const CommonStyles = StyleSheet.create({
 	},
 	button: {
 		backgroundColor: "#20ca17",
-		borderRadius: 10,
+		borderRadius: 999,
 		paddingVertical: 12,
 		paddingHorizontal: 16,
 		margin: "auto",
 		marginTop: 10,
 	},
 	buttonText: {
-		color: "#f1f1f1",
-		fontWeight: "600",
+		color: "#1e1e1e",
+		fontWeight: "700",
 		textAlign: "center",
 	},
 	buttonPressed: {

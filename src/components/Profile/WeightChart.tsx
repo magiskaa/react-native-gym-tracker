@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, Dimensions } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { WeightHistory } from "../../services/database";
+import { WeightEntry } from "../../services/weights";
 import { formatDateWOZeros } from "../../utils/Utils";
 import { ChartStyles } from "../../styles/ChartStyles";
 
 type WeightChartProps = {
-    history: WeightHistory[];
+    history: WeightEntry[];
 };
 
 export default function WeightChart({ history }: WeightChartProps) {

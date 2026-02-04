@@ -79,3 +79,19 @@ export const updateNutrition = async (userId: string, date: string, calories: nu
         return;
     }
 };
+
+export const deleteNutritionByDate = async (userId: string, date: string) => {
+    if (!userId) {
+        useToast("error", "No user id found", "Please log in again");
+        return;
+    }
+    const { error } = await supabase
+        .from("nutrition")
+        .delete()
+        .eq("userId", userId)
+        .eq("date", date);
+    if (error) {
+        Alert.alert("deleteNutritionByDate", error.message);
+        return;
+    }
+};

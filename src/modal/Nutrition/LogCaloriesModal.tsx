@@ -88,7 +88,7 @@ export default function LogCaloriesModal({
                             mode="date"
                             display="spinner"
                             themeVariant="dark"
-                            style={[ModalStyles.datePicker, { marginTop: 16 }]}
+                            style={[ModalStyles.datePicker, { marginTop: 22 }]}
                         />
 
                         <View style={ModalStyles.modalFooter}>
@@ -116,10 +116,10 @@ export default function LogCaloriesModal({
 const styles = StyleSheet.create({
     switch: {
         position: "absolute",
-        top: 165,
+        top: 170,
         right: 16,
         flexDirection: "row",
-        alignItems: "center"
+        alignItems: "center",
     },
     switchText: {
         color: "#767676",

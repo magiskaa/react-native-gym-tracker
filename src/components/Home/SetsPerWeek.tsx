@@ -8,9 +8,19 @@ type Props = {
 };
 
 export default function SetsPerWeek({ setCounts }: Props) {
+    const targetSetCounts = new Map([
+        ["Rinta", 9], 
+        ["Olkapäät", 9], 
+        ["Hauis", 9], 
+        ["Ojentajat", 9], 
+        ["Jalat", 22], 
+        ["Selkä", 14], 
+        ["Vatsat", 9]
+    ]);
+
     return (
         <View>
-            <Text style={CommonStyles.title}>Sets / Week</Text>
+            <Text style={styles.title}>Weekly Sets</Text>
             <FlatList
                 data={setCounts}
                 horizontal
@@ -18,23 +28,24 @@ export default function SetsPerWeek({ setCounts }: Props) {
                 keyExtractor={(item) => item.muscleGroup}
                 style={CommonStyles.list}
                 renderItem={({ item }) => {	
+                    const target = targetSetCounts.get(item.muscleGroup) || 10;
                     return (
                         <View style={styles.setsPerWeekContainer}>
                             <Text style={styles.muscleGroupText}>{item.muscleGroup}</Text>
                             <Circle 
-                                progress={(item.setCount / 10) > 1 ? 1 : (item.setCount / 10)}
+                                progress={Math.min(item.setCount / target, 1)}
                                 size={84}
-                                thickness={3}
+                                thickness={5}
                                 borderWidth={0}
-                                color={item.setCount >= 10 ? "#20ca17" : "#4a9eff"}
+                                color={item.setCount >= target ? "#20ca17" : "#4a9eff"}
                                 animated
                                 showsText
-                                formatText={() => `${item.setCount} / 10`}
+                                formatText={() => `${item.setCount} / ${target}`}
                             />
                         </View>
                     )
                 }}
-                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
+                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 4 }]}
                 ListEmptyComponent={
                     <Text style={CommonStyles.empty}>No exercises yet</Text>
                 }
@@ -44,20 +55,30 @@ export default function SetsPerWeek({ setCounts }: Props) {
 }
 
 const styles = StyleSheet.create({
+    title: {
+        fontSize: 22,
+        marginTop: 8,
+        marginBottom: 8,
+        marginHorizontal: 4,
+        fontWeight: "700",
+        color: "#f1f1f1",
+        letterSpacing: 0.3,
+    },
 	setsPerWeekContainer: {
-		backgroundColor: "#2b2b2b",
-		padding: 8,
-		width: 100,
-		height: 125,
-		borderRadius: 12,
-		marginHorizontal: 4,
-		marginVertical: 4,
+        backgroundColor: "#2b2b2b",
+        padding: 10,
+        height: 140,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: "#393939",
+        marginHorizontal: 6,
+        marginVertical: 6,
 	},
 	muscleGroupText: {
-		fontSize: 22,
-		textAlign: "center",
-		margin: "auto",
-		marginBottom: 4,
-        color: "#f1f1f1"
+        fontSize: 16,
+        textAlign: "center",
+        marginBottom: 12,
+        color: "#f1f1f1",
+        fontWeight: "600",
 	},
 });

@@ -62,11 +62,6 @@ export default function NutritionChart({ history }: Props) {
                 strokeWidth: 2,
                 withDots: false,
             },
-            {
-                data: [0],
-                strokeWidth: 0,
-                withDots: false,
-            },
         ],
     };
     
@@ -89,8 +84,8 @@ export default function NutritionChart({ history }: Props) {
     };
 
     return (
-        <View style={ChartStyles.container}>
-            <Text style={ChartStyles.chartTitle}>Calories</Text>
+        <View style={[ChartStyles.container, styles.card]}>
+            <Text style={[ChartStyles.chartTitle, styles.title]}>Calories</Text>
             <LineChart
                 data={calorieChartData}
                 width={chartWidth}
@@ -107,7 +102,7 @@ export default function NutritionChart({ history }: Props) {
                 yAxisSuffix=""
                 fromZero={false}
                 segments={5}
-                style={ChartStyles.chart}
+                style={{ ...ChartStyles.chart, ...styles.chart }}
                 bezier
                 transparent
             />
@@ -136,3 +131,25 @@ export default function NutritionChart({ history }: Props) {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    card: {
+        backgroundColor: "#2b2b2b",
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#393939",
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        marginTop: 8,
+    },
+    title: {
+        fontSize: 14,
+        letterSpacing: 0.2,
+        color: "#f1f1f1",
+        marginTop: 0,
+        marginBottom: 4,
+    },
+    chart: {
+        marginLeft: -12,
+    },
+});

@@ -10,11 +10,11 @@ export const ModalStyles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
         justifyContent: "flex-end",
     },
     modalSheet: {
-        backgroundColor: "#0f0f0f",
+        backgroundColor: "#090909",
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 16,

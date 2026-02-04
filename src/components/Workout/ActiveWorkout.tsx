@@ -114,6 +114,7 @@ export default function ActiveWorkout({
     const deleteWorkout = () => {
         setIsWorkoutActive(false);
         setSelectedIds(new Set());
+        useToast("success", "Workout deleted", "Your workout was deleted succesfully");
     };
 
     const editExercises = () => {

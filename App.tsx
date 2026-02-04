@@ -8,9 +8,9 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from 'expo-haptics';
 import HomeScreen from "./src/screens/HomeScreen";
 import WorkoutScreen from "./src/screens/WorkoutScreen";
-import NutritionScreen from './src/screens/NutritionScreen';
+import NutritionStack from './src/navigation/NutritionStack';
 import PhaseScreen from "./src/screens/PhaseScreen";
-import StatsScreen from "./src/screens/StatsScreen";
+import StatsStack from "./src/navigation/StatsStack";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { useAuthContext } from './src/auth/UseAuthContext';
@@ -97,8 +97,8 @@ function AppContent() {
             >
                 <Tab.Screen name="Home" component={HomeScreen} />
                 <Tab.Screen name="Workout" component={WorkoutScreen} />
-                <Tab.Screen name="Stats" component={StatsScreen} />
-                <Tab.Screen name="Nutrition" component={NutritionScreen} />
+                <Tab.Screen name="Stats" component={StatsStack} />
+                <Tab.Screen name="Nutrition" component={NutritionStack} />
                 <Tab.Screen name="Phase" component={PhaseScreen} />
                 <Tab.Screen name="Profile" component={ProfileScreen} />
             </Tab.Navigator>

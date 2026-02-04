@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert } from "react-native";
-import { useEffect, useState } from "react";
+import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert, Modal } from "react-native";
+import { useCallback, useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import LogCaloriesModal from "../modal/Nutrition/LogCaloriesModal";
@@ -7,15 +7,21 @@ import SetNutritionGoalsModal from "../modal/Nutrition/SetNutritionGoalsModal";
 import { formatDateWOZeros, formatLocalDateISO } from "../utils/Utils";
 import NutritionChart from "../components/Nutrition/NutritionChart";
 import { CommonStyles } from "../styles/CommonStyles";
+import { MenuStyles } from "../styles/MenuStyles";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { Nutrition, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/nutrition";
 import { getNutritionGoals, updateNutritionGoals, addNutritionGoals } from "../services/nutritionGoals";
 import { useToast } from "../components/ToastConfig";
+import Entypo from '@expo/vector-icons/Entypo';
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { NutritionStackParamList } from "../navigation/NutritionStack";
 
 
 export default function NutritionScreen() {
     const [nutrition, setNutrition] = useState<Nutrition[]>([]);
     const { session } = useAuthContext();
+    const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
 
     const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
     const [proteinGoal, setProteinGoal] = useState<number | null>(null);
@@ -28,10 +34,9 @@ export default function NutritionScreen() {
     const [error, setError] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [isGoalModalVisible, setIsGoalModalVisible] = useState<boolean>(false);
+    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 
     const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
-
-    const windowWidth = Dimensions.get("window").width;
 
     const loadData = async () => {
         if (!session?.user.id) { 
@@ -71,7 +76,13 @@ export default function NutritionScreen() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [calories, protein]);
+
+    useFocusEffect(
+        useCallback(() => {
+            loadData();
+        }, [session?.user.id])
+    );
 
     const logCalories = async (cal: number, prot: number) => { 
         if (!session?.user.id) { 
@@ -185,15 +196,38 @@ export default function NutritionScreen() {
         setError(null);
     };
 
+    const openMenu = () => {
+		setIsMenuVisible(true);
+	};
+
+	const closeMenu = () => {
+		setIsMenuVisible(false);
+	};
+
     return (
-        <View style={[CommonStyles.container, { paddingHorizontal: 0 }]}>
+        <View style={CommonStyles.container}>
+            <View style={styles.header}>
+                <Text style={styles.title}>Today's Nutrition</Text>
+                <Pressable
+					onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						openMenu();
+					}}
+					style={({ pressed }) => [
+						pressed && CommonStyles.buttonPressed
+					]}
+				>
+					<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+				</Pressable>
+            </View>
+
             <View style={styles.nutritionContainer}>
                 <View style={styles.progressContainer}>
                     <View>
-                        <Text style={styles.progressTitle}>Calories</Text>
+                        <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text>
                         <Circle
                             progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
-                            size={120}
+                            size={110}
                             thickness={10}
                             borderWidth={0}
                             color="#20ca17"
@@ -204,12 +238,11 @@ export default function NutritionScreen() {
                             style={styles.progress}
                         />
                     </View>
-                    <Text style={[styles.progressTitle, { position: "absolute", top: -16 }]}>{formatDateWOZeros(formatLocalDateISO(new Date()))}</Text>
                     <View>
-                        <Text style={styles.progressTitle}>Protein</Text>
+                        <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text>
                         <Circle
                             progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
-                            size={120}
+                            size={110}
                             thickness={10}
                             borderWidth={0}
                             color="#4a9eff"
@@ -225,16 +258,18 @@ export default function NutritionScreen() {
                 <View style={styles.buttonContainer}>
                     <Pressable 
                         onPress={() => {
-                            openGoalModal(); 
+                            navigation.navigate("NutritionHistory", {
+                                nutrition
+                            });
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
                         }}
                         style={({ pressed }) => [
                             CommonStyles.button,
                             pressed && CommonStyles.buttonPressed,
-                            { width: "35%" }
+                            styles.actionButton
                         ]}
                     >
-                        <Text style={CommonStyles.buttonText}>Set goals</Text>
+                        <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
                     </Pressable>
 
                     <Pressable 
@@ -245,65 +280,15 @@ export default function NutritionScreen() {
                         style={({ pressed }) => [
                             CommonStyles.button,
                             pressed && CommonStyles.buttonPressed,
-                            { width: "35%" }
+                            styles.actionButton
                         ]}
                     >
-                        <Text style={CommonStyles.buttonText}>Log calories</Text>
+                        <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
                     </Pressable>
                 </View>
             </View>
-            
-            <FlatList
-                data={nutrition.slice(1, 7)}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item) => item.date}
-                style={CommonStyles.list}
-                renderItem={({ item }) => {	
-                    return (
-                        <View style={styles.recentDaysContainer}>
-                            <Text style={styles.dateText}>{formatDateWOZeros(item.date)}</Text>
-                            <View style={styles.progressContainer}>
-                                <View>
-                                    <Text style={styles.progressTitleSmall}>Calories</Text>
-                                    <Circle
-                                        progress={(Number(item.calories || 0) / (calorieGoal || 3000)) > 1 ? 1 : (Number(item.calories || 0) / (calorieGoal || 3000))}
-                                        size={60}
-                                        thickness={5}
-                                        borderWidth={0}
-                                        color="#20ca17"
-                                        animated
-                                        showsText
-                                        formatText={() => `${(item.calories || 0)}`}
-                                        textStyle={{ fontSize: 18 }}
-                                        style={styles.progress}
-                                    />
-                                </View>
-                                <View>
-                                    <Text style={styles.progressTitleSmall}>Protein</Text>
-                                    <Circle
-                                        progress={(Number(item.protein || 0) / (proteinGoal || 150)) > 1 ? 1 : (Number(item.protein || 0) / (proteinGoal || 150))}
-                                        size={60}
-                                        thickness={5}
-                                        borderWidth={0}
-                                        color="#4a9eff"
-                                        animated
-                                        showsText
-                                        formatText={() => `${(item.protein || 0)}`}
-                                        textStyle={{ fontSize: 18 }}
-                                        style={styles.progress}
-                                    />
-                                </View>
-                            </View>
-                        </View>
-                    )
-                }}
-                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
-                ListEmptyComponent={
-                    <Text style={[CommonStyles.empty, { marginHorizontal: windowWidth / 2 - 75 }]}>No data from recent days</Text>
-                }
-            />
 
+            <Text style={styles.title}>Calorie Chart</Text>
             <NutritionChart 
                 history={nutrition}
             />
@@ -329,55 +314,98 @@ export default function NutritionScreen() {
                     onConfirm={updateGoals}
                 />
             ) : null}
+
+            <Modal
+                transparent
+                visible={isMenuVisible}
+                animationType="fade"
+                onRequestClose={closeMenu}
+            >
+                <Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+                    <View style={MenuStyles.menu}>
+                        <Pressable
+                            onPress={() => {
+                                closeMenu();
+                                openGoalModal();
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }}
+                            style={({ pressed }) => [
+                                MenuStyles.menuItem,
+                                pressed && CommonStyles.buttonPressed
+                            ]}
+                        >
+                            <Text style={MenuStyles.menuText}>Set nutrition goals</Text>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => {
+                                closeMenu();
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }}
+                            style={({ pressed }) => [
+                                MenuStyles.menuItem,
+                                pressed && CommonStyles.buttonPressed, 
+                                { borderBottomWidth: 0 }
+                            ]}
+                        >
+                            <Text style={MenuStyles.menuText}>Reset today's nutrition</Text>
+                        </Pressable>
+                    </View>
+                </Pressable>
+            </Modal>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+	header: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 8,
+	},
+	title: {
+        fontSize: 22,
+        marginTop: 8,
+        marginBottom: 8,
+        marginHorizontal: 4,
+        fontWeight: "700",
+        color: "#f1f1f1",
+        letterSpacing: 0.3,
+    },
     nutritionContainer: {
-        marginBottom: 0,
-        paddingBottom: 14,
         width: "100%",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        backgroundColor: "#2b2b2b",
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#393939",
+        padding: 16,
+        marginVertical: 6,
     },
     progressContainer: {
         flexDirection: "row",
         justifyContent: "space-evenly",
+        alignItems: "center",
         marginBottom: 8,
+        gap: 12,
     },
     progressTitle: {
-        fontSize: 22,
+        fontSize: 14,
         fontWeight: 600,
         textAlign: "center",
-        marginVertical: 10,
+        marginBottom: 8,
         color: "#f1f1f1",
     },
     progress: {
-        marginHorizontal: 8,
+        marginHorizontal: 6,
     },
     buttonContainer: {
-        flexDirection: "row",
+        flexDirection: "column",
+        justifyContent: "space-between",
     },
-    recentDaysContainer: {
-        backgroundColor: "#2b2b2b",
-        padding: 2,
-        width: 160,
-        borderRadius: 12,
-        marginHorizontal: 4,
-        marginVertical: 12,
-    },
-    dateText: {
-        fontSize: 22,
-        fontWeight: 500,
-        textAlign: "center",
-        margin: "auto",
-        marginTop: 8,
-        marginBottom: 4,
-        color: "#f1f1f1",
-    },
-    progressTitleSmall: {
-        fontSize: 18,
-        textAlign: "center",
-        marginVertical: 8,
-        color: "#f1f1f1",
+    actionButton: {
+        width: 55,
+        height: 55,
     },
 });

@@ -22,13 +22,16 @@ export default function RecentWorkouts({ workouts }: Props) {
                 renderItem={({ item }) => {	
                     return (
                         <View style={styles.workoutContainer}>
-                            <Text style={styles.workoutNameText}>{item.name}</Text>
-                            <Text style={styles.workoutText}>{item.duration}</Text>
-                            <Text style={styles.workoutText}>{formatDate(item.date)}</Text>
+                            <View style={styles.accent} />
+                            <View style={styles.workoutContent}>
+                                <Text style={styles.workoutNameText}>{item.name}</Text>
+                                <Text style={styles.workoutText}>{item.duration}</Text>
+                                <Text style={styles.workoutMeta}>{formatDate(item.date)}</Text>
+                            </View>
                         </View>
                     )
                 }}
-                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 8 }]}
+                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 4 }]}
                 ListEmptyComponent={
                     <Text style={[CommonStyles.empty, { marginHorizontal: windowWidth / 2 - 50 }]}>No workouts yet</Text>
                 }
@@ -39,36 +42,50 @@ export default function RecentWorkouts({ workouts }: Props) {
 
 const styles = StyleSheet.create({
     title: {
-        fontSize: 24,
-        marginTop: 24,
-		marginBottom: 8,
-		marginHorizontal: 12,
-        fontWeight: "600",
+        fontSize: 22,
+        marginTop: 8,
+        marginBottom: 8,
+        marginHorizontal: 4,
+        fontWeight: "700",
         color: "#f1f1f1",
+        letterSpacing: 0.3,
     },
 	workoutContainer: {
-		backgroundColor: "#2b2b2b",
-		padding: 12,
-		width: 150,
-		height: 100,
-		borderRadius: 12,
-		marginHorizontal: 4,
-		marginVertical: 4,
+        backgroundColor: "#2b2b2b",
+        padding: 12,
+        width: 170,
+        height: 110,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: "#393939",
+        marginHorizontal: 6,
+        marginVertical: 6,
+        flexDirection: "row",
+        alignItems: "center",
 	},
+    accent: {
+        width: 6,
+        height: "70%",
+        borderRadius: 6,
+        backgroundColor: "#20ca17",
+        marginRight: 10,
+    },
+    workoutContent: {
+        flex: 1,
+    },
 	workoutNameText: {
-		fontSize: 22,
-		fontWeight: 500,
-		textAlign: "center",
-		margin: "auto",
-		marginTop: 0,
-		color: "#f1f1f1",
+        fontSize: 18,
+        fontWeight: "700",
+        color: "#f1f1f1",
 	},
 	workoutText: {
-		fontSize: 18,
-		textAlign: "center",
-		margin: "auto",
-		marginBottom: 2,
-		color: "#f1f1f1",
-
+        fontSize: 14,
+        marginTop: 6,
+        color: "#767676",
+    },
+    workoutMeta: {
+        fontSize: 13,
+        marginTop: 2,
+        color: "#767676",
 	},
 });

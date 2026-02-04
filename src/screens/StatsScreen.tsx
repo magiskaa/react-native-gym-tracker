@@ -2,59 +2,46 @@ import { useEffect, useState, useMemo } from "react";
 import {
 	Alert,
 	FlatList,
+	Modal,
 	Pressable,
 	StyleSheet,
 	Text,
 	View,
 } from "react-native";
 import * as Haptics from 'expo-haptics';
-import ExerciseChart from "../components/Stats/ExerciseChart";
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
 import FilterExercisesModal from "../modal/Stats/FilterExercisesModal";
 import { CommonStyles } from "../styles/CommonStyles";
+import { MenuStyles } from "../styles/MenuStyles";
 import { capitalize } from "../utils/Utils";
 import { useToast } from "../components/ToastConfig";
 import { useAuthContext } from "../auth/UseAuthContext";
-import { Exercise, getExercises, addExercise, getExerciseHistory } from "../services/exercises";
+import { Exercise, getExercises, addExercise } from "../services/exercises";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { StatsStackParamList } from "../navigation/StatsStack";
+import Entypo from '@expo/vector-icons/Entypo';
 
 
 export default function StatsScreen() {
 	const [exercises, setExercises] = useState<Exercise[] | null>([]);
-	const [expandedId, setExpandedId] = useState<number | null>(null);
+	const navigation = useNavigation<NativeStackNavigationProp<StatsStackParamList>>();
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
 	const [muscleGroup, setMuscleGroup] = useState<string>("rinta");
 
-	const { profile, session, isLoading } = useAuthContext();
+	const { session, isLoading } = useAuthContext();
 
 	const allowedGroups = ["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"];
 
-	const [latestSessions, setLatestSessions] = useState<Record<string, { workoutDate: string; sets: { reps: number; weight: number }[] } | null>>({});
-	const [exerciseHistories, setExerciseHistories] = useState<Record<string, { avgReps: number, avgWeight: number, date: string }[]>>({});
-
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
+	const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 
 	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
 
 	const selectedCount = useMemo(() => selectedGroups.size, [selectedGroups]);
-
-	const loadExerciseHistory = async (exerciseId: number) => {
-		try {
-			// const latestSession = await getLatestExerciseSession(exerciseId);
-			// setLatestSessions((prev) => ({ ...prev, [exerciseId]: latestSession }));
-			
-			const history = await getExerciseHistory(exerciseId);
-			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: history }));
-
-		} catch (error) {
-			Alert.alert("Failed to load exercise data", "Please try again later");
-			console.error(`Failed to load exercise data ${error}`);
-
-			setLatestSessions((prev) => ({ ...prev, [exerciseId]: null }));
-			setExerciseHistories((prev) => ({ ...prev, [exerciseId]: [] }));  
-		}
-	};
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
@@ -121,6 +108,7 @@ export default function StatsScreen() {
 	const closeModal = () => {
 		setIsModalVisible(false);
 		setIsFilterModalVisible(false);
+		setIsMenuVisible(false);
 		setError(null);
 		setExerciseName("");
 		setMuscleGroup("");
@@ -134,14 +122,35 @@ export default function StatsScreen() {
 		setIsFilterModalVisible(true);
 	};
 
+	const openMenu = () => {
+		setIsMenuVisible(true);
+	};
+
+	const closeMenu = () => {
+		setIsMenuVisible(false);
+	};
+
 	return (
-		<View style={CommonStyles.container}>	
+		<View style={CommonStyles.container}>
+			<View style={styles.header}>
+				<Text style={styles.title}>Exercise Stats</Text>
+				<Pressable
+					onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						openMenu();
+					}}
+					style={({ pressed }) => [
+						pressed && CommonStyles.buttonPressed
+					]}
+				>
+					<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+				</Pressable>
+			</View>
+			
 			<FlatList
 				data={exercises}
 				keyExtractor={(item) => item.id.toString()}
 				renderItem={({ item }) => {
-					const isExpanded = expandedId === item.id;
-
 					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
 						return (<View></View>);
 					}
@@ -149,12 +158,12 @@ export default function StatsScreen() {
 					return (
 						<Pressable
 							onPress={() => {
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-								const next = isExpanded ? null : item.id;
-								setExpandedId(next);
-								if (next != null) {
-									loadExerciseHistory(item.id);
-								}
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+								navigation.navigate("ExerciseStats", {
+									exerciseId: item.id,
+									name: item.name,
+									muscleGroup: item.muscleGroup,
+								});
 							}}
 							style={({ pressed }) => [
 								styles.card,
@@ -162,30 +171,14 @@ export default function StatsScreen() {
 							]}
 						>
 							<View style={styles.cardHeader}>
-								<Text style={styles.cardTitle}>{item.name}</Text>
-								<Text style={styles.cardSubtitle}>
-									{item.muscleGroup}
-								</Text>
-							</View>
-							{isExpanded ? (
-								<View style={styles.statsPreview}>
-									{exerciseHistories[item.id] == null ? (
-										<Text style={styles.statsText}>No logged sets yet</Text>
-									) : (
-										<View>
-											{/* <Text style={styles.statsText}>Latest session: {latestSessions[item.id]!.workoutDate}</Text>
-											{latestSessions[item.id]!.sets.map((s, idx) => (
-												<Text key={idx} style={styles.statsText}>
-													Set {idx + 1}: {s.reps} reps @ {s.weight}kg
-												</Text>
-											))} */}
-											<ExerciseChart
-												history={exerciseHistories[item.id] || []}
-											/>
-										</View>
-									)}
+								<View>
+									<Text style={styles.cardTitle}>{item.name}</Text>
+									<Text style={styles.cardSubtitle}>
+										{item.muscleGroup}
+									</Text>
 								</View>
-							) : null}
+								<Ionicons name="chevron-forward" size={18} color="#6f6f6f" />
+							</View>
 						</Pressable>
 					);
 				}}
@@ -194,47 +187,6 @@ export default function StatsScreen() {
 					<Text style={CommonStyles.empty}>No exercises yet</Text>
 				}
 			/>
-
-			<View style={styles.footer}>
-				<Pressable
-					onPress={() => { 
-						openModal(); 
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-					}}
-					style={({ pressed }) => [
-						CommonStyles.button,
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Text style={CommonStyles.buttonText}>
-						Add exercise
-					</Text>
-				</Pressable>
-
-				<Pressable
-					onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
-					style={({ pressed }) => [
-						CommonStyles.button,
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Text style={CommonStyles.buttonText}>
-						Phase
-					</Text>
-				</Pressable>
-
-				<Pressable
-					onPress={() => { openFilterModal(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
-					style={({ pressed }) => [
-						CommonStyles.button,
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Text style={CommonStyles.buttonText}>
-						Muscle Group
-					</Text>
-				</Pressable>
-			</View>
 
 			{isModalVisible ? (
 				<AddExerciseModal 
@@ -260,50 +212,104 @@ export default function StatsScreen() {
 					onClose={closeModal}
 				/>
 			) : null}
+
+			<Modal
+				transparent
+				visible={isMenuVisible}
+				animationType="fade"
+				onRequestClose={closeMenu}
+			>
+				<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+					<Pressable style={MenuStyles.menu} onPress={() => undefined}>
+						<Pressable
+							onPress={() => {
+								closeMenu();
+								openModal();
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							}}
+							style={({ pressed }) => [
+								MenuStyles.menuItem,
+								pressed && CommonStyles.buttonPressed
+							]}
+						>
+							<Text style={MenuStyles.menuText}>Add exercise</Text>
+						</Pressable>
+						<Pressable
+							onPress={() => {
+								closeMenu();
+								openFilterModal();
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							}}
+							style={({ pressed }) => [
+								MenuStyles.menuItem,
+								pressed && CommonStyles.buttonPressed
+							]}
+						>
+							<Text style={MenuStyles.menuText}>Filter exercises</Text>
+						</Pressable>
+						<Pressable
+							onPress={() => {
+								closeMenu();
+								setSelectedGroups(new Set());
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							}}
+							style={({ pressed }) => [
+								MenuStyles.menuItem,
+								pressed && CommonStyles.buttonPressed, 
+								{ borderBottomWidth: 0 }
+							]}
+						>
+							<Text style={MenuStyles.menuText}>Clear filters</Text>
+						</Pressable>
+					</Pressable>
+				</Pressable>
+			</Modal>
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	footer: {
+	header: {
 		flexDirection: "row",
-		alignItems: "center",
 		justifyContent: "space-between",
-		gap: 12,
-		borderTopWidth: 1,
-		borderTopColor: "#2b2b2b",
+		alignItems: "center",
+		marginBottom: 8,
 	},
+	title: {
+        fontSize: 22,
+        marginTop: 8,
+        marginBottom: 8,
+        marginHorizontal: 4,
+        fontWeight: "700",
+        color: "#f1f1f1",
+        letterSpacing: 0.3,
+    },
 	listContent: {
 		paddingBottom: 24,
 	},
 	card: {
 		backgroundColor: "#2b2b2b",
-		borderRadius: 12,
+		borderRadius: 14,
 		padding: 16,
-		marginBottom: 12,
+		marginVertical: 6,
+        borderWidth: 1,
+        borderColor: "#393939",
 	},
 	cardPressed: {
 		opacity: 0.8,
 	},
 	cardHeader: {
-		gap: 4,
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 	},
 	cardTitle: {
 		color: "#f1f1f1",
-		fontSize: 16,
+		fontSize: 18,
 		fontWeight: "600",
 	},
 	cardSubtitle: {
 		color: "#767676",
-		fontSize: 13,
-	},
-	statsPreview: {
-		marginTop: 12,
-		paddingTop: 12,
-		borderTopWidth: 1,
-		borderTopColor: "#1e1e1e",
-	},
-	statsText: {
-		color: "#f1f1f1",
+		fontSize: 15,
 	},
 });

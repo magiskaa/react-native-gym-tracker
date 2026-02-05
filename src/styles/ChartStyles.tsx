@@ -3,9 +3,9 @@ import { StyleSheet } from "react-native"
 export const ChartStyles = StyleSheet.create({
     container: {
         margin: "auto",
-        marginBottom: 0,
         padding: 0,
         borderRadius: 12,
+        width: "100%",
     },
     emptyContainer: {
         marginTop: 16,
@@ -25,6 +25,6 @@ export const ChartStyles = StyleSheet.create({
         textAlign: "center"
     },
     chart: {
-        marginLeft: -23,
+        marginLeft: -22,
     },
 });

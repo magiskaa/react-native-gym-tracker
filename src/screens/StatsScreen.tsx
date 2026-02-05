@@ -132,8 +132,8 @@ export default function StatsScreen() {
 
 	return (
 		<View style={CommonStyles.container}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Exercise Stats</Text>
+			<View style={CommonStyles.header}>
+				<Text style={CommonStyles.title}>Exercise Stats</Text>
 				<Pressable
 					onPress={() => {
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -166,8 +166,9 @@ export default function StatsScreen() {
 								});
 							}}
 							style={({ pressed }) => [
-								styles.card,
-								pressed && styles.cardPressed,
+								CommonStyles.componentContainer,
+								pressed && CommonStyles.buttonPressed,
+								{ marginBottom: 13 }
 							]}
 						>
 							<View style={styles.cardHeader}>
@@ -269,34 +270,8 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 8,
-	},
-	title: {
-        fontSize: 22,
-        marginTop: 8,
-        marginBottom: 8,
-        marginHorizontal: 4,
-        fontWeight: "700",
-        color: "#f1f1f1",
-        letterSpacing: 0.3,
-    },
 	listContent: {
 		paddingBottom: 24,
-	},
-	card: {
-		backgroundColor: "#2b2b2b",
-		borderRadius: 14,
-		padding: 16,
-		marginVertical: 6,
-        borderWidth: 1,
-        borderColor: "#393939",
-	},
-	cardPressed: {
-		opacity: 0.8,
 	},
 	cardHeader: {
 		flexDirection: "row",

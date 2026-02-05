@@ -49,7 +49,7 @@ export const ModalStyles = StyleSheet.create({
     },
     button: {
         backgroundColor: "#20ca17",
-        borderRadius: 10,
+        borderRadius: 999,
         paddingVertical: 12,
         paddingHorizontal: 16,
         minWidth: "25%",

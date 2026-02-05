@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from "react-native";
 import Toast from "react-native-toast-message";
-import Feather from '@expo/vector-icons/Feather';
+import Feather from "@expo/vector-icons/Feather";
 
 const styles = StyleSheet.create({
     baseContainer: {
@@ -8,25 +8,25 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         borderRadius: 10,
         marginHorizontal: 16,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.12,
         shadowRadius: 4,
         elevation: 2,
     },
     successContainer: {
-        backgroundColor: '#20ca17',
+        backgroundColor: "#20ca17",
     },
     errorContainer: {
-        backgroundColor: '#b00020',
+        backgroundColor: "#b00020",
     },
     title: {
-        color: '#f1f1f1',
+        color: "#f1f1f1",
         fontSize: 18,
-        fontWeight: '700',
+        fontWeight: "700",
     },
     message: {
-        color: '#f1f1f1',
+        color: "#f1f1f1",
         fontSize: 14,
         marginTop: 4,
     },

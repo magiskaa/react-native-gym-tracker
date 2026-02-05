@@ -10,6 +10,7 @@ type Props = {
     selectedIds: Set<number>;
     selectedCount: number;
     error: string | null;
+    setSelectedIds: (ids: Set<number>) => void;
     onToggleExercise: (id: number) => void;
     onClose: () => void;
     onConfirm: () => void;
@@ -21,6 +22,7 @@ export default function ExerciseSelectModal({
     selectedIds,
     selectedCount,
     error,
+    setSelectedIds,
     onToggleExercise,
     onClose,
     onConfirm,
@@ -37,7 +39,11 @@ export default function ExerciseSelectModal({
                     <View style={ModalStyles.modalHeader}>
                         <Text style={ModalStyles.modalTitle}>Select exercises</Text>
 
-                        <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}}>
+                        <Pressable onPress={() => { 
+                            onClose();
+                            setSelectedIds(new Set());
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        }}>
                             <Text style={ModalStyles.modalClose}>Close</Text>
                         </Pressable>
                     </View>
@@ -49,7 +55,10 @@ export default function ExerciseSelectModal({
                             const isSelected = selectedIds.has(item.id);
                             return (
                                 <Pressable
-                                    onPress={() => { onToggleExercise(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
+                                    onPress={() => { 
+                                        onToggleExercise(item.id); 
+                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                    }}
                                     style={({ pressed }) => [
                                         styles.exerciseRow,
                                         isSelected && styles.exerciseRowSelected,
@@ -119,10 +128,12 @@ const styles = StyleSheet.create({
     exerciseName: {
         color: "#f1f1f1",
         fontWeight: "600",
+        fontSize: 18,
+        marginBottom: 2, 
     },
     muscleGroup: {
         color: "#767676",
-        fontSize: 12,
+        fontSize: 14,
     },
     exerciseSelected: {
         color: "#20ca17",

@@ -7,7 +7,7 @@ import ActivePhase from "../components/Phase/ActivePhase";
 import { CommonStyles } from "../styles/CommonStyles";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { useToast } from "../components/ToastConfig";
-import { getCurrentPhase, addPhase } from "../services/phase";
+import { getCurrentPhase, addPhase } from "../services/phases";
 import { WeightEntry, getWeightHistory } from "../services/weights";
 
 

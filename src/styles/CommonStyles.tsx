@@ -12,14 +12,34 @@ export const CommonStyles = StyleSheet.create({
 		marginBottom: 8,
 		textAlign: "center"
 	},
-    title: {
-        fontSize: 24,
-        marginTop: 12,
-		marginBottom: 4,
-		marginHorizontal: 12,
-        fontWeight: "600",
+	header: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+		marginBottom: 8,
+	},
+	title: {
+        fontSize: 22,
+        marginVertical: 8,
+        marginHorizontal: 4,
+        fontWeight: "700",
         color: "#f1f1f1",
+        letterSpacing: 0.3,
     },
+	secondTitle: {
+		marginBottom: 16,
+	},
+	scrollview: {
+		borderRadius: 16,
+		marginTop: 16,
+	},	
+	componentContainer: {
+        backgroundColor: "#2b2b2b",
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#393939",
+        padding: 16,
+	},
 	input: {
 		backgroundColor: "#1e1e1e",
 		borderRadius: 10,
@@ -34,7 +54,7 @@ export const CommonStyles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 20,
-		fontWeight: 600,
+		fontWeight: "600",
 		textAlign: "center",
 		margin: "auto",
 		marginBottom: 10,

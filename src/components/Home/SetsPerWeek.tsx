@@ -10,7 +10,7 @@ type Props = {
 export default function SetsPerWeek({ setCounts }: Props) {
     const targetSetCounts = new Map([
         ["Rinta", 9], 
-        ["Olkapäät", 9], 
+        ["Olkapäät", 7], 
         ["Hauis", 9], 
         ["Ojentajat", 9], 
         ["Jalat", 22], 
@@ -20,7 +20,6 @@ export default function SetsPerWeek({ setCounts }: Props) {
 
     return (
         <View>
-            <Text style={styles.title}>Weekly Sets</Text>
             <FlatList
                 data={setCounts}
                 horizontal
@@ -30,7 +29,7 @@ export default function SetsPerWeek({ setCounts }: Props) {
                 renderItem={({ item }) => {	
                     const target = targetSetCounts.get(item.muscleGroup) || 10;
                     return (
-                        <View style={styles.setsPerWeekContainer}>
+                        <View style={[CommonStyles.componentContainer, styles.setsPerWeekContainer]}>
                             <Text style={styles.muscleGroupText}>{item.muscleGroup}</Text>
                             <Circle 
                                 progress={Math.min(item.setCount / target, 1)}
@@ -40,12 +39,13 @@ export default function SetsPerWeek({ setCounts }: Props) {
                                 color={item.setCount >= target ? "#20ca17" : "#4a9eff"}
                                 animated
                                 showsText
+                                textStyle={{ fontSize: 22 }}
                                 formatText={() => `${item.setCount} / ${target}`}
                             />
                         </View>
                     )
                 }}
-                contentContainerStyle={[CommonStyles.listContent, { paddingHorizontal: 4 }]}
+                contentContainerStyle={CommonStyles.listContent}
                 ListEmptyComponent={
                     <Text style={CommonStyles.empty}>No exercises yet</Text>
                 }
@@ -55,24 +55,8 @@ export default function SetsPerWeek({ setCounts }: Props) {
 }
 
 const styles = StyleSheet.create({
-    title: {
-        fontSize: 22,
-        marginTop: 8,
-        marginBottom: 8,
-        marginHorizontal: 4,
-        fontWeight: "700",
-        color: "#f1f1f1",
-        letterSpacing: 0.3,
-    },
 	setsPerWeekContainer: {
-        backgroundColor: "#2b2b2b",
-        padding: 10,
-        height: 140,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: "#393939",
-        marginHorizontal: 6,
-        marginVertical: 6,
+        marginRight: 8,
 	},
 	muscleGroupText: {
         fontSize: 16,

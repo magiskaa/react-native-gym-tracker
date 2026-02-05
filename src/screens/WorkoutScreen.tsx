@@ -116,6 +116,7 @@ export default function WorkoutScreen() {
                 selectedIds={selectedIds}
                 selectedCount={selectedCount}
                 error={error}
+				setSelectedIds={setSelectedIds}
                 onToggleExercise={toggleExercise}
                 onClose={closeModal}
                 onConfirm={startWorkout}

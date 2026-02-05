@@ -20,7 +20,7 @@ export const getCurrentPhase = async (userId: string): Promise<Phase[]> => {
     }
     const today = formatLocalDateISO(new Date());
     const { data, error } = await supabase
-        .from("phase")
+        .from("phases")
         .select(`id, type, startDate, endDate, startingWeight, weightGoal`)
         .eq("userId", userId)
         .or(`endDate.is.null,endDate.gte.${today}`)
@@ -47,7 +47,7 @@ export const addPhase = async (
         return;
     }
     const { error } = await supabase
-        .from("phase")
+        .from("phases")
         .insert({ userId, type, startDate, endDate, startingWeight, weightGoal });
     if (error) {
         Alert.alert("addNutrition", error.message);
@@ -70,7 +70,7 @@ export const updatePhase = async (
         return;
     }
     const { error } = await supabase
-        .from("phase")
+        .from("phases")
         .update({ type, startDate, endDate, startingWeight, weightGoal })
         .eq("userId", userId)
         .eq("id", id);
@@ -86,7 +86,7 @@ export const deletePhase = async (userId: string, phaseId: number) => {
         return;
     }
     const { error } = await supabase
-        .from("phase")
+        .from("phases")
         .delete()
         .eq("userId", userId)
         .eq("id", phaseId);

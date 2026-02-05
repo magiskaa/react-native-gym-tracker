@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert, Modal } from "react-native";
+import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert, Modal, ScrollView } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
@@ -206,8 +206,8 @@ export default function NutritionScreen() {
 
     return (
         <View style={CommonStyles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>Today's Nutrition</Text>
+            <View style={CommonStyles.header}>
+                <Text style={CommonStyles.title}>Today's Nutrition</Text>
                 <Pressable
 					onPress={() => {
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -221,10 +221,10 @@ export default function NutritionScreen() {
 				</Pressable>
             </View>
 
-            <View style={styles.nutritionContainer}>
+            <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
                 <View style={styles.progressContainer}>
                     <View>
-                        <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text>
+                        {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
                         <Circle
                             progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
                             size={110}
@@ -239,7 +239,7 @@ export default function NutritionScreen() {
                         />
                     </View>
                     <View>
-                        <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text>
+                        {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
                         <Circle
                             progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
                             size={110}
@@ -266,7 +266,8 @@ export default function NutritionScreen() {
                         style={({ pressed }) => [
                             CommonStyles.button,
                             pressed && CommonStyles.buttonPressed,
-                            styles.actionButton
+                            styles.actionButton,
+                            { marginTop: 0 }
                         ]}
                     >
                         <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
@@ -280,7 +281,8 @@ export default function NutritionScreen() {
                         style={({ pressed }) => [
                             CommonStyles.button,
                             pressed && CommonStyles.buttonPressed,
-                            styles.actionButton
+                            styles.actionButton,
+                            { marginTop: 0 }
                         ]}
                     >
                         <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
@@ -288,10 +290,15 @@ export default function NutritionScreen() {
                 </View>
             </View>
 
-            <Text style={styles.title}>Calorie Chart</Text>
-            <NutritionChart 
-                history={nutrition}
-            />
+            <ScrollView style={CommonStyles.scrollview}>
+                <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
+
+                <View style={CommonStyles.componentContainer}>
+                    <NutritionChart 
+                        history={nutrition}
+                    />
+                </View>
+            </ScrollView>
 
             {isModalVisible ? (
                 <LogCaloriesModal 
@@ -357,42 +364,19 @@ export default function NutritionScreen() {
 }
 
 const styles = StyleSheet.create({
-	header: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: 8,
-	},
-	title: {
-        fontSize: 22,
-        marginTop: 8,
-        marginBottom: 8,
-        marginHorizontal: 4,
-        fontWeight: "700",
-        color: "#f1f1f1",
-        letterSpacing: 0.3,
-    },
     nutritionContainer: {
-        width: "100%",
         flexDirection: "row",
         justifyContent: "space-between",
-        backgroundColor: "#2b2b2b",
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "#393939",
-        padding: 16,
-        marginVertical: 6,
     },
     progressContainer: {
         flexDirection: "row",
         justifyContent: "space-evenly",
         alignItems: "center",
-        marginBottom: 8,
         gap: 12,
     },
     progressTitle: {
         fontSize: 14,
-        fontWeight: 600,
+        fontWeight: "600",
         textAlign: "center",
         marginBottom: 8,
         color: "#f1f1f1",
@@ -403,6 +387,7 @@ const styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: "column",
         justifyContent: "space-between",
+        gap: 16,
     },
     actionButton: {
         width: 55,

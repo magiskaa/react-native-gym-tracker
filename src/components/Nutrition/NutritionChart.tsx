@@ -84,14 +84,14 @@ export default function NutritionChart({ history }: Props) {
     };
 
     return (
-        <View style={[ChartStyles.container, styles.card]}>
-            <Text style={[ChartStyles.chartTitle, styles.title]}>Calories</Text>
+        <View style={ChartStyles.container}>
+            <Text style={ChartStyles.chartTitle}>Calories</Text>
             <LineChart
                 data={calorieChartData}
                 width={chartWidth}
                 height={220}
                 chartConfig={{
-                    decimalPlaces: 1,
+                    decimalPlaces: 0,
                     color: () => "#20ca17",
                     labelColor: () => "#f1f1f1",
                     propsForLabels: {
@@ -107,15 +107,15 @@ export default function NutritionChart({ history }: Props) {
                 transparent
             />
 
-            {/* <Text style={ChartStyles.chartTitle}>Protein</Text>
+            <Text style={ChartStyles.chartTitle}>Protein</Text>
             <LineChart
                 data={proteinChartData}
                 width={chartWidth}
                 height={220}
                 chartConfig={{
-                    decimalPlaces: 1,
+                    decimalPlaces: 0,
                     color: () => "#4a9eff",
-                    labelColor: () => "#1e1e1e",
+                    labelColor: () => "#f1f1f1",
                     propsForLabels: {
                         fontSize: 12,
                     }
@@ -127,29 +127,13 @@ export default function NutritionChart({ history }: Props) {
                 style={ChartStyles.chart}
                 bezier
                 transparent
-            /> */}
+            />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: "#2b2b2b",
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: "#393939",
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        marginTop: 8,
-    },
-    title: {
-        fontSize: 14,
-        letterSpacing: 0.2,
-        color: "#f1f1f1",
-        marginTop: 0,
-        marginBottom: 4,
-    },
     chart: {
-        marginLeft: -12,
+        marginBottom: 12
     },
 });

@@ -1,17 +1,14 @@
 import { 
-    FlatList, 
     Pressable, 
     StyleSheet, 
     Text, 
     View, 
-    TextInput,
     TouchableWithoutFeedback,
     Keyboard,
-    KeyboardAvoidingView,
-    Platform,
     Dimensions,
     Alert,
-    ScrollView
+    ScrollView,
+    Modal
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState, useCallback } from "react";
@@ -23,9 +20,11 @@ import { CommonStyles } from "../../styles/CommonStyles";
 import { useAuthContext } from "../../auth/UseAuthContext";
 import { WeightEntry, getCurrentWeight } from "../../services/weights";
 import PhaseChart from "./PhaseChart";
-import { updatePhase, deletePhase } from "../../services/phase";
+import { updatePhase, deletePhase } from "../../services/phases";
 import { useToast } from "../ToastConfig";
 import UpdatePhaseModal from "../../modal/Phase/UpdatePhaseModal";
+import { Entypo } from "@expo/vector-icons";
+import { MenuStyles } from "../../styles/MenuStyles";
 
 
 type Props = {
@@ -62,6 +61,7 @@ export default function ActivePhase({
     const { session } = useAuthContext();
 
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 
     const screenWidth = Dimensions.get("window").width;
 
@@ -182,11 +182,34 @@ export default function ActivePhase({
 		setError(null);
 	};
 
+    const openMenu = () => {
+		setIsMenuVisible(true);
+	};
+
+	const closeMenu = () => {
+		setIsMenuVisible(false);
+	};
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={{ margin: 0, padding: 0 }}>
-                <View style={styles.phaseManagementContainer}>
+            <View>
+                <View style={CommonStyles.header}>
+                    <Text style={CommonStyles.title}>Current Phase</Text>
                     <Pressable
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            openMenu();
+                        }}
+                        style={({ pressed }) => [
+                            pressed && CommonStyles.buttonPressed
+                        ]}
+                    >
+                        <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+                    </Pressable>
+                </View>
+
+                <View>
+                    {/* <Pressable
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                             Alert.alert(
@@ -197,76 +220,85 @@ export default function ActivePhase({
                         }}
                     >
                         <FontAwesome6 name="trash-can" size={24} color="red" />
-                    </Pressable>
-                    <Text style={styles.phaseText}>{capitalize(type)}</Text>
-                    <Pressable 
+                    </Pressable> */}
+                    
+                    {/* <Pressable 
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                             openModal();
                         }}
                     >
                         <FontAwesome6 name="pencil" size={24} color="#f1f1f1" />
-                    </Pressable>
+                    </Pressable> */}
                 </View>
 
-                <ScrollView>
-                    {endDate ? (
-                        <View>
-                            <Text style={styles.centeredText}>{formatDate(formatLocalDateISO(new Date()))}</Text>
-                            <Bar 
-                                progress={phaseProgress}
-                                animated
-                                color="#20ca17"
-                                width={screenWidth - 32}
-                                height={8}
-                                animationConfig={{ bounciness: 1 }}
-                                style={{ marginVertical: 8 }}
-                            />
-                        </View>
-                    ) : null}
+                
+                    <View style={CommonStyles.componentContainer}>
+                        <Text style={styles.phaseType}>{capitalize(type)}</Text>
 
-                    <View style={styles.phaseInfoContainer}>
-                        <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>Start date:</Text>
-                            <Text style={styles.dateText}>{formatDate(formatLocalDateISO(startDate))}</Text>
+                        {endDate ? (
+                            <View>
+                                <Text style={styles.centeredText}>{formatDate(formatLocalDateISO(new Date()))}</Text>
+                                <Bar 
+                                    progress={phaseProgress}
+                                    animated
+                                    color="#20ca17"
+                                    width={screenWidth - 64}
+                                    height={8}
+                                    animationConfig={{ bounciness: 1 }}
+                                    style={{ marginVertical: 8 }}
+                                />
+                            </View>
+                        ) : null}
+
+                        <View style={styles.phaseInfo}>
+                            <View style={styles.infoBox}>
+                                <Text style={[styles.centeredText, { color: "#20ca17" }]}>Start date:</Text>
+                                <Text style={styles.dateText}>{formatDate(formatLocalDateISO(startDate))}</Text>
+                            </View>
+                            <View style={styles.infoBox}>
+                                <Text style={[styles.centeredText, { color: "#20ca17" }]}>End date:</Text>
+                                <Text style={styles.dateText}>{endDate ? formatDate(formatLocalDateISO(endDate)) : "?"}</Text>
+                            </View>
                         </View>
-                        <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>End date:</Text>
-                            <Text style={styles.dateText}>{endDate ? formatDate(formatLocalDateISO(endDate)) : "?"}</Text>
+
+                        {weightGoal ? (
+                            <View>
+                                <Text style={styles.centeredText}>{currentWeight || "?"}kg</Text>
+                                <Bar 
+                                    progress={phaseWeightProgress}
+                                    animated
+                                    color="#4a9eff"
+                                    width={screenWidth - 64}
+                                    height={8}
+                                    animationConfig={{ bounciness: 1 }}
+                                    style={{ marginVertical: 8 }}
+                                />
+                            </View>
+                        ) : null}
+
+                        <View style={styles.phaseInfo}>
+                            <View style={styles.infoBox}>
+                                <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight:</Text>
+                                <Text style={styles.weightText}>{startingWeight.toString()}kg</Text>
+                            </View>
+                            <View style={styles.infoBox}>
+                                <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal:</Text>
+                                <Text style={styles.weightText}>{weightGoal ? weightGoal.toString() : "?"}kg</Text>
+                            </View>
                         </View>
                     </View>
 
-                    {weightGoal ? (
-                        <View>
-                            <Text style={styles.centeredText}>{currentWeight || "?"}kg</Text>
-                            <Bar 
-                                progress={phaseWeightProgress}
-                                animated
-                                color="#4a9eff"
-                                width={screenWidth - 32}
-                                height={8}
-                                animationConfig={{ bounciness: 1 }}
-                                style={{ marginVertical: 8 }}
-                            />
-                        </View>
-                    ) : null}
+                <ScrollView style={CommonStyles.scrollview}>
+                    <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
 
-                    <View style={styles.phaseInfoContainer}>
-                        <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight:</Text>
-                            <Text style={styles.weightText}>{startingWeight.toString()}kg</Text>
-                        </View>
-                        <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal:</Text>
-                            <Text style={styles.weightText}>{weightGoal ? weightGoal.toString() : "?"}kg</Text>
-                        </View>
+                    <View style={CommonStyles.componentContainer}>
+                        <PhaseChart 
+                            history={history}
+                            startingWeight={startingWeight}
+                            weightGoal={weightGoal}
+                        />
                     </View>
-
-                    <PhaseChart 
-                        history={history}
-                        startingWeight={startingWeight}
-                        weightGoal={weightGoal}
-                    />
                 </ScrollView>
 
                 {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
@@ -282,25 +314,71 @@ export default function ActivePhase({
                         onConfirm={updateCurrentPhase}
                     />
                 ) : null}
+
+                <Modal
+                    transparent
+                    visible={isMenuVisible}
+                    animationType="fade"
+                    onRequestClose={closeMenu}
+                >
+                    <Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+                        <View style={MenuStyles.menu}>
+                            <Pressable
+                                onPress={() => {
+                                    closeMenu();
+                                    openModal();
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                }}
+                                style={({ pressed }) => [
+                                    MenuStyles.menuItem,
+                                    pressed && CommonStyles.buttonPressed
+                                ]}
+                            >
+                                <Text style={MenuStyles.menuText}>Edit phase</Text>
+                            </Pressable>
+                            <Pressable
+                                onPress={() => {
+                                    closeMenu();
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                    Alert.alert(
+                                        "Delete phase?", "Are you sure you want to delete this phase?", 
+                                        [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteCurrentPhase }], 
+                                        { cancelable: true }
+                                    );
+                                }}
+                                style={({ pressed }) => [
+                                    MenuStyles.menuItem,
+                                    pressed && CommonStyles.buttonPressed, 
+                                    { borderBottomWidth: 0 }
+                                ]}
+                            >
+                                <Text style={MenuStyles.menuText}>Delete phase</Text>
+                            </Pressable>
+                        </View>
+                    </Pressable>
+                </Modal>
             </View>
         </TouchableWithoutFeedback>
     );
 }
 
 const styles = StyleSheet.create({
-    phaseManagementContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 20,
-        marginTop: 0,
+    phaseInfoContainer: {
+        backgroundColor: "#2b2b2b",
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "#393939",
+        padding: 16,
+        marginVertical: 6,
     },
-    phaseText: {
+    phaseType: {
         textAlign: "center",
         fontSize: 28,
         fontWeight: "500",
         color: "#f1f1f1",
+        marginBottom: 12,
     },
-    phaseInfoContainer: {
+    phaseInfo: {
         flexDirection: "row",
         justifyContent: "space-evenly",
         marginVertical: 12,

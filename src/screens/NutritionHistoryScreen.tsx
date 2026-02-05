@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     },
     dateText: {
         fontSize: 22,
-        fontWeight: 600,
+        fontWeight: "600",
         textAlign: "center",
         marginVertical: "auto",
         marginLeft: 16,

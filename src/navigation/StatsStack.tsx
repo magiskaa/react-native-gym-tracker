@@ -3,7 +3,15 @@ import StatsScreen from "../screens/StatsScreen";
 import ExerciseStatsScreen from "../screens/ExerciseStatsScreen";
 
 export type StatsStackParamList = {
-    StatsList: undefined;
+    StatsList: {
+        openExercise?: {
+            exerciseId: number;
+            name: string;
+            muscleGroup: string;
+            eliteBWRatio: number;
+            eliteReps: number;
+        };
+    } | undefined;
     ExerciseStats: {
         exerciseId: number;
         name: string;

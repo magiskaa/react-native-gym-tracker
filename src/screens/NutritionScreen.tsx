@@ -230,11 +230,11 @@ export default function NutritionScreen() {
 
             <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
                 <View style={styles.progressContainer}>
-                    <View>
+                    <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
                         {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
                         <Circle
                             progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
-                            size={110}
+                            size={120}
                             thickness={10}
                             borderWidth={0}
                             color="#20ca17"
@@ -242,19 +242,18 @@ export default function NutritionScreen() {
                             showsText
                             formatText={() => `${calories}`}
                             textStyle={{ fontSize: 32 }}
-                            style={styles.progress}
                         />
                     </View>
 
                     {isNutritionLoading ? (    
-                        <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute" }} />
+                        <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 0 }} />
                     ) : null}
 
-                    <View>
+                    <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
                         {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
                         <Circle
                             progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
-                            size={110}
+                            size={120}
                             thickness={10}
                             borderWidth={0}
                             color="#4a9eff"
@@ -262,7 +261,6 @@ export default function NutritionScreen() {
                             showsText
                             formatText={() => `${protein}`}
                             textStyle={{ fontSize: 32 }}
-                            style={styles.progress}
                         />
                     </View>
                 </View>
@@ -384,7 +382,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-evenly",
         alignItems: "center",
-        gap: 12,
+        gap: 24,
     },
     progressTitle: {
         fontSize: 14,
@@ -392,9 +390,6 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 8,
         color: "#f1f1f1",
-    },
-    progress: {
-        marginHorizontal: 6,
     },
     buttonContainer: {
         flexDirection: "column",

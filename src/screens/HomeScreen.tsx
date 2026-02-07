@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Alert, ScrollView, Pressable, Modal } from "react-native";
-import { useCallback, useState } from "react";
+import { StyleSheet, Text, View, Alert, ScrollView, Pressable, Modal, Animated } from "react-native";
+import { useCallback, useState, useRef } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Haptics from 'expo-haptics';
 import SetsPerWeek from "../components/Home/SetsPerWeek";
@@ -16,10 +16,12 @@ export default function HomeScreen() {
 	const [setCounts, setSetCounts] = useState<SetCount[]>([]);
 	const [workouts, setWorkouts] = useState<Workout[]>([]);
 	const [isHomeLoading, setIsHomeLoading] = useState<boolean>(true);
-	const muscleGroups = ["Rinta", "Olkapäät", "Hauis", "Ojentajat", "Jalat", "Selkä", "Vatsat"];
+	const muscleGroups = ["Chest", "Shoulders", "Biceps", "Triceps", "Legs", "Back", "Abs"];
 
 	const { session } = useAuthContext();
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+	const menuAnim = useRef(new Animated.Value(0)).current;
+	
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
@@ -55,11 +57,26 @@ export default function HomeScreen() {
 	);
 
 	const openMenu = () => {
+		menuAnim.setValue(0);
 		setIsMenuVisible(true);
+		Animated.spring(menuAnim, {
+			toValue: 1,
+			friction: 10,
+			tension: 140,
+			useNativeDriver: true,
+		}).start();
 	};
 
 	const closeMenu = () => {
-		setIsMenuVisible(false);
+		Animated.timing(menuAnim, {
+			toValue: 0,
+			duration: 120,
+			useNativeDriver: true,
+		}).start(({ finished }) => {
+			if (finished) {
+				setIsMenuVisible(false);
+			}
+		});
 	};
 
 	return (
@@ -104,7 +121,15 @@ export default function HomeScreen() {
 				onRequestClose={closeMenu}
 			>
 				<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
-					<View style={MenuStyles.menu}>
+					<Animated.View
+						style={[
+							MenuStyles.menu,
+							{
+								opacity: menuAnim,
+								transform: [{ scale: menuAnim }],
+							}
+						]}
+					>
 						<Pressable
 							onPress={() => {
 								closeMenu();
@@ -130,7 +155,7 @@ export default function HomeScreen() {
 						>
 							<Text style={MenuStyles.menuText}>Tohon sitte jotai muuta</Text>
 						</Pressable>
-					</View>
+					</Animated.View>
 				</Pressable>
 			</Modal>
 		</View>

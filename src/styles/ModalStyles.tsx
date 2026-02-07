@@ -14,21 +14,23 @@ export const ModalStyles = StyleSheet.create({
         justifyContent: "flex-end",
     },
     modalSheet: {
-        backgroundColor: "#090909",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        backgroundColor: "#0e0e0e",
+        borderRadius: 20,
         padding: 16,
+        borderWidth: 1,
+        borderColor: "#1c1c1c"
     },
     modalHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 20,
+        marginBottom: 8,
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: "600",
         color: "#f1f1f1",
+        marginVertical: 8,
     },
     modalClose: {
         color: "#767676",
@@ -39,9 +41,7 @@ export const ModalStyles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "flex-end",
         alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#2b2b2b",
-        paddingTop: 12,
+        marginTop: 16,
         paddingBottom: 30,
     },
     modalFooterText: {

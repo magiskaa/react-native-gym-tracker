@@ -84,6 +84,7 @@ export default function WorkoutScreen() {
 	};
 
 	const openModal = () => {
+		setError(null);
 		setIsModalVisible(true);
 	};
 
@@ -92,8 +93,10 @@ export default function WorkoutScreen() {
 			{isWorkoutActive ? (
 				<ActiveWorkout
 					exercises={exercises}
+                	error={error}
 					selectedIds={selectedIds}
 					expandedId={expandedId}
+					setError={setError}
 					setExpandedId={setExpandedId}
 					setIsModalVisible={setIsModalVisible}
 					setIsWorkoutActive={setIsWorkoutActive}
@@ -120,7 +123,8 @@ export default function WorkoutScreen() {
 			<ExerciseSelectModal
                 visible={isModalVisible}
                 exercises={exercises}
-					isLoading={isExercisesLoading}
+				isLoading={isExercisesLoading}
+				isWorkoutActive={isWorkoutActive}
                 selectedIds={selectedIds}
                 selectedCount={selectedCount}
                 error={error}

@@ -8,25 +8,34 @@ import {
     TouchableWithoutFeedback,
     Keyboard,
     Alert,
-    KeyboardAvoidingView,
-    Platform
+    Modal,
+    LayoutAnimation,
+    Platform,
+    UIManager,
+    Animated
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { addWorkout } from "../../services/workouts";
 import { addWorkoutExercise } from "../../services/workoutExercises";
 import { addSet } from "../../services/sets";
 import { Exercise } from "../../services/exercises"
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatLocalDateISO, formatDuration } from "../../utils/Utils";
 import { CommonStyles } from "../../styles/CommonStyles";
 import { useAuthContext } from "../../auth/UseAuthContext";
 import { useToast } from "../ToastConfig";
+import { Entypo } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { MenuStyles } from "../../styles/MenuStyles";
+import { NavigationProp, ParamListBase, useNavigation } from "@react-navigation/native";
 
 
 type Props = {
     exercises: Exercise[] | null;
+    error: string | null;
     selectedIds: Set<number>;
     expandedId: number | null;
+    setError: (error: string | null) => void;
     setExpandedId: (id: number | null) => void;
     setIsModalVisible: (visible: boolean) => void;
     setIsWorkoutActive: (active: boolean) => void;
@@ -35,21 +44,31 @@ type Props = {
 
 export default function ActiveWorkout({
     exercises,
+    error,
     selectedIds,
     expandedId,
+    setError,
     setExpandedId,
     setIsModalVisible,
     setIsWorkoutActive,
     setSelectedIds
 }: Props) {
+    useEffect(() => {
+        if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+            UIManager.setLayoutAnimationEnabledExperimental(true);
+        }
+    }, []);
+
     const { session } = useAuthContext();
-    const [startTime, setStartTime] = useState<number>(Date.now() / 1000);
+    const startTime = useRef(Date.now() / 1000);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
     
     const [setsByExercise, setSetsByExercise] = useState<Record<string, { reps: string; weight: string }[]>>({});
     const [name, setName] = useState<string>("");
 
-    const [validationError, setValidationError] = useState<string | null>(null);
+    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+    const menuAnim = useRef(new Animated.Value(0)).current;
+    const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
     useEffect(() => {
         setSetsByExercise((prev) => {
@@ -68,7 +87,7 @@ export default function ActiveWorkout({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            const elapsed = Date.now() / 1000 - startTime;
+            const elapsed = Date.now() / 1000 - startTime.current;
             setFormattedDuration(formatDuration(elapsed));
         }, 1000);
 
@@ -76,7 +95,7 @@ export default function ActiveWorkout({
     }, [startTime]);
 
     const addSetRow = (exerciseId: number) => {
-        setValidationError(null);
+        setError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: [...(prev[exerciseId] ?? []), { reps: "", weight: "" }],
@@ -84,7 +103,7 @@ export default function ActiveWorkout({
     };
 
     const removeSet = (exerciseId: number, index: number) => {
-        setValidationError(null);
+        setError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).filter((_, i) => i !== index),
@@ -92,7 +111,7 @@ export default function ActiveWorkout({
     };
 
     const updateReps = (exerciseId: number, index: number, value: string) => {
-        setValidationError(null);
+        setError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
@@ -102,7 +121,7 @@ export default function ActiveWorkout({
     };
 
     const updateWeight = (exerciseId: number, index: number, value: string) => {
-        setValidationError(null);
+        setError(null);
         setSetsByExercise((prev) => ({
             ...prev,
             [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
@@ -117,13 +136,9 @@ export default function ActiveWorkout({
         useToast("success", "Workout deleted", "Your workout was deleted succesfully");
     };
 
-    const editExercises = () => {
-        setIsModalVisible(true);
-    };
-
     const endWorkout = async () => {
         if (!exercises) {
-            setValidationError("No exercises selected");
+            setError("No exercises selected");
             return;
         }
 
@@ -135,11 +150,14 @@ export default function ActiveWorkout({
                 return true;
             }
 
-            return sets.some((set) => !set.reps.trim() || !set.weight.trim());
+            const noRepsOrWeight = sets.some((set) => !set.reps.trim() || !set.weight.trim());
+            const invalidRepsOrWeight = sets.some((set) => Number(set.reps.trim()) > 500 || Number(set.weight.trim()) > 1000);
+
+            return noRepsOrWeight || invalidRepsOrWeight;
         });
 
         if (hasInvalidSet) {
-            setValidationError("Fill reps and weight for all sets");
+            setError("You have not entered reps and weight for all sets, or some fields have invalid inputs");
             return;
         }
 
@@ -188,26 +206,79 @@ export default function ActiveWorkout({
             console.error("Failed to save workout", error);
         }
     };
-    
+
+    const openMenu = () => {
+        menuAnim.setValue(0);
+        setIsMenuVisible(true);
+        Animated.spring(menuAnim, {
+            toValue: 1,
+            friction: 10,
+            tension: 140,
+            useNativeDriver: true,
+        }).start();
+	};
+
+	const closeMenu = () => {
+        Animated.timing(menuAnim, {
+            toValue: 0,
+            duration: 120,
+            useNativeDriver: true,
+        }).start(({ finished }) => {
+            if (finished) {
+                setIsMenuVisible(false);
+            }
+        });
+	};
+
+    const runLayoutAnimation = () => {
+        LayoutAnimation.configureNext({
+            duration: 400,
+            create: {
+                type: LayoutAnimation.Types.spring,
+                property: LayoutAnimation.Properties.scaleY,
+                springDamping: 0.9,
+            },
+            update: {
+                type: LayoutAnimation.Types.spring,
+                springDamping: 0.9,
+            },
+            delete: {
+                type: LayoutAnimation.Types.easeInEaseOut,
+                property: LayoutAnimation.Properties.scaleY,
+                duration: 50,
+            },
+        });
+    };
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={[CommonStyles.container, { padding: 0 }]}>
-
-                <View style={styles.headerContainer}>
-                    <TextInput 
-                        style={styles.nameInput}
-                        value={name}
-                        onChangeText={(value) => setName(value)}
-                        placeholder="Workout name"
-                        selectionColor="#20ca17"
-                        cursorColor="#20ca17"
-                    />
+            <View style={{ flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+                <View style={CommonStyles.header}>
+                    <Text style={CommonStyles.title}>Workout in progress</Text>
+                    <Text style={[styles.durationText, { color: "#20ca17" }]}>{formattedDuration}</Text>
+                    <Pressable
+                        onPress={() => {
+                            openMenu();
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        }}
+                        style={({ pressed }) => [
+                            pressed && CommonStyles.buttonPressed
+                        ]}
+                    >
+                        <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+                    </Pressable>
                 </View>
 
-                {validationError ? (
-                    <Text style={CommonStyles.error}>{validationError}</Text>
-                ) : null}
+                <TextInput 
+                    style={styles.nameInput}
+                    value={name}
+                    onChangeText={(value) => setName(value)}
+                    placeholder="Workout name"
+                    selectionColor="#20ca17"
+                    cursorColor="#20ca17"
+                />
+
+                {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
 
                 <FlatList
                     data={exercises ? exercises.filter(ex => selectedIds.has(ex.id)) : []}
@@ -218,27 +289,45 @@ export default function ActiveWorkout({
                         return (
                             <Pressable
                                 onPress={() => {
+                                    runLayoutAnimation();
                                     setExpandedId(isExpanded ? null : item.id);
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                                 }}
                                 style={({ pressed }) => [
-                                    styles.card,
-                                    pressed && styles.cardPressed,
+                                    CommonStyles.componentContainer,
+                                    pressed && CommonStyles.buttonPressed,
+                                    { 
+                                        marginBottom: isExpanded ? 22 : 13,
+                                        marginTop: isExpanded ? 9 : 0
+                                    }
                                 ]}
                             >
                                 <View style={styles.cardHeader}>
                                     <View style={styles.cardTitles}>
                                         <Text style={styles.cardTitle}>{item.name}</Text>
-                                        <Text style={styles.cardSubtitle}>
-                                            {item.muscleGroup}
-                                        </Text>
+                                        <Text style={styles.cardSubtitle}>{item.muscleGroup}</Text>
                                     </View>
 
                                     {isExpanded ? (
-                                        <View style={styles.cardStats}>
-                                            <Text style={styles.repsPerSet}>R/S: 14.33</Text>
-                                            <Text style={styles.avgWeight}>~W: 35</Text>
-                                        </View>
+                                        <Pressable
+                                            onPress={() => {
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                                navigation.navigate("Stats", {
+                                                    screen: "StatsList",
+                                                    params: {
+                                                        openExercise: {
+                                                            exerciseId: item.id,
+                                                            name: item.name,
+                                                            muscleGroup: item.muscleGroup,
+                                                            eliteBWRatio: item.eliteBWRatio,
+                                                            eliteReps: item.eliteReps,
+                                                        },
+                                                    },
+                                                });
+                                            }}
+                                        >
+                                            <Ionicons name="chevron-forward" size={18} color="#6f6f6f" style={{ padding: 9 }} />
+                                        </Pressable>
                                     ) : null}
                                 </View>
 
@@ -266,7 +355,11 @@ export default function ActiveWorkout({
                                                     placeholder="Weight"
                                                 />
                                                 <Pressable
-                                                    onPress={() => { removeSet(item.id, index); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
+                                                    onPress={() => { 
+                                                        runLayoutAnimation();
+                                                        removeSet(item.id, index);
+                                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                                    }}
                                                     style={styles.removeSetButton}
                                                 >
                                                     <Text style={styles.removeSetText}>Remove</Text>
@@ -274,7 +367,11 @@ export default function ActiveWorkout({
                                             </View>
                                         ))}
                                         <Pressable
-                                            onPress={() => { addSetRow(item.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
+                                            onPress={() => {
+                                                runLayoutAnimation();
+                                                addSetRow(item.id);
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                            }}
                                             style={styles.addSetButton}
                                         >
                                             <Text style={styles.addSet}>+ Add set</Text>
@@ -290,34 +387,70 @@ export default function ActiveWorkout({
                     }
                 />
 
-                <View style={styles.footerContainer}>
-                    <Text style={styles.durationText}>{formattedDuration}</Text>
-                    <Pressable 
-                        style={styles.footerButton}
-                        onPress={() => { 
-                            Alert.alert(
-                                "Delete workout?", "Are you sure you want to delete this workout?", 
-                                [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteWorkout }],
-                                { cancelable: true }
-                            ); 
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                        }}
-                    >
-                        <Text style={styles.buttonText}>Delete</Text>
+                <Pressable
+                    style={[CommonStyles.button, { width: "100%" }]}
+                    onPress={() => {
+                        Alert.alert(
+                            "End workout?", "Are you done with this workout?", 
+                            [{ text: "No", style: "cancel" }, { text: "Yes", onPress: endWorkout }],
+                            { cancelable: true }
+                        );
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                    }}
+                >
+                    <Text style={CommonStyles.buttonText}>End workout</Text>
+                </Pressable>
+                
+                <Modal
+                    transparent
+                    visible={isMenuVisible}
+                    animationType="fade"
+                    onRequestClose={closeMenu}
+                >
+                    <Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+                        <Animated.View
+                            style={[
+                                MenuStyles.menu,
+                                {
+                                    opacity: menuAnim,
+                                    transform: [{ scale: menuAnim }],
+                                }
+                            ]}
+                        >
+                            <Pressable 
+                                onPress={() => { 
+                                    Alert.alert(
+                                        "Delete workout?", "Are you sure you want to delete this workout?", 
+                                        [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteWorkout }],
+                                        { cancelable: true }
+                                    );
+                                    closeMenu();
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                }}
+                                style={({ pressed }) => [
+                                    MenuStyles.menuItem,
+                                    pressed && CommonStyles.buttonPressed
+                                ]}
+                            >
+                                <Text style={MenuStyles.menuText}>Delete</Text>
+                            </Pressable>
+                            <Pressable 
+                                onPress={() => { 
+                                    setIsModalVisible(true);
+                                    closeMenu();
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                }}
+                                style={({ pressed }) => [
+                                    MenuStyles.menuItem,
+                                    pressed && CommonStyles.buttonPressed,
+                                    { borderBottomWidth: 0 }
+                                ]}
+                            >
+                                <Text style={MenuStyles.menuText}>Edit</Text>
+                            </Pressable>
+                        </Animated.View>
                     </Pressable>
-                    <Pressable 
-                        style={styles.footerButton}
-                        onPress={() => { editExercises(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
-                    >
-                        <Text style={styles.buttonText}>Edit</Text>
-                    </Pressable>
-                    <Pressable
-                        style={styles.footerButton}
-                        onPress={() => { endWorkout(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
-                    >
-                        <Text style={styles.buttonText}>End</Text>
-                    </Pressable>
-                </View>
+                </Modal>
             </View>
         </TouchableWithoutFeedback>
     );
@@ -328,30 +461,16 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "flex-end",
     },
-    headerContainer: {
-        marginTop: 8,
-        marginBottom: 9,
-        borderBottomWidth: 1,
-        borderBottomColor: "#2c2c2c",
-        paddingBottom: 20,
-    },
     nameInput: {
         fontSize: 22,
         backgroundColor: "#c7c7c7",
         paddingVertical: 8,
         paddingHorizontal: 14,
-        borderRadius: 999,
-        color: "#2a2a2a"
+        borderRadius: 16,
+        color: "#2a2a2a",
+        marginTop: 8,
+        marginBottom: 16,
     },
-    card: {
-		backgroundColor: "#2b2b2b",
-		borderRadius: 12,
-		padding: 16,
-		marginBottom: 12,
-	},
-	cardPressed: {
-		opacity: 0.8,
-	},
     cardHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -362,12 +481,12 @@ const styles = StyleSheet.create({
 	},
 	cardTitle: {
 		color: "#f1f1f1",
-		fontSize: 16,
+		fontSize: 18,
 		fontWeight: "600",
 	},
 	cardSubtitle: {
 		color: "#767676",
-		fontSize: 13,
+		fontSize: 15,
 	},
     cardStats: {
         flexDirection: "row",
@@ -421,20 +540,12 @@ const styles = StyleSheet.create({
         color: "#c7c7c7",
         fontSize: 12,
     },
-    footerContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#2b2b2b",
-        paddingTop: 14,
-    },
     durationText: {
         fontSize: 32,
         color: "#f1f1f1",
         width: "28%"
     },
-    footerButton: {
+    endButton: {
         borderRadius: 999,
 		borderWidth: 1,
         borderColor: "#20ca17",
@@ -442,11 +553,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 12,
         width: "20%",
     },
-    buttonText: {
+    endText: {
         color: "#20ca17",
         textAlign: "center",
     },
 	listContent: {
-		paddingBottom: 24,
+		paddingBottom: 120,
 	},
 });

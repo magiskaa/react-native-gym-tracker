@@ -66,7 +66,7 @@ export const CommonStyles = StyleSheet.create({
 		paddingVertical: 12,
 		paddingHorizontal: 16,
 		margin: "auto",
-		marginTop: 10,
+		marginTop: 16,
 	},
 	buttonText: {
 		color: "#1e1e1e",

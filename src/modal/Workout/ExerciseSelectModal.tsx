@@ -3,11 +3,13 @@ import * as Haptics from 'expo-haptics';
 import { Exercise } from "../../services/exercises"; 
 import { ModalStyles } from "../../styles/ModalStyles";
 import { CommonStyles } from "../../styles/CommonStyles";
+import { useEffect, useState } from "react";
 
 type Props = {
     visible: boolean;
     exercises: Exercise[] | null;
     isLoading?: boolean;
+    isWorkoutActive: boolean;
     selectedIds: Set<number>;
     selectedCount: number;
     error: string | null;
@@ -21,6 +23,7 @@ export default function ExerciseSelectModal({
     visible,
     exercises,
     isLoading = false,
+    isWorkoutActive,
     selectedIds,
     selectedCount,
     error,
@@ -29,6 +32,26 @@ export default function ExerciseSelectModal({
     onClose,
     onConfirm,
 }: Props) {
+    const [modifiedSelectedIds, setModifiedSelectedIds] = useState<Set<number>>(selectedIds);
+
+    const toggleModifiedExercise = (id: number) => {
+		setModifiedSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) {
+				next.delete(id);
+			} else {
+				next.add(id);
+			}
+			return next;
+		});
+	};
+
+    useEffect(() => {
+        if (isWorkoutActive) {
+            setModifiedSelectedIds(selectedIds);
+        }
+    }, [visible]);
+
     return (
         <Modal
             visible={visible}
@@ -37,13 +60,13 @@ export default function ExerciseSelectModal({
             onRequestClose={onClose}
         >
             <View style={ModalStyles.modalOverlay}>
-                <View style={[ModalStyles.modalSheet, { height: "73%" }]}>
+                <View style={[ModalStyles.modalSheet, { height: "70%" }]}>
                     <View style={ModalStyles.modalHeader}>
                         <Text style={ModalStyles.modalTitle}>Select exercises</Text>
 
-                        <Pressable onPress={() => { 
+                        <Pressable onPress={() => {
+                            setModifiedSelectedIds(new Set());
                             onClose();
-                            setSelectedIds(new Set());
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                         }}>
                             <Text style={ModalStyles.modalClose}>Close</Text>
@@ -54,17 +77,21 @@ export default function ExerciseSelectModal({
                         data={exercises}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }) => {
-                            const isSelected = selectedIds.has(item.id);
+                            let isSelected = selectedIds.has(item.id);
+                            if (isWorkoutActive) { isSelected = modifiedSelectedIds.has(item.id); }
+
                             return (
                                 <Pressable
-                                    onPress={() => { 
-                                        onToggleExercise(item.id); 
+                                    onPress={() => {
+                                        if (isWorkoutActive) { toggleModifiedExercise(item.id); }
+                                        else { onToggleExercise(item.id); }
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
                                     }}
                                     style={({ pressed }) => [
-                                        styles.exerciseRow,
-                                        isSelected && styles.exerciseRowSelected,
-                                        pressed && styles.exerciseRowPressed,
+                                        CommonStyles.componentContainer,
+                                        styles.exercise,
+                                        isSelected && styles.exerciseSelected,
+                                        pressed && CommonStyles.buttonPressed,
                                     ]}
                                 >
                                     <View>
@@ -72,7 +99,7 @@ export default function ExerciseSelectModal({
                                         <Text style={styles.muscleGroup}>{item.muscleGroup}</Text>
                                     </View>
 
-                                    <Text style={styles.exerciseSelected}>
+                                    <Text style={styles.exerciseSelectedText}>
                                         {isSelected ? "Selected" : ""}
                                     </Text>
                                 </Pressable>
@@ -94,8 +121,9 @@ export default function ExerciseSelectModal({
                         </Text>
 
                         <Pressable 
-                            onPress={() => { 
-                                onConfirm(); 
+                            onPress={() => {
+                                if (isWorkoutActive) { setSelectedIds(modifiedSelectedIds); }
+                                onConfirm();
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             }}
                             style={({ pressed }) => [
@@ -115,21 +143,16 @@ export default function ExerciseSelectModal({
 }
 
 const styles = StyleSheet.create({
-    exerciseRow: {
+    exercise: {
         padding: 12,
-        borderRadius: 12,
-        backgroundColor: "#1e1e1e",
-        marginBottom: 10,
+        marginBottom: 8,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
-    exerciseRowSelected: {
+    exerciseSelected: {
         borderWidth: 1,
         borderColor: "#20ca17",
-    },
-    exerciseRowPressed: {
-        opacity: 0.85,
     },
     exerciseName: {
         color: "#f1f1f1",
@@ -141,7 +164,7 @@ const styles = StyleSheet.create({
         color: "#767676",
         fontSize: 14,
     },
-    exerciseSelected: {
+    exerciseSelectedText: {
         color: "#20ca17",
         fontSize: 12,
         fontWeight: "600",

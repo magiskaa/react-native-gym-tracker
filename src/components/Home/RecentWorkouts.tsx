@@ -44,7 +44,7 @@ export default function RecentWorkouts({ workouts, isLoading = false }: Props) {
 
 const styles = StyleSheet.create({
 	workoutContainer: {
-        width: 150,
+        width: 170,
         height: 110,
         flexDirection: "row",
         alignItems: "center",

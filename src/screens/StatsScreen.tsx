@@ -19,7 +19,7 @@ import { useToast } from "../components/ToastConfig";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { Exercise, getExercises, addExercise } from "../services/exercises";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatsStackParamList } from "../navigation/StatsStack";
 import Entypo from '@expo/vector-icons/Entypo';
@@ -29,7 +29,8 @@ export default function StatsScreen() {
 	const [exercises, setExercises] = useState<Exercise[] | null>(null);
 	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
 	
-	const navigation = useNavigation<NativeStackNavigationProp<StatsStackParamList>>();
+	const navigation = useNavigation<NativeStackNavigationProp<StatsStackParamList, "StatsList">>();
+	const route = useRoute<RouteProp<StatsStackParamList, "StatsList">>();
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
 	const [muscleGroup, setMuscleGroup] = useState<string>("rinta");
@@ -69,6 +70,14 @@ export default function StatsScreen() {
 			loadData();
 		}
 	}, [session?.user.id]);
+
+	useEffect(() => {
+		const openExercise = route.params?.openExercise;
+		if (openExercise) {
+			navigation.navigate("ExerciseStats", openExercise);
+			navigation.setParams({ openExercise: undefined });
+		}
+	}, [route.params?.openExercise, navigation]);
 
 	const handleAddExercise = async () => {
 		if (!session?.user.id) { 

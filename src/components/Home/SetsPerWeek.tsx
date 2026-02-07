@@ -10,13 +10,13 @@ type Props = {
 
 export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
     const targetSetCounts = new Map([
-        ["Rinta", 9], 
-        ["Olkapäät", 7], 
-        ["Hauis", 9], 
-        ["Ojentajat", 9], 
-        ["Jalat", 22], 
-        ["Selkä", 14], 
-        ["Vatsat", 9]
+        ["Chest", 9], 
+        ["Shoulders", 7], 
+        ["Biceps", 9], 
+        ["Triceps", 9], 
+        ["Legs", 22], 
+        ["Back", 14], 
+        ["Abs", 9]
     ]);
 
     return (

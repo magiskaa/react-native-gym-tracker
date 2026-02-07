@@ -17,6 +17,7 @@ import { Exercise, getExercises } from "../services/exercises";
 export default function WorkoutScreen() {
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [exercises, setExercises] = useState<Exercise[] | null>([]);
+	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 	const [error, setError] = useState<string | null>(null);
 
@@ -28,22 +29,28 @@ export default function WorkoutScreen() {
 	const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
+			setIsExercisesLoading(false);
 			return;
 		}
 
 		try {
+			setIsExercisesLoading(true);
 			const exerciseData = await getExercises(session.user.id);
 			setExercises(exerciseData);
 
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
+		} finally {
+			setIsExercisesLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		loadData();
-	}, []);
+		if (session?.user.id) {
+			loadData();
+		}
+	}, [session?.user.id]);
 
 	const selectedCount = useMemo(() => selectedIds.size, [selectedIds]);
 
@@ -113,6 +120,7 @@ export default function WorkoutScreen() {
 			<ExerciseSelectModal
                 visible={isModalVisible}
                 exercises={exercises}
+					isLoading={isExercisesLoading}
                 selectedIds={selectedIds}
                 selectedCount={selectedCount}
                 error={error}

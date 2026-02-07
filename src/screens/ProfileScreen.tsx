@@ -1,4 +1,5 @@
 import { 
+	ActivityIndicator,
 	Pressable, 
 	StyleSheet, 
 	Text, 
@@ -8,7 +9,8 @@ import {
 	Image, 
 	TextInput, 
 	TouchableWithoutFeedback, 
-	Keyboard
+	Keyboard,
+	Modal
 } from "react-native";
 import { useState, useEffect } from "react";
 import WeightChart from "../components/Profile/WeightChart";
@@ -16,26 +18,30 @@ import LogWeightModal from "../modal/Profile/LogWeightModal";
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Ionicons } from "@expo/vector-icons";
 import { formatLocalDateISO } from "../utils/Utils";
 import { CommonStyles } from "../styles/CommonStyles";
+import { ChartStyles } from "../styles/ChartStyles";
 import { useToast } from "../components/ToastConfig";
 import { supabase } from "../services/supabase";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { updateProfile, addProfile } from "../services/profiles";
 import { WeightEntry, getWeightHistory, addWeight } from "../services/weights";
+import { Entypo } from "@expo/vector-icons";
+import { MenuStyles } from "../styles/MenuStyles";
 
 
 export default function ProfileScreen() {
 	const [error, setError] = useState<string | null>(null);
 	const [history, setHistory] = useState<WeightEntry[] | undefined>([]);
+	const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(true);
 	const [isWeightModalVisible, setIsWeightModalVisible] = useState<boolean>(false);
+    const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 	
 	const [weightInput, setWeightInput] = useState<string>("");
 	const [dateInput, setDateInput] = useState<Date>(new Date());
 
-	const { profile, session, isLoading } = useAuthContext();
+	const { profile, session } = useAuthContext();
 
 	const [username, setUsername] = useState<string | null>(null);
 	const [image, setImage] = useState<string | null>(null);
@@ -44,11 +50,11 @@ export default function ProfileScreen() {
 	const [originalImage, setOriginalImage] = useState<string | null>(null);
 
 	const [isEditable, setIsEditable] = useState<boolean>(false);
-	const [editButtonColor, setEditButtonColor] = useState<string>("#f1f1f1");
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
+			setIsHistoryLoading(false);
 			return; 
 		}
 
@@ -58,20 +64,23 @@ export default function ProfileScreen() {
 				setImage(profile.image ?? null);
 			}
 
+			setIsHistoryLoading(true);
 			const weightData = await getWeightHistory(session.user.id);
 			setHistory(weightData);
 
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
+		} finally {
+			setIsHistoryLoading(false);
 		}
 	}; 
 	
 	useEffect(() => {
-		if (!isLoading) {
+		if (session?.user.id) {
 			loadData();
 		}
-	}, [isLoading, profile]);
+	}, [session?.user.id]);
 	
 	const pickImage = async () => {
 		const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -167,22 +176,31 @@ export default function ProfileScreen() {
 		setError(null);
 	};
 
+	const openMenu = () => {
+		setIsMenuVisible(true);
+	};
+
+	const closeMenu = () => {
+		setIsMenuVisible(false);
+	};
+
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View style={CommonStyles.container}>
-				<Pressable 
-					style={styles.logoutButton} 
-					onPress={() => {
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-						Alert.alert(
-							"Logout?", "Are you sure you want to logout?", 
-							[{ text: "No", style: "cancel" }, { text: "Yes", onPress: signOut }], 
-							{ cancelable: true }
-						)
-					}}
-				>
-					<MaterialIcons name="logout" size={24} color="#f1f1f1" />
-				</Pressable>
+				<View style={CommonStyles.header}>
+					<Text style={CommonStyles.title}>Profile</Text>
+					<Pressable
+						onPress={() => {
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							openMenu();
+						}}
+						style={({ pressed }) => [
+							pressed && CommonStyles.buttonPressed
+						]}
+					>
+						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+					</Pressable>
+				</View>
 
 				{isEditable ? (
 					<View style={styles.selectImageButton}>
@@ -197,44 +215,43 @@ export default function ProfileScreen() {
 					</View>
 				)}
 
-				<Pressable style={styles.editButton} onPress={() => {
-					Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-					if (isEditable) {
-						Alert.alert(
-							"Save profile", "Are you sure you want to save the changes?", 
-							[
-								{ 
-									text: "No", 
-									style: "cancel",
-									onPress: () => {
-										setUsername(originalUsername);
-										setImage(originalImage);
-										setIsEditable(false);
-										setEditButtonColor("#f1f1f1");
+				{isEditable ? (
+					<Pressable style={styles.editButton} onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+						if (isEditable) {
+							Alert.alert(
+								"Save profile", "Are you sure you want to save the changes?", 
+								[
+									{ 
+										text: "No", 
+										style: "cancel",
+										onPress: () => {
+											setUsername(originalUsername);
+											setImage(originalImage);
+											setIsEditable(false);
+										}
+									},
+									{ 
+										text: "Yes", 
+										onPress: async () => {
+											await saveChanges();
+											setIsEditable(false);
+										}
 									}
-								},
-								{ 
-									text: "Yes", 
-									onPress: async () => {
-										await saveChanges();
-										setIsEditable(false);
-										setEditButtonColor("#f1f1f1");
-									}
-								}
-							], 
-							{ cancelable: true }
-						)
-						return;
-					}
-					setOriginalUsername(username);
-					setOriginalImage(image);
-					setIsEditable(true);
-					setEditButtonColor("#20ca17");
-				}}>
-					<FontAwesome6 name={isEditable ? "save" : "pencil"} size={24} color={editButtonColor} />
-				</Pressable>
+								], 
+								{ cancelable: true }
+							)
+							return;
+						}
+						setOriginalUsername(username);
+						setOriginalImage(image);
+						setIsEditable(true);
+					}}>
+						<FontAwesome6 name={"save"} size={24} color={"#20ca17"} />
+					</Pressable>
+				) : null}
 
-				<View style={styles.usernameContainer}>
+				<View style={[CommonStyles.componentContainer, styles.usernameContainer]}>
 					{isEditable ? (
 						<TextInput 
 							value={username || ""}
@@ -249,21 +266,30 @@ export default function ProfileScreen() {
 					)}
 				</View>
 
-				<WeightChart history={history ?? []} />
-				<Pressable 
-					onPress={() => {
-						openModal(); 
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-					}}
-					style={({ pressed }) => [
-						CommonStyles.button,
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Text style={CommonStyles.buttonText}>Log weight</Text>
-				</Pressable>
+				<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weight chart</Text>
 
-				{error && !isWeightModalVisible ? <Text style={CommonStyles.error}>{error}</Text> : null}
+				{isHistoryLoading ? (
+					<View style={ChartStyles.emptyContainer}>
+						<ActivityIndicator size="small" color="#20ca17" />
+					</View>
+				) : (
+					<View style={CommonStyles.componentContainer}>
+						<WeightChart history={history ?? []} />
+
+						<Pressable 
+							onPress={() => {
+								openModal(); 
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+							}}
+							style={({ pressed }) => [
+								CommonStyles.button,
+								pressed && CommonStyles.buttonPressed
+							]}
+						>
+							<Text style={CommonStyles.buttonText}>Log weight</Text>
+						</Pressable>
+					</View>
+				)}
 
 				{isWeightModalVisible ? (
 					<LogWeightModal 
@@ -277,6 +303,51 @@ export default function ProfileScreen() {
 						onConfirm={logWeight}
 					/>
 				) : null}
+
+				<Modal
+					transparent
+					visible={isMenuVisible}
+					animationType="fade"
+					onRequestClose={closeMenu}
+				>
+					<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+						<View style={MenuStyles.menu}>
+							<Pressable
+								onPress={() => {
+									closeMenu();
+									setOriginalUsername(username);
+									setOriginalImage(image);
+									setIsEditable(true);
+									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+								}}
+								style={({ pressed }) => [
+									MenuStyles.menuItem,
+									pressed && CommonStyles.buttonPressed
+								]}
+							>
+								<Text style={MenuStyles.menuText}>Edit profile</Text>
+							</Pressable>
+							<Pressable
+								onPress={() => {
+									closeMenu();
+									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+									Alert.alert(
+										"Logout?", "Are you sure you want to logout?", 
+										[{ text: "No", style: "cancel" }, { text: "Yes", onPress: signOut }], 
+										{ cancelable: true }
+									);
+								}}
+								style={({ pressed }) => [
+									MenuStyles.menuItem,
+									pressed && CommonStyles.buttonPressed, 
+									{ borderBottomWidth: 0 }
+								]}
+							>
+								<Text style={MenuStyles.menuText}>Log out</Text>
+							</Pressable>
+						</View>
+					</Pressable>
+				</Modal>
 			</View>
 		</TouchableWithoutFeedback>
 	);
@@ -293,13 +364,13 @@ const styles = StyleSheet.create({
 		height: 200,
 		borderRadius: 999,
 		margin: "auto",
-		marginTop: 30,
-		marginBottom: 20,
+		marginTop: 12,
+		marginBottom: 16,
 	},
 	usernameContainer: {
-		backgroundColor: "#2b2b2b",
 		height: 40,
-		borderRadius: 12,
+		padding: 0,
+		marginBottom: 16,
 	},
 	username: {
 		color: "#f1f1f1",
@@ -317,11 +388,13 @@ const styles = StyleSheet.create({
 	editButton: {
 		position: "absolute",
 		right: 24,
-		top: "38%",
+		top: 300,
 	},
 	selectImageButton: {
 		position: "absolute",
-		right: "40%",
-		top: 64,
+		left: 0,
+		right: 0,
+		alignItems: "center",
+		top: 90,
 	},
 });

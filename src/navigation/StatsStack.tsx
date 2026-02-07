@@ -8,6 +8,8 @@ export type StatsStackParamList = {
         exerciseId: number;
         name: string;
         muscleGroup: string;
+        eliteBWRatio: number;
+        eliteReps: number;
     };
 };
 

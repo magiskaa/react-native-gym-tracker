@@ -23,7 +23,6 @@ type Props = {
     error: string | null;
     exerciseName: string;
     muscleGroup: string;
-    allowedGroups: string[];
     setExerciseName: (name: string) => void;
     setMuscleGroup: (muscle_group: string) => void;
     onClose: () => void;
@@ -35,12 +34,13 @@ export default function AddExerciseModal({
     error,
     exerciseName,
     muscleGroup,
-    allowedGroups,
     setExerciseName,
     setMuscleGroup,
     onClose, 
     onConfirm 
 }: Props) {
+    const allowedGroups = ["chest", "shoulders", "biceps", "triceps", "legs", "back", "abs"];
+
     return (
         <Modal
             visible={visible}

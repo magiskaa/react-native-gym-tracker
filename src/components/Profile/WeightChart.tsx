@@ -33,22 +33,11 @@ export default function WeightChart({ history }: WeightChartProps) {
                 strokeWidth: 2,
                 withDots: true,
             },
-            /* {
-                data: [80],
-                withDots: false,
-                strokeWidth: 0,
-            },
-            {
-                data: [95],
-                withDots: false,
-                strokeWidth: 0,
-            }, */
         ],
     };
 
     return (
         <View style={ChartStyles.container}>
-            <Text style={ChartStyles.chartTitle}>Weight (kg)</Text>
             <LineChart
                 data={weightChartData}
                 width={chartWidth}

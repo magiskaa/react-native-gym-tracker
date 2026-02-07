@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import {
+	ActivityIndicator,
 	Alert,
 	FlatList,
 	Modal,
@@ -25,15 +26,15 @@ import Entypo from '@expo/vector-icons/Entypo';
 
 
 export default function StatsScreen() {
-	const [exercises, setExercises] = useState<Exercise[] | null>([]);
+	const [exercises, setExercises] = useState<Exercise[] | null>(null);
+	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
+	
 	const navigation = useNavigation<NativeStackNavigationProp<StatsStackParamList>>();
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
 	const [muscleGroup, setMuscleGroup] = useState<string>("rinta");
 
-	const { session, isLoading } = useAuthContext();
-
-	const allowedGroups = ["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"];
+	const { session } = useAuthContext();
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
@@ -46,24 +47,28 @@ export default function StatsScreen() {
 	const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
+			setIsExercisesLoading(false);
 			return; 
 		}
 
 		try {
+			setIsExercisesLoading(true);
 			const exerciseData = await getExercises(session.user.id);
 			setExercises(exerciseData);
 
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
+		} finally {
+			setIsExercisesLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		if (!isLoading) {
+		if (session?.user.id) {
 			loadData();
 		}
-	}, [isLoading]);
+	}, [session?.user.id]);
 
 	const handleAddExercise = async () => {
 		if (!session?.user.id) { 
@@ -77,11 +82,8 @@ export default function StatsScreen() {
 				setError("Please enter a name");
 				return;
 			}
-			if (!allowedGroups.includes(muscleGroup.toLowerCase())) {
-				setError("Please enter a valid muscle group");
-				return;
-			}
-			await addExercise(session.user.id, capitalize(trimmedName), capitalize(muscleGroup));
+			
+			await addExercise(session.user.id, capitalize(trimmedName), capitalize(muscleGroup), null, null);
 			
 			closeModal();
 			loadData();
@@ -148,7 +150,7 @@ export default function StatsScreen() {
 			</View>
 			
 			<FlatList
-				data={exercises}
+				data={exercises ?? []}
 				keyExtractor={(item) => item.id.toString()}
 				renderItem={({ item }) => {
 					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
@@ -163,6 +165,8 @@ export default function StatsScreen() {
 									exerciseId: item.id,
 									name: item.name,
 									muscleGroup: item.muscleGroup,
+									eliteBWRatio: item.eliteBWRatio,
+									eliteReps: item.eliteReps,
 								});
 							}}
 							style={({ pressed }) => [
@@ -185,7 +189,11 @@ export default function StatsScreen() {
 				}}
 				contentContainerStyle={styles.listContent}
 				ListEmptyComponent={
-					<Text style={CommonStyles.empty}>No exercises yet</Text>
+					isExercisesLoading ? (
+						<ActivityIndicator size="small" color="#20ca17" />
+					) : (
+						<Text style={CommonStyles.empty}>No exercises yet</Text>
+					)
 				}
 			/>
 
@@ -195,7 +203,6 @@ export default function StatsScreen() {
 					error={error}
 					exerciseName={exerciseName}
 					muscleGroup={muscleGroup}
-					allowedGroups={allowedGroups}
 					setExerciseName={setExerciseName}
 					setMuscleGroup={setMuscleGroup}
 					onClose={closeModal}

@@ -6,6 +6,8 @@ export type Exercise = {
     id: number;
     name: string;
     muscleGroup: string;
+    eliteBWRatio: number;
+    eliteReps: number;
 };
 
 export type ExerciseHistory = {
@@ -22,7 +24,7 @@ export const getExercises = async (userId: string) => {
     }
     const { data, error } = await supabase
         .from("exercises")
-        .select("id, name, muscleGroup")
+        .select("id, name, muscleGroup, eliteBWRatio, eliteReps")
         .or(`userId.eq.${userId},userId.is.null`)
         .order("name", { ascending: true });
     if (error) {
@@ -32,14 +34,14 @@ export const getExercises = async (userId: string) => {
     return data;
 };
 
-export const addExercise = async (userId: string, name: string, muscleGroup: string) => {
+export const addExercise = async (userId: string, name: string, muscleGroup: string, eliteBWRatio: number | null = null, eliteReps: number | null = null) => {
     if (!userId) { 
         useToast("error", "No user id found", "Please log in again");
         return null; 
     }
     const { error } = await supabase
         .from("exercises")
-        .insert({ userId, name, muscleGroup });
+        .insert({ userId, name, muscleGroup, eliteBWRatio, eliteReps });
     if (error) {
         Alert.alert("addExercise", error.message);
         return;
@@ -65,6 +67,21 @@ export const getExerciseHistory = async (exerciseId: number) => {
             date: `${parseInt(day)}.${parseInt(month)}.`,
             avgReps,
             avgWeight,
+        };
+    });
+};
+
+export const getExerciseLastSession = async (exerciseId: number) => {
+    const { data, error } = await supabase.rpc("get_exercise_last_session", { exercise_id: exerciseId });
+    if (error) {
+        Alert.alert("getExerciseLastSession", error.message);
+        return null;
+    }
+
+    return (data ?? []).map((row: any) => {
+        return {
+            reps: row.reps,
+            weight: row.weight
         };
     });
 };

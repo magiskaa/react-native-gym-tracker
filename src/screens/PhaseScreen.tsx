@@ -25,6 +25,7 @@ export default function PhaseScreen() {
 	const [weightGoal, setWeightGoal] = useState<number | null>(null);
 
 	const [phaseWeightHistory, setPhaseWeightHistory] = useState<WeightEntry[]>([]);
+	const [isPhaseHistoryLoading, setIsPhaseHistoryLoading] = useState<boolean>(true);
 
 	const loadCurrentPhaseData = async () => {
 		if (!session?.user.id) { 
@@ -73,16 +74,19 @@ export default function PhaseScreen() {
 		end: string | null = endDate ? formatLocalDateISO(endDate) : null
 	) => {
 
-        if (!session?.user.id) { 
+		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
+			setIsPhaseHistoryLoading(false);
 			return; 
 		}
 		if (!start) {
 			setPhaseWeightHistory([]);
+			setIsPhaseHistoryLoading(false);
 			return;
 		}
 
 		try {
+			setIsPhaseHistoryLoading(true);
 			const history = await getWeightHistory(session.user.id, start, end);
 			if (history.length !== 0) {
 				setPhaseWeightHistory(history);
@@ -92,6 +96,8 @@ export default function PhaseScreen() {
 		} catch {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
+		} finally {
+			setIsPhaseHistoryLoading(false);
 		}
 	}, [startDate, endDate]);
 
@@ -164,6 +170,7 @@ export default function PhaseScreen() {
 						endDate={endDate}
 						type={type}
 						history={phaseWeightHistory}
+						isHistoryLoading={isPhaseHistoryLoading}
 						startingWeight={startingWeight}
 						weightGoal={weightGoal}
 						setError={setError}

@@ -1,4 +1,4 @@
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { Exercise } from "../../services/exercises"; 
 import { ModalStyles } from "../../styles/ModalStyles";
@@ -7,6 +7,7 @@ import { CommonStyles } from "../../styles/CommonStyles";
 type Props = {
     visible: boolean;
     exercises: Exercise[] | null;
+    isLoading?: boolean;
     selectedIds: Set<number>;
     selectedCount: number;
     error: string | null;
@@ -19,6 +20,7 @@ type Props = {
 export default function ExerciseSelectModal({
     visible,
     exercises,
+    isLoading = false,
     selectedIds,
     selectedCount,
     error,
@@ -77,7 +79,11 @@ export default function ExerciseSelectModal({
                             );
                         }}
                         ListEmptyComponent={
-                            <Text style={CommonStyles.empty}>No exercises found</Text>
+                            isLoading ? (
+                                <ActivityIndicator size="small" color="#20ca17" />
+                            ) : (
+                                <Text style={CommonStyles.empty}>No exercises found</Text>
+                            )
                         }
                         contentContainerStyle={styles.listContent}
                     />

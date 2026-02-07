@@ -1,13 +1,14 @@
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { ActivityIndicator, View, Text, FlatList, StyleSheet } from "react-native";
 import { Circle } from "react-native-progress";
 import { SetCount } from "../../services/sets";
 import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     setCounts: SetCount[];
+    isLoading?: boolean;
 };
 
-export default function SetsPerWeek({ setCounts }: Props) {
+export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
     const targetSetCounts = new Map([
         ["Rinta", 9], 
         ["Olkapäät", 7], 
@@ -47,7 +48,11 @@ export default function SetsPerWeek({ setCounts }: Props) {
                 }}
                 contentContainerStyle={CommonStyles.listContent}
                 ListEmptyComponent={
-                    <Text style={CommonStyles.empty}>No exercises yet</Text>
+                    isLoading ? (
+                        <ActivityIndicator size="small" color="#20ca17" />
+                    ) : (
+                        <Text style={CommonStyles.empty}>No muscle groups to show</Text>
+                    )
                 }
             />
         </View>

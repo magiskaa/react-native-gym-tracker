@@ -4,41 +4,48 @@ import type { Session } from '@supabase/supabase-js'
 import { PropsWithChildren, useEffect, useState } from 'react'
 
 export default function AuthProvider({ children }: PropsWithChildren) {
-    const [session, setSession] = useState<Session | undefined | null>();
-    const [profile, setProfile] = useState<any>();
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [session, setSession] = useState<Session | null>(null);
+    const [profile, setProfile] = useState<any | null>(null);
+    const [hasLoadedSession, setHasLoadedSession] = useState<boolean>(false);
+    const [hasReceivedAuthEvent, setHasReceivedAuthEvent] = useState<boolean>(false);
+    const [isProfileLoading, setIsProfileLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        const fetchSession = async () => {
-            setIsLoading(true);
+        let isMounted = true;
 
+        const fetchSession = async () => {
             const {
                 data: { session },
                 error,
             } = await supabase.auth.getSession();
+
+            if (!isMounted) return;
 
             if (error) {
                 console.error('Error fetching session:', error);
             }
 
             setSession(session);
-            setIsLoading(false);
+            setHasLoadedSession(true);
         }
 
-        fetchSession()
+        fetchSession();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!isMounted) return;
             setSession(session);
+            setHasReceivedAuthEvent(true);
         });
 
         return () => {
+            isMounted = false;
             subscription.unsubscribe();
         }
     }, [])
 
     useEffect(() => {
         const fetchProfile = async () => {
-            setIsLoading(true);
+            setIsProfileLoading(true);
 
             if (session) {
                 const { data } = await supabase
@@ -52,11 +59,13 @@ export default function AuthProvider({ children }: PropsWithChildren) {
                 setProfile(null);
             }
 
-            setIsLoading(false);
+            setIsProfileLoading(false);
         }
 
         fetchProfile();
     }, [session]);
+
+    const isLoading = !hasLoadedSession || !hasReceivedAuthEvent || isProfileLoading;
 
     return (
         <AuthContext.Provider
@@ -64,7 +73,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
                 session,
                 isLoading,
                 profile,
-                isLoggedIn: session != undefined,
+                isLoggedIn: Boolean(session?.user?.id),
             }}
         >
             {children}

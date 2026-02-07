@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Pressable, FlatList, Dimensions, Alert, Modal, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable, Alert, Modal, ScrollView, ActivityIndicator } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
@@ -20,6 +20,8 @@ import { NutritionStackParamList } from "../navigation/NutritionStack";
 
 export default function NutritionScreen() {
     const [nutrition, setNutrition] = useState<Nutrition[]>([]);
+	const [isNutritionLoading, setIsNutritionLoading] = useState<boolean>(true);
+
     const { session } = useAuthContext();
     const navigation = useNavigation<NativeStackNavigationProp<NutritionStackParamList>>();
 
@@ -41,10 +43,13 @@ export default function NutritionScreen() {
     const loadData = async () => {
         if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
+            setIsNutritionLoading(false);
 			return; 
 		}
 
         try {
+            setIsNutritionLoading(true);
+
             let nutritionData = await getNutrition(session.user.id);
             let nutritionGoalsData = await getNutritionGoals(session.user.id);
 
@@ -71,6 +76,8 @@ export default function NutritionScreen() {
         } catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
+        } finally {
+            setIsNutritionLoading(false);
         }
     };
 
@@ -238,6 +245,11 @@ export default function NutritionScreen() {
                             style={styles.progress}
                         />
                     </View>
+
+                    {isNutritionLoading ? (    
+                        <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute" }} />
+                    ) : null}
+
                     <View>
                         {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
                         <Circle

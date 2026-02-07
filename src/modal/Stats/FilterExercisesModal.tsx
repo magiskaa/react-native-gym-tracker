@@ -46,7 +46,7 @@ export default function FilterExercisesModal({
                     </View>
 
                     <FlatList
-                        data={["rinta", "olkapäät", "hauis", "ojentajat", "jalat", "selkä", "vatsat"]}
+                        data={["chest", "shoulders", "biceps", "triceps", "legs", "back", "abs"]}
                         keyExtractor={(item) => item}
                         renderItem={({ item }) => {
                             const isSelected = selectedGroups.has(item);

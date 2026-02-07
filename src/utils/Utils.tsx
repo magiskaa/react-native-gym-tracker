@@ -1,5 +1,3 @@
-import * as Crypto from "expo-crypto";
-
 export const formatDate = (date: string) => {
     const parts = date.split("-");
     return `${parts[2].padStart(2, "0")}.${parts[1].padStart(2, "0")}.${parts[0]}`
@@ -36,28 +34,41 @@ export const dayDiff = (startDate: Date, endDate: Date) => {
     return Math.round(msDiff / (1000 * 3600 * 24));
 };
 
-export const hashPassword = async (password: string, salt: string) => {
-    return await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        `${salt}:${password}`
-    );
+export const calculateOneRepMax = (weight: number, reps: number) => {
+    // Epley formula
+    if (reps === 1) return weight;
+    return Math.round(weight * (1 + reps / 30));
 };
 
-export const createPasswordHash = async (password: string) => {
-    const salt = Crypto.randomUUID();
-    const hash = await hashPassword(password, salt);
-    return { salt, hash };
+export const calculateStrengthScoreBWRatio = (oneRepMax: number, bodyWeight: number, eliteBWRatio: number) => {
+    if (!bodyWeight || bodyWeight === 0) return { score: 0, scaledElite: 0 };
+
+    const minBw = 50;
+    const maxBw = 140;
+    const minFactor = 1.08;
+    const maxFactor = 0.8;
+
+    const t = Math.min(1, Math.max(0, (bodyWeight - minBw) / (maxBw - minBw)));
+    const factor = minFactor + t * (maxFactor - minFactor);
+
+    const scaledEliteBWRatio = eliteBWRatio * factor;
+    const ratio = oneRepMax / bodyWeight;
+    const score = (ratio / scaledEliteBWRatio) * 100;
+    return { score: Math.min(100, Math.round(score)), scaledElite: Number(scaledEliteBWRatio.toFixed(2)) };
 };
 
-export const verifyPassword = async (
-    password: string,
-    salt: string,
-    expectedHash: string
-) => {
-    const hash = await hashPassword(password, salt);
-    return hash === expectedHash;
-};
+export const calculateStrengthScoreReps = (reps: number, bodyWeight: number, eliteReps: number) => {
+    if (!bodyWeight || bodyWeight === 0) return { score: 0, scaledElite: 0 };
 
-export const epleyCalc = (weight: number, reps: number) => {
-    return (0.033 * reps * weight) + weight;
+    const minBw = 50;
+    const maxBw = 140;
+    const minFactor = 1.08;
+    const maxFactor = 0.62;
+
+    const t = Math.min(1, Math.max(0, (bodyWeight - minBw) / (maxBw - minBw)));
+    const factor = minFactor + t * (maxFactor - minFactor);
+
+    const scaledEliteReps = eliteReps * factor;
+    const score = (reps / scaledEliteReps) * 100;
+    return { score: Math.min(100, Math.round(score)), scaledElite: Number(scaledEliteReps.toFixed(0)) };
 };

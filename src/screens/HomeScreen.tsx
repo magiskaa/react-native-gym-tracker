@@ -15,6 +15,7 @@ import { MenuStyles } from "../styles/MenuStyles";
 export default function HomeScreen() {
 	const [setCounts, setSetCounts] = useState<SetCount[]>([]);
 	const [workouts, setWorkouts] = useState<Workout[]>([]);
+	const [isHomeLoading, setIsHomeLoading] = useState<boolean>(true);
 	const muscleGroups = ["Rinta", "Olkapäät", "Hauis", "Ojentajat", "Jalat", "Selkä", "Vatsat"];
 
 	const { session } = useAuthContext();
@@ -23,10 +24,12 @@ export default function HomeScreen() {
 	const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
+			setIsHomeLoading(false);
 			return; 
 		}
 
 		try {
+			setIsHomeLoading(true);
 			const setData = await getSetCountsForCurrentWeek();
 			const setCountMap = new Map(setData.map(item => [item.muscle_group, item.set_count]));
 			const fullSetCounts = muscleGroups.map(group => ({
@@ -40,6 +43,8 @@ export default function HomeScreen() {
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
+		} finally {
+			setIsHomeLoading(false);
 		}
 	};
 
@@ -79,6 +84,7 @@ export default function HomeScreen() {
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Sets</Text>
 					<SetsPerWeek 
 						setCounts={setCounts}
+						isLoading={isHomeLoading}
 					/>
 				</View>
 
@@ -86,6 +92,7 @@ export default function HomeScreen() {
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Recent Workouts</Text>
 					<RecentWorkouts 
 						workouts={workouts}
+						isLoading={isHomeLoading}
 					/>
 				</View>
 			</ScrollView>

@@ -1,13 +1,14 @@
-import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import { ActivityIndicator, View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
 import { formatDate } from "../../utils/Utils";
 import { Workout } from "../../services/workouts";
 import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     workouts: Workout[];
+    isLoading?: boolean;
 };
 
-export default function RecentWorkouts({ workouts }: Props) {
+export default function RecentWorkouts({ workouts, isLoading = false }: Props) {
     return (
         <View>
             <FlatList
@@ -30,7 +31,11 @@ export default function RecentWorkouts({ workouts }: Props) {
                 }}
                 contentContainerStyle={CommonStyles.listContent}
                 ListEmptyComponent={
-                    <Text style={CommonStyles.empty}>No workouts yet</Text>
+                    isLoading ? (
+                        <ActivityIndicator size="small" color="#20ca17" />
+                    ) : (
+                        <Text style={CommonStyles.empty}>No workouts yet</Text>
+                    )
                 }
             />
         </View>

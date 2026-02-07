@@ -1,4 +1,5 @@
 import { 
+    ActivityIndicator,
     Pressable, 
     StyleSheet, 
     Text, 
@@ -34,6 +35,7 @@ type Props = {
     endDate: Date | null;
     type: string;
     history: WeightEntry[];
+    isHistoryLoading?: boolean;
     startingWeight: number;
     weightGoal: number | null;
     setError: (error: string | null) => void;
@@ -48,6 +50,7 @@ export default function ActivePhase({
     endDate,
     type,
     history,
+    isHistoryLoading = false,
     startingWeight,
     weightGoal,
     setError,
@@ -293,11 +296,17 @@ export default function ActivePhase({
                     <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
 
                     <View style={CommonStyles.componentContainer}>
-                        <PhaseChart 
-                            history={history}
-                            startingWeight={startingWeight}
-                            weightGoal={weightGoal}
-                        />
+                        {isHistoryLoading ? (
+                            <View style={{ paddingVertical: 24 }}>
+                                <ActivityIndicator size="small" color="#20ca17" />
+                            </View>
+                        ) : (
+                            <PhaseChart 
+                                history={history}
+                                startingWeight={startingWeight}
+                                weightGoal={weightGoal}
+                            />
+                        )}
                     </View>
                 </ScrollView>
 

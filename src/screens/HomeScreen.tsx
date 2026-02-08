@@ -4,6 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as Haptics from 'expo-haptics';
 import SetsPerWeek from "../components/Home/SetsPerWeek";
 import RecentWorkouts from "../components/Home/RecentWorkouts";
+import WorkoutsPerWeekChart from "../components/Home/WorkoutsPerWeekChart";
 import { CommonStyles } from "../styles/CommonStyles";
 import { Workout, getWorkouts } from "../services/workouts";
 import { SetCount, getSetCountsForCurrentWeek } from "../services/sets";
@@ -96,13 +97,23 @@ export default function HomeScreen() {
 				</Pressable>
             </View>
 
-			<ScrollView style={[CommonStyles.scrollview, { marginTop: 8 }]}>
+			<ScrollView 
+				style={[CommonStyles.scrollview, { marginTop: 8 }]} 
+				contentContainerStyle={CommonStyles.scrollViewContentContainer}
+			>
 				<View style={styles.section}>
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Sets</Text>
 					<SetsPerWeek 
 						setCounts={setCounts}
 						isLoading={isHomeLoading}
 					/>
+				</View>
+
+				<View style={styles.section}>
+					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Workouts</Text>
+					<View style={CommonStyles.componentContainer}>
+						<WorkoutsPerWeekChart workouts={workouts} />
+					</View>
 				</View>
 
 				<View style={styles.section}>

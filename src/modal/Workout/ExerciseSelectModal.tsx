@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { Exercise } from "../../services/exercises"; 
 import { ModalStyles } from "../../styles/ModalStyles";
 import { CommonStyles } from "../../styles/CommonStyles";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 type Props = {
     visible: boolean;
@@ -33,6 +33,9 @@ export default function ExerciseSelectModal({
     onConfirm,
 }: Props) {
     const [modifiedSelectedIds, setModifiedSelectedIds] = useState<Set<number>>(selectedIds);
+
+    const modifiedSelectedCount = useMemo(() => modifiedSelectedIds.size, [modifiedSelectedIds]);
+    
 
     const toggleModifiedExercise = (id: number) => {
 		setModifiedSelectedIds((prev) => {
@@ -117,7 +120,7 @@ export default function ExerciseSelectModal({
 
                     <View style={[ModalStyles.modalFooter, { justifyContent: "space-between" }]}>
                         <Text style={ModalStyles.modalFooterText}>
-                            Selected: {selectedCount}
+                            Selected: {isWorkoutActive ? modifiedSelectedCount : selectedCount}
                         </Text>
 
                         <Pressable 

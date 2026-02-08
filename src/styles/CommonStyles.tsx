@@ -30,8 +30,10 @@ export const CommonStyles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	scrollview: {
-		borderRadius: 16,
 		marginTop: 16,
+	},
+	scrollViewContentContainer: {
+		paddingBottom: 80,
 	},	
 	componentContainer: {
         backgroundColor: "#2b2b2b",

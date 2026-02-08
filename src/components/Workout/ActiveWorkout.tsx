@@ -270,12 +270,12 @@ export default function ActiveWorkout({
                 </View>
 
                 <TextInput 
-                    style={styles.nameInput}
+                    style={[CommonStyles.input, styles.nameInput]}
                     value={name}
                     onChangeText={(value) => setName(value)}
                     placeholder="Workout name"
                     selectionColor="#20ca17"
-                    cursorColor="#20ca17"
+                    cursorColor="#1e1e1e"
                 />
 
                 {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
@@ -336,7 +336,7 @@ export default function ActiveWorkout({
                                         {(setsByExercise[item.id] ?? []).map((set, index) => (
                                             <View style={styles.setRow} key={`${item.id}-${index}`}>
                                                 <TextInput
-                                                    style={styles.setInput}
+                                                    style={[CommonStyles.input, styles.setInput]}
                                                     value={set.reps}
                                                     onChangeText={(value) =>
                                                         updateReps(item.id, index, value)
@@ -346,7 +346,7 @@ export default function ActiveWorkout({
                                                     
                                                 />
                                                 <TextInput
-                                                    style={styles.setInput}
+                                                    style={[CommonStyles.input, styles.setInput]}
                                                     value={set.weight}
                                                     onChangeText={(value) =>
                                                         updateWeight(item.id, index, value)
@@ -388,7 +388,10 @@ export default function ActiveWorkout({
                 />
 
                 <Pressable
-                    style={[CommonStyles.button, { width: "100%" }]}
+                    style={({ pressed }) => [
+                        CommonStyles.button, { width: "100%" },
+                        pressed && CommonStyles.buttonPressed
+                    ]}
                     onPress={() => {
                         Alert.alert(
                             "End workout?", "Are you done with this workout?", 
@@ -424,8 +427,8 @@ export default function ActiveWorkout({
                                         [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteWorkout }],
                                         { cancelable: true }
                                     );
-                                    closeMenu();
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                    setIsMenuVisible(false);
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                                 }}
                                 style={({ pressed }) => [
                                     MenuStyles.menuItem,
@@ -435,9 +438,9 @@ export default function ActiveWorkout({
                                 <Text style={MenuStyles.menuText}>Delete</Text>
                             </Pressable>
                             <Pressable 
-                                onPress={() => { 
+                                onPress={() => {
+                                    setIsMenuVisible(false);
                                     setIsModalVisible(true);
-                                    closeMenu();
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
                                 }}
                                 style={({ pressed }) => [
@@ -462,14 +465,12 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
     },
     nameInput: {
-        fontSize: 22,
-        backgroundColor: "#c7c7c7",
-        paddingVertical: 8,
-        paddingHorizontal: 14,
-        borderRadius: 16,
-        color: "#2a2a2a",
+        fontSize: 20,
+        backgroundColor: "#acacac",
+        color: "#1e1e1e",
         marginTop: 8,
         marginBottom: 16,
+        fontWeight: "500",
     },
     cardHeader: {
         flexDirection: "row",
@@ -488,20 +489,9 @@ const styles = StyleSheet.create({
 		color: "#767676",
 		fontSize: 15,
 	},
-    cardStats: {
-        flexDirection: "row",
-        gap: 8,
-    },
-    repsPerSet: {
-        color: "#f1f1f1",
-    },
-    avgWeight: {
-        color: "#f1f1f1",
-    },
 	setsContainer: {
         gap: 10,
-		marginTop: 12,
-		paddingTop: 12,
+		marginTop: 16,
 		borderTopWidth: 1,
 		borderTopColor: "#2b2b2b",
 	},
@@ -512,11 +502,11 @@ const styles = StyleSheet.create({
     },
     setInput: {
         flex: 1,
-        fontSize: 18,
-        backgroundColor: "#c7c7c7",
-        paddingVertical: 6,
-        paddingHorizontal: 8,
-        borderRadius: 5,
+        fontSize: 16,
+        backgroundColor: "#acacac",
+        marginBottom: 0,
+        color: "#1e1e1e",
+        fontWeight: "500",
     },
     addSetButton: {
         alignSelf: "flex-start",
@@ -535,9 +525,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         borderRadius: 6,
         backgroundColor: "#1e1e1e",
+        borderWidth: 1,
+        borderColor: "#393939"
     },
     removeSetText: {
-        color: "#c7c7c7",
+        color: "#acacac",
         fontSize: 12,
     },
     durationText: {

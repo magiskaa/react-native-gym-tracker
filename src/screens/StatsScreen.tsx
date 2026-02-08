@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import {
 	ActivityIndicator,
 	Alert,
@@ -8,6 +8,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
+	Animated
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
@@ -39,7 +40,9 @@ export default function StatsScreen() {
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isFilterModalVisible, setIsFilterModalVisible] = useState<boolean>(false);
+	
 	const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+	const menuAnim = useRef(new Animated.Value(0)).current;
 
 	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
 
@@ -134,11 +137,26 @@ export default function StatsScreen() {
 	};
 
 	const openMenu = () => {
+		menuAnim.setValue(0);
 		setIsMenuVisible(true);
+		Animated.spring(menuAnim, {
+			toValue: 1,
+			friction: 10,
+			tension: 140,
+			useNativeDriver: true,
+		}).start();
 	};
 
 	const closeMenu = () => {
-		setIsMenuVisible(false);
+		Animated.timing(menuAnim, {
+			toValue: 0,
+			duration: 120,
+			useNativeDriver: true,
+		}).start(({ finished }) => {
+			if (finished) {
+				setIsMenuVisible(false);
+			}
+		});
 	};
 
 	return (
@@ -237,10 +255,18 @@ export default function StatsScreen() {
 				onRequestClose={closeMenu}
 			>
 				<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
-					<Pressable style={MenuStyles.menu} onPress={() => undefined}>
+					<Animated.View
+						style={[
+							MenuStyles.menu,
+							{
+								opacity: menuAnim,
+								transform: [{ scale: menuAnim }],
+							}
+						]}
+					>
 						<Pressable
 							onPress={() => {
-								closeMenu();
+								setIsMenuVisible(false);
 								openModal();
 								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 							}}
@@ -253,7 +279,7 @@ export default function StatsScreen() {
 						</Pressable>
 						<Pressable
 							onPress={() => {
-								closeMenu();
+								setIsMenuVisible(false);
 								openFilterModal();
 								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 							}}
@@ -278,7 +304,7 @@ export default function StatsScreen() {
 						>
 							<Text style={MenuStyles.menuText}>Clear filters</Text>
 						</Pressable>
-					</Pressable>
+					</Animated.View>
 				</Pressable>
 			</Modal>
 		</View>

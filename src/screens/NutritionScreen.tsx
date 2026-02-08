@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, Pressable, Alert, Modal, ScrollView, ActivityIndicator } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { StyleSheet, Text, View, Pressable, Alert, Modal, ScrollView, ActivityIndicator, Animated } from "react-native";
+import { useCallback, useEffect, useState, useRef } from "react";
 import * as Haptics from 'expo-haptics';
 import { Circle } from "react-native-progress";
 import LogCaloriesModal from "../modal/Nutrition/LogCaloriesModal";
@@ -9,7 +9,7 @@ import NutritionChart from "../components/Nutrition/NutritionChart";
 import { CommonStyles } from "../styles/CommonStyles";
 import { MenuStyles } from "../styles/MenuStyles";
 import { useAuthContext } from "../auth/UseAuthContext";
-import { Nutrition, getNutrition, getNutritionByDate, addNutrition, updateNutrition } from "../services/nutrition";
+import { Nutrition, getNutrition, getNutritionByDate, addNutrition, updateNutrition, deleteNutritionByDate } from "../services/nutrition";
 import { getNutritionGoals, updateNutritionGoals, addNutritionGoals } from "../services/nutritionGoals";
 import { useToast } from "../components/ToastConfig";
 import Entypo from '@expo/vector-icons/Entypo';
@@ -36,7 +36,9 @@ export default function NutritionScreen() {
     const [error, setError] = useState<string | null>(null);
     const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
     const [isGoalModalVisible, setIsGoalModalVisible] = useState<boolean>(false);
+    
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+    const menuAnim = useRef(new Animated.Value(0)).current;
 
     const [isRemoveActive, setIsRemoveActive] = useState<boolean>(false);
 
@@ -50,28 +52,30 @@ export default function NutritionScreen() {
         try {
             setIsNutritionLoading(true);
 
-            let nutritionData = await getNutrition(session.user.id);
+            const todayEntry = await getNutritionByDate(session.user.id, today);
+            if (todayEntry.length === 0) {
+                await addNutrition(session.user.id, today);
+            }
+
+            const nutritionData = await getNutrition(session.user.id);
+            nutritionData.forEach(row => {
+                if ((row.calories === 0 || !row.calories) && (row.protein === 0 || !row.protein) && row.date !== today) {
+                    deleteNutritionByDate(session.user.id, row.date);
+                }
+            });
+            const filteredNutritionData = await getNutrition(session.user.id);
+
+            setNutrition(filteredNutritionData);
+            setCalories(filteredNutritionData[0]?.calories || 0);
+            setProtein(filteredNutritionData[0]?.protein || 0);
+
             let nutritionGoalsData = await getNutritionGoals(session.user.id);
-
-            if (nutritionData.length > 0) {
-                if (nutritionData[0].date !== today) {
-                    nutritionData = await addNutrition(session.user.id, today);
-                }
+            if (nutritionGoalsData.length === 0) {
+                await addNutritionGoals(session.user.id);
+                nutritionGoalsData = await getNutritionGoals(session.user.id);
             }
-            if (nutritionData.length === 0) {
-                nutritionData = await addNutrition(session.user.id, today);
-                if (nutritionGoalsData.length === 0) {
-                    await addNutritionGoals(session.user.id);
-                    nutritionGoalsData = await getNutritionGoals(session.user.id);
-                }
-            }
-
             setCalorieGoal(nutritionGoalsData[0].calorieGoal || null);
             setProteinGoal(nutritionGoalsData[0].proteinGoal || null);
-
-            setNutrition(nutritionData);
-            setCalories(nutritionData[0].calories || 0);
-            setProtein(nutritionData[0].protein || 0);
 
         } catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
@@ -83,7 +87,7 @@ export default function NutritionScreen() {
 
     useEffect(() => {
         loadData();
-    }, [calories, protein]);
+    }, [session?.user.id]);
 
     useFocusEffect(
         useCallback(() => {
@@ -180,6 +184,24 @@ export default function NutritionScreen() {
         }
     };
 
+    const resetNutrition = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			return; 
+		}
+
+        try {
+            await updateNutrition(session.user.id, today, 0, 0);
+
+            loadData();
+            useToast("success", "Nutrition reset", "Today's nutrition was reset successfully");
+
+        } catch (error) {
+            Alert.alert("Failed to set goals", "Please try again");
+            console.error(`Failed to set goals: ${error}`);
+        }
+    };
+
     const closeModal = () => {
         setIsModalVisible(false);
         setError(null);
@@ -204,12 +226,27 @@ export default function NutritionScreen() {
     };
 
     const openMenu = () => {
-		setIsMenuVisible(true);
-	};
+        menuAnim.setValue(0);
+        setIsMenuVisible(true);
+        Animated.spring(menuAnim, {
+            toValue: 1,
+            friction: 10,
+            tension: 140,
+            useNativeDriver: true,
+        }).start();
+    };
 
-	const closeMenu = () => {
-		setIsMenuVisible(false);
-	};
+    const closeMenu = () => {
+        Animated.timing(menuAnim, {
+            toValue: 0,
+            duration: 120,
+            useNativeDriver: true,
+        }).start(({ finished }) => {
+            if (finished) {
+                setIsMenuVisible(false);
+            }
+        });
+    };
 
     return (
         <View style={CommonStyles.container}>
@@ -300,7 +337,10 @@ export default function NutritionScreen() {
                 </View>
             </View>
 
-            <ScrollView style={CommonStyles.scrollview}>
+            <ScrollView 
+                style={CommonStyles.scrollview}
+                contentContainerStyle={CommonStyles.scrollViewContentContainer}
+            >
                 <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
 
                 <View style={CommonStyles.componentContainer}>
@@ -339,10 +379,18 @@ export default function NutritionScreen() {
                 onRequestClose={closeMenu}
             >
                 <Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
-                    <View style={MenuStyles.menu}>
+                    <Animated.View
+						style={[
+							MenuStyles.menu,
+							{
+								opacity: menuAnim,
+								transform: [{ scale: menuAnim }],
+							}
+						]}
+					>
                         <Pressable
                             onPress={() => {
-                                closeMenu();
+                                setIsMenuVisible(false);
                                 openGoalModal();
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             }}
@@ -355,6 +403,7 @@ export default function NutritionScreen() {
                         </Pressable>
                         <Pressable
                             onPress={() => {
+                                resetNutrition();
                                 closeMenu();
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             }}
@@ -366,7 +415,7 @@ export default function NutritionScreen() {
                         >
                             <Text style={MenuStyles.menuText}>Reset today's nutrition</Text>
                         </Pressable>
-                    </View>
+                    </Animated.View>
                 </Pressable>
             </Modal>
         </View>

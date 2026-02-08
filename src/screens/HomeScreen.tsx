@@ -100,6 +100,7 @@ export default function HomeScreen() {
 			<ScrollView 
 				style={[CommonStyles.scrollview, { marginTop: 8 }]} 
 				contentContainerStyle={CommonStyles.scrollViewContentContainer}
+				showsVerticalScrollIndicator={false}
 			>
 				<View style={styles.section}>
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Sets</Text>

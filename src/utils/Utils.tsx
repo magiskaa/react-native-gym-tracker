@@ -40,9 +40,10 @@ export const calculateOneRepMax = (weight: number, reps: number) => {
     return Math.round(weight * (1 + reps / 30));
 };
 
-export const calculateStrengthScoreBWRatio = (oneRepMax: number, bodyWeight: number, eliteBWRatio: number) => {
+export const calculateStrengthScoreBWRatio = (oneRepMax: number, bodyWeight: number, eliteBWRatio: number, isFemaleIndex: boolean) => {
     if (!bodyWeight || bodyWeight === 0) return { score: 0, scaledElite: 0 };
 
+    const BWRatio = isFemaleIndex ? eliteBWRatio * 0.7 : eliteBWRatio;
     const minBw = 50;
     const maxBw = 140;
     const minFactor = 1.08;
@@ -51,15 +52,16 @@ export const calculateStrengthScoreBWRatio = (oneRepMax: number, bodyWeight: num
     const t = Math.min(1, Math.max(0, (bodyWeight - minBw) / (maxBw - minBw)));
     const factor = minFactor + t * (maxFactor - minFactor);
 
-    const scaledEliteBWRatio = eliteBWRatio * factor;
+    const scaledEliteBWRatio = BWRatio * factor;
     const ratio = oneRepMax / bodyWeight;
     const score = (ratio / scaledEliteBWRatio) * 100;
     return { score: Math.min(100, Math.round(score)), scaledElite: Number(scaledEliteBWRatio.toFixed(2)) };
 };
 
-export const calculateStrengthScoreReps = (reps: number, bodyWeight: number, eliteReps: number) => {
+export const calculateStrengthScoreReps = (reps: number, bodyWeight: number, eliteReps: number, isFemaleIndex: boolean) => {
     if (!bodyWeight || bodyWeight === 0) return { score: 0, scaledElite: 0 };
 
+    const eReps = isFemaleIndex ? eliteReps * 0.7 : eliteReps;
     const minBw = 50;
     const maxBw = 140;
     const minFactor = 1.08;
@@ -68,7 +70,7 @@ export const calculateStrengthScoreReps = (reps: number, bodyWeight: number, eli
     const t = Math.min(1, Math.max(0, (bodyWeight - minBw) / (maxBw - minBw)));
     const factor = minFactor + t * (maxFactor - minFactor);
 
-    const scaledEliteReps = eliteReps * factor;
+    const scaledEliteReps = eReps * factor;
     const score = (reps / scaledEliteReps) * 100;
     return { score: Math.min(100, Math.round(score)), scaledElite: Number(scaledEliteReps.toFixed(0)) };
 };

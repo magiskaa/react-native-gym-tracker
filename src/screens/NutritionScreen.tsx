@@ -340,6 +340,7 @@ export default function NutritionScreen() {
             <ScrollView 
                 style={CommonStyles.scrollview}
                 contentContainerStyle={CommonStyles.scrollViewContentContainer}
+                showsVerticalScrollIndicator={false}
             >
                 <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
 

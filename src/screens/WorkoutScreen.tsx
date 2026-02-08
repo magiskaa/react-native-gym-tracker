@@ -104,7 +104,7 @@ export default function WorkoutScreen() {
 				/>
 			) : (
 				<View style={CommonStyles.notActiveContainer}>
-					<Text style={CommonStyles.text}>No active workout</Text>
+					<Text style={CommonStyles.noActiveText}>No active workout</Text>
 					<Pressable 
 						onPress={() => { 
 							openModal(); 

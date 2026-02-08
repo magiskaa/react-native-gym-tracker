@@ -182,7 +182,7 @@ export default function PhaseScreen() {
 				</View>
 			) : (
 				<View style={CommonStyles.notActiveContainer}>
-					<Text style={CommonStyles.text}>No active phase</Text>
+					<Text style={CommonStyles.noActiveText}>No active phase</Text>
 					<Pressable 
 						onPress={() => { 
 							openModal(); 

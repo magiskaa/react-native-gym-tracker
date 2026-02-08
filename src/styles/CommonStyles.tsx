@@ -54,12 +54,20 @@ export const CommonStyles = StyleSheet.create({
 		width: "100%",
 		height: "100%",
 	},
-	text: {
+	noActiveText: {
 		fontSize: 20,
 		fontWeight: "600",
 		textAlign: "center",
 		margin: "auto",
 		marginBottom: 10,
+        color: "#f1f1f1"
+	},
+	text: {
+		flex: 1,
+		fontSize: 16,
+		fontWeight: "500",
+		textAlign: "center",
+		margin: "auto",
         color: "#f1f1f1"
 	},
 	button: {

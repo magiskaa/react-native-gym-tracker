@@ -17,6 +17,11 @@ export type ExerciseHistory = {
     set_count: number;
 };
 
+export type ExerciseSession = {
+    date: string;
+    sets: { reps: number; weight: number }[];
+};
+
 export const getExercises = async (userId: string) => {
     if (!userId) {
         useToast("error", "No user id found", "Please log in again");
@@ -84,4 +89,13 @@ export const getExerciseLastSession = async (exerciseId: number) => {
             weight: row.weight
         };
     });
+};
+
+export const getExerciseSessions = async (exerciseId: number) => {
+    const { data, error } = await supabase.rpc("get_exercise_sessions", { exercise_id: exerciseId });
+    if (error) {
+        Alert.alert("getExerciseSessions", error.message);
+        return null;
+    }
+    return data ?? [];
 };

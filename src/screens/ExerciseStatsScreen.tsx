@@ -30,16 +30,20 @@ import {
     formatLocalDateISO 
 } from "../utils/Utils";
 import { MenuStyles } from "../styles/MenuStyles";
+import { Entypo } from "@expo/vector-icons";
+import { updateFavoriteExercises } from "../services/favoriteExercises";
+import { useToast } from "../components/ToastConfig";
 
 
 export default function ExerciseStatsScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<StatsStackParamList>>();
     const route = useRoute<RouteProp<StatsStackParamList, "ExerciseStats">>();
-    const { exerciseId, name, muscleGroup, eliteBWRatio, eliteReps } = route.params;
+    const { exerciseId, name, muscleGroup, eliteBWRatio, eliteReps, favoriteExercises } = route.params;
     const { session } = useAuthContext();
 
     const [history, setHistory] = useState<{ date: string; avgReps: number; avgWeight: number }[]>([]);
     const [exerciseSessions, setExerciseSessions] = useState<ExerciseSession[]>([]);
+    const [favorites, setFavorites] = useState<number[] | null>(favoriteExercises.favorites);
 
     const [isHistoryLoading, setIsHistoryLoading] = useState<boolean>(true);
     const [isSessionsLoading, setIsSessionsLoading] = useState<boolean>(false);
@@ -133,6 +137,44 @@ export default function ExerciseStatsScreen() {
         loadData();
     }, [exerciseId, isFemaleIndex]);
 
+    const addToFavorites = async () => {
+		if (!session?.user.id) { 
+			Alert.alert("Failed to add to favorites", "Please sign in again");
+			return; 
+		}
+
+        try {
+            const updatedFavorites = [...(favorites || []), exerciseId];
+            setFavorites(updatedFavorites);
+
+            await updateFavoriteExercises(session.user.id, updatedFavorites);
+            useToast("success", "Added to favorites", "This exercise was added to your favorites succesfully", 1200);
+
+        } catch (error) {
+			useToast("error", "Failed to add to favorites", "Please try again" );
+            console.error(`Failed to add to favorites: ${error}`);
+        }
+    };
+
+    const removeFromFavorites = async () => {
+        if (!session?.user.id) { 
+			Alert.alert("Failed to remove from favorites", "Please sign in again");
+			return; 
+		}
+
+        try {
+            const updatedFavorites = [...(favorites || []).filter(favorite => favorite !== exerciseId)];
+            setFavorites(updatedFavorites);
+
+            await updateFavoriteExercises(session.user.id, updatedFavorites);
+            useToast("success", "Removed from favorites", "This exercise was removed from your favorites succesfully", 1200);
+
+        } catch (error) {
+			useToast("error", "Failed to remove from favorites", "Please try again" );
+            console.error(`Failed to remove from: ${error}`);
+        }
+    };
+
     const getScoreColor = (score: number) => {
         if (score >= 95) return "#1e90ff";  // Elite
         if (score >= 75) return "#1fc41f";  // Advanced
@@ -182,6 +224,28 @@ export default function ExerciseStatsScreen() {
                     <Text style={styles.title}>{name}</Text>
                     <Text style={styles.subtitle}>{muscleGroup}</Text>
                 </View>
+
+                {favorites?.includes(exerciseId) ? (
+                    <Pressable
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            removeFromFavorites();
+                        }}
+                        style={({ pressed }) => [pressed && CommonStyles.buttonPressed]}
+                    >
+                        <Entypo name="heart" size={26} color="#ff0000" />
+                    </Pressable>
+                ) : (
+                    <Pressable
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            addToFavorites();
+                        }}
+                        style={({ pressed }) => [pressed && CommonStyles.buttonPressed]}
+                    >
+                        <Entypo name="heart-outlined" size={26} color="#f1f1f1" />
+                    </Pressable>
+                )}
             </View>
 
             <View style={styles.tabContainer}>
@@ -349,7 +413,7 @@ export default function ExerciseStatsScreen() {
                 <View style={{ marginTop: 4 }}>
                     <FlatList
                         data={exerciseSessions}
-                        showsHorizontalScrollIndicator={false}
+                        showsVerticalScrollIndicator={false}
                         keyExtractor={(item) => item.date}
                         style={CommonStyles.list}
                         renderItem={({ item }) => {

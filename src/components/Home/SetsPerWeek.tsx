@@ -37,7 +37,7 @@ export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
                                 size={84}
                                 thickness={5}
                                 borderWidth={0}
-                                color={item.setCount >= target ? "#20ca17" : "#4a9eff"}
+                                color={item.setCount >= target ? "#4a9eff" : "#20ca17"}
                                 animated
                                 showsText
                                 textStyle={{ fontSize: 22 }}

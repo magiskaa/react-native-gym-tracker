@@ -1,6 +1,8 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import StatsScreen from "../screens/StatsScreen";
 import ExerciseStatsScreen from "../screens/ExerciseStatsScreen";
+import { FavoriteExercises } from "../services/favoriteExercises";
+
 
 export type StatsStackParamList = {
     StatsList: {
@@ -10,6 +12,7 @@ export type StatsStackParamList = {
             muscleGroup: string;
             eliteBWRatio: number;
             eliteReps: number;
+            favoriteExercises: FavoriteExercises;
         };
     } | undefined;
     ExerciseStats: {
@@ -18,6 +21,7 @@ export type StatsStackParamList = {
         muscleGroup: string;
         eliteBWRatio: number;
         eliteReps: number;
+        favoriteExercises: FavoriteExercises;
     };
 };
 

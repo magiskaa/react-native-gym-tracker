@@ -28,6 +28,7 @@ import { Entypo } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { MenuStyles } from "../../styles/MenuStyles";
 import { NavigationProp, ParamListBase, useNavigation } from "@react-navigation/native";
+import { FavoriteExercises, getFavoriteExercises, addFavoriteExercises } from "../../services/favoriteExercises";
 
 
 type Props = {
@@ -69,6 +70,37 @@ export default function ActiveWorkout({
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
     const menuAnim = useRef(new Animated.Value(0)).current;
     const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+    const [favoriteExercises, setFavoriteExercises] = useState<FavoriteExercises[]>([]);
+    const [isFavoritesActive, setIsFavoritesActive] = useState<boolean>(false);
+    const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
+
+    const loadData = async () => {
+		if (!session?.user.id) { 
+			Alert.alert("Failed to load data", "Please sign in again");
+			setIsFavoriteExercisesLoading(false);
+			return; 
+		}
+
+		try {
+            setIsFavoriteExercisesLoading(true);
+            let favoriteExerciseData = await getFavoriteExercises(session.user.id);
+            if (!favoriteExerciseData || favoriteExerciseData.length === 0) {
+                favoriteExerciseData = await addFavoriteExercises(session.user.id, null);
+            }
+            setFavoriteExercises(favoriteExerciseData);
+
+        } catch (error) {
+			Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
+		} finally {
+			setIsFavoriteExercisesLoading(false);
+		}
+    };
+
+    useEffect(() => {
+        loadData();
+    }, [session?.user.id]);
 
     useEffect(() => {
         setSetsByExercise((prev) => {
@@ -321,6 +353,7 @@ export default function ActiveWorkout({
                                                             muscleGroup: item.muscleGroup,
                                                             eliteBWRatio: item.eliteBWRatio,
                                                             eliteReps: item.eliteReps,
+                                                            favoriteExercises: favoriteExercises[0],
                                                         },
                                                     },
                                                 });

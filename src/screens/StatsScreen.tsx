@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import {
 	ActivityIndicator,
 	Alert,
@@ -8,7 +8,8 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	Animated
+	Animated,
+	Switch
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
@@ -20,10 +21,11 @@ import { useToast } from "../components/ToastConfig";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { Exercise, getExercises, addExercise } from "../services/exercises";
 import { Ionicons } from "@expo/vector-icons";
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatsStackParamList } from "../navigation/StatsStack";
 import Entypo from '@expo/vector-icons/Entypo';
+import { FavoriteExercises, getFavoriteExercises, addFavoriteExercises, updateFavoriteExercises } from "../services/favoriteExercises";
 
 
 export default function StatsScreen() {
@@ -45,13 +47,17 @@ export default function StatsScreen() {
 	const menuAnim = useRef(new Animated.Value(0)).current;
 
 	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
-
 	const selectedCount = useMemo(() => selectedGroups.size, [selectedGroups]);
+
+	const [favoriteExercises, setFavoriteExercises] = useState<FavoriteExercises[]>([]);
+	const [isFavoritesActive, setIsFavoritesActive] = useState<boolean>(false);
+	const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
 			setIsExercisesLoading(false);
+			setIsFavoriteExercisesLoading(false);
 			return; 
 		}
 
@@ -60,11 +66,19 @@ export default function StatsScreen() {
 			const exerciseData = await getExercises(session.user.id);
 			setExercises(exerciseData);
 
+			setIsFavoriteExercisesLoading(true);
+			let favoriteExerciseData = await getFavoriteExercises(session.user.id);
+			if (!favoriteExerciseData || favoriteExerciseData.length === 0) {
+				favoriteExerciseData = await addFavoriteExercises(session.user.id, null);
+			}
+			setFavoriteExercises(favoriteExerciseData);
+
 		} catch (error) {
 			Alert.alert("Failed to load data", "Please try again later");
 			console.error(`Failed to load data: ${error}`);
 		} finally {
 			setIsExercisesLoading(false);
+			setIsFavoriteExercisesLoading(false);
 		}
 	};
 
@@ -81,6 +95,12 @@ export default function StatsScreen() {
 			navigation.setParams({ openExercise: undefined });
 		}
 	}, [route.params?.openExercise, navigation]);
+
+	useFocusEffect(
+		useCallback(() => {
+			loadData();
+		}, [session?.user.id])
+	);
 
 	const handleAddExercise = async () => {
 		if (!session?.user.id) { 
@@ -163,6 +183,9 @@ export default function StatsScreen() {
 		<View style={CommonStyles.container}>
 			<View style={CommonStyles.header}>
 				<Text style={CommonStyles.title}>Exercise Stats</Text>
+
+				<Switch value={isFavoritesActive} onValueChange={(value) => setIsFavoritesActive(value)} style={{ alignSelf: "center" }} />
+
 				<Pressable
 					onPress={() => {
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -178,9 +201,14 @@ export default function StatsScreen() {
 			
 			<FlatList
 				data={exercises ?? []}
+                showsVerticalScrollIndicator={false}
 				keyExtractor={(item) => item.id.toString()}
+                style={CommonStyles.list}
 				renderItem={({ item }) => {
 					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
+						return (<View></View>);
+					}
+					if (isFavoritesActive && !favoriteExercises[0].favorites?.includes(item.id)) {
 						return (<View></View>);
 					}
 
@@ -194,6 +222,7 @@ export default function StatsScreen() {
 									muscleGroup: item.muscleGroup,
 									eliteBWRatio: item.eliteBWRatio,
 									eliteReps: item.eliteReps,
+						            favoriteExercises: favoriteExercises[0],
 								});
 							}}
 							style={({ pressed }) => [

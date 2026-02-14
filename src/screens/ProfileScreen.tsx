@@ -188,7 +188,7 @@ export default function ProfileScreen() {
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<View style={CommonStyles.container}>
 				<View style={CommonStyles.header}>
-					<Text style={CommonStyles.title}>Profile</Text>
+					<Text style={CommonStyles.headerTitle}>Profile</Text>
 					<Pressable
 						onPress={() => {
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -364,8 +364,7 @@ const styles = StyleSheet.create({
 		height: 200,
 		borderRadius: 999,
 		margin: "auto",
-		marginTop: 12,
-		marginBottom: 16,
+		marginVertical: 16,
 	},
 	usernameContainer: {
 		height: 40,
@@ -395,6 +394,6 @@ const styles = StyleSheet.create({
 		left: 0,
 		right: 0,
 		alignItems: "center",
-		top: 90,
+		top: 80,
 	},
 });

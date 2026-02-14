@@ -54,9 +54,9 @@ export default function FilterExercisesModal({
                                 <Pressable
                                     onPress={() => { onToggleGroup(item); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}
                                     style={({ pressed }) => [
-                                        styles.muscleGroupRow,
-                                        isSelected && styles.muscleGroupRowSelected,
-                                        pressed && styles.muscleGroupRowPressed,
+                                        CommonStyles.componentContainer,
+                                        isSelected && styles.muscleGroupSelected,
+                                        pressed && CommonStyles.buttonPressed,
                                     ]}
                                 >
                                     <View>
@@ -102,21 +102,9 @@ export default function FilterExercisesModal({
 }
 
 const styles = StyleSheet.create({
-    muscleGroupRow: {
-        padding: 12,
-        borderRadius: 12,
-        backgroundColor: "#1e1e1e",
-        marginBottom: 10,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    muscleGroupRowSelected: {
+    muscleGroupSelected: {
         borderWidth: 1,
         borderColor: "#20ca17",
-    },
-    muscleGroupRowPressed: {
-        opacity: 0.85,
     },
     muscleGroupName: {
         color: "#f1f1f1",

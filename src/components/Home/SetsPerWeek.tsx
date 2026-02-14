@@ -19,6 +19,16 @@ export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
         ["Abs", 9]
     ]);
 
+    const muscleGroupColors = new Map([
+        ["Chest", "#1e90ff"],
+        ["Shoulders", "#1fc41f"],
+        ["Biceps", "#9acd32"],
+        ["Triceps", "#ffd700"],
+        ["Legs", "#ff8c00"],
+        ["Back", "#dc143c"],
+        ["Abs", "#e10d70"]
+    ]);
+
     return (
         <View>
             <FlatList
@@ -37,7 +47,7 @@ export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
                                 size={84}
                                 thickness={5}
                                 borderWidth={0}
-                                color={item.setCount >= target ? "#4a9eff" : "#20ca17"}
+                                color={muscleGroupColors.get(item.muscleGroup)}
                                 animated
                                 showsText
                                 textStyle={{ fontSize: 22 }}

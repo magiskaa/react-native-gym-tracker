@@ -231,7 +231,7 @@ export default function ExerciseStatsScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             removeFromFavorites();
                         }}
-                        style={({ pressed }) => [pressed && CommonStyles.buttonPressed]}
+                        style={({ pressed }) => [pressed && CommonStyles.buttonPressed, { marginRight: 4 }]}
                     >
                         <Entypo name="heart" size={26} color="#ff0000" />
                     </Pressable>
@@ -241,7 +241,7 @@ export default function ExerciseStatsScreen() {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             addToFavorites();
                         }}
-                        style={({ pressed }) => [pressed && CommonStyles.buttonPressed]}
+                        style={({ pressed }) => [pressed && CommonStyles.buttonPressed, { marginRight: 4 }]}
                     >
                         <Entypo name="heart-outlined" size={26} color="#f1f1f1" />
                     </Pressable>
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 16,
-        marginBottom: 8,
+        marginVertical: 8,
     },
     backButton: {
         width: 40,

@@ -75,6 +75,16 @@ export default function ActiveWorkout({
     const [isFavoritesActive, setIsFavoritesActive] = useState<boolean>(false);
     const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
 
+    const muscleGroupColors = new Map([
+		["Chest", "#1e90ff"],
+		["Shoulders", "#1fc41f"],
+		["Biceps", "#9acd32"],
+		["Triceps", "#ffd700"],
+		["Legs", "#ff8c00"],
+		["Back", "#dc143c"],
+		["Abs", "#e10d70"]
+	]);
+
     const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
@@ -286,8 +296,7 @@ export default function ActiveWorkout({
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
                 <View style={CommonStyles.header}>
-                    <Text style={CommonStyles.title}>Workout in progress</Text>
-                    <Text style={[styles.durationText, { color: "#20ca17" }]}>{formattedDuration}</Text>
+                    <Text style={CommonStyles.headerTitle}>Workout in progress</Text>
                     <Pressable
                         onPress={() => {
                             openMenu();
@@ -301,20 +310,26 @@ export default function ActiveWorkout({
                     </Pressable>
                 </View>
 
-                <TextInput 
-                    style={[CommonStyles.input, styles.nameInput]}
-                    value={name}
-                    onChangeText={(value) => setName(value)}
-                    placeholder="Workout name"
-                    selectionColor="#20ca17"
-                    cursorColor="#1e1e1e"
-                />
+                <View style={[styles.flexRow, { marginVertical: 16, paddingHorizontal: 8 }]}>
+                    <View style={styles.durationContainer}>
+                        <Text style={[styles.durationText, { color: "#20ca17" }]}>{formattedDuration}</Text>
+                    </View>
+                    <TextInput 
+                        style={[CommonStyles.input, styles.nameInput]}
+                        value={name}
+                        onChangeText={(value) => setName(value)}
+                        placeholder="Workout name"
+                        selectionColor="#20ca17"
+                        cursorColor="#1e1e1e"
+                    />
+                </View>
 
                 {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
 
                 <FlatList
                     data={exercises ? exercises.filter(ex => selectedIds.has(ex.id)) : []}
                     keyExtractor={(item) => item.id.toString()}
+                    showsVerticalScrollIndicator={false}
                     renderItem={({ item }) => {
                         const isExpanded = expandedId === item.id;
 
@@ -334,7 +349,8 @@ export default function ActiveWorkout({
                                     }
                                 ]}
                             >
-                                <View style={styles.cardHeader}>
+                                <View style={[styles.flexRow, { justifyContent: "flex-start" }]}>
+                                    <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
                                     <View style={styles.cardTitles}>
                                         <Text style={styles.cardTitle}>{item.name}</Text>
                                         <Text style={styles.cardSubtitle}>{item.muscleGroup}</Text>
@@ -501,17 +517,25 @@ const styles = StyleSheet.create({
         fontSize: 20,
         backgroundColor: "#acacac",
         color: "#1e1e1e",
-        marginTop: 8,
-        marginBottom: 16,
+        marginBottom: 0,
         fontWeight: "500",
+        flex: 1,
     },
-    cardHeader: {
+    flexRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
     },
+    accent: {
+        width: 6,
+        height: "90%",
+        borderRadius: 6,
+        backgroundColor: "#20ca17",
+        marginRight: 10,
+    },
 	cardTitles: {
-		gap: 4,
+		gap: 2,
+        flex: 1
 	},
 	cardTitle: {
 		color: "#f1f1f1",
@@ -565,10 +589,20 @@ const styles = StyleSheet.create({
         color: "#acacac",
         fontSize: 12,
     },
+    durationContainer: { 
+        padding: 4, 
+        width: 130, 
+        marginRight: 16, 
+        borderWidth: 1,  
+        borderRadius: 16, 
+        borderColor: "#2b2b2b",
+        backgroundColor: "#1a1a1a", 
+        marginVertical: "auto",
+    },
     durationText: {
         fontSize: 32,
         color: "#f1f1f1",
-        width: "28%"
+        margin: "auto"
     },
     endButton: {
         borderRadius: 999,

@@ -251,7 +251,7 @@ export default function NutritionScreen() {
     return (
         <View style={CommonStyles.container}>
             <View style={CommonStyles.header}>
-                <Text style={CommonStyles.title}>Today's Nutrition</Text>
+                <Text style={CommonStyles.headerTitle}>Today's Nutrition</Text>
                 <Pressable
 					onPress={() => {
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -265,85 +265,85 @@ export default function NutritionScreen() {
 				</Pressable>
             </View>
 
-            <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
-                <View style={styles.progressContainer}>
-                    <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
-                        {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
-                        <Circle
-                            progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
-                            size={120}
-                            thickness={10}
-                            borderWidth={0}
-                            color="#20ca17"
-                            animated
-                            showsText
-                            formatText={() => `${calories}`}
-                            textStyle={{ fontSize: 32 }}
-                        />
-                    </View>
-
-                    {isNutritionLoading ? (    
-                        <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 0 }} />
-                    ) : null}
-
-                    <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
-                        {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
-                        <Circle
-                            progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
-                            size={120}
-                            thickness={10}
-                            borderWidth={0}
-                            color="#4a9eff"
-                            animated
-                            showsText
-                            formatText={() => `${protein}`}
-                            textStyle={{ fontSize: 32 }}
-                        />
-                    </View>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                    <Pressable 
-                        onPress={() => {
-                            navigation.navigate("NutritionHistory", {
-                                nutrition
-                            });
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                        }}
-                        style={({ pressed }) => [
-                            CommonStyles.button,
-                            pressed && CommonStyles.buttonPressed,
-                            styles.actionButton,
-                            { marginTop: 0 }
-                        ]}
-                    >
-                        <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
-                    </Pressable>
-
-                    <Pressable 
-                        onPress={() => {
-                            openModal(); 
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                        }}
-                        style={({ pressed }) => [
-                            CommonStyles.button,
-                            pressed && CommonStyles.buttonPressed,
-                            styles.actionButton,
-                            { marginTop: 0 }
-                        ]}
-                    >
-                        <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
-                    </Pressable>
-                </View>
-            </View>
 
             <ScrollView 
                 style={CommonStyles.scrollview}
                 contentContainerStyle={CommonStyles.scrollViewContentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
+                <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
+                    <View style={styles.progressContainer}>
+                        <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
+                            {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
+                            <Circle
+                                progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
+                                size={120}
+                                thickness={10}
+                                borderWidth={0}
+                                color="#20ca17"
+                                animated
+                                showsText
+                                formatText={() => `${calories}`}
+                                textStyle={{ fontSize: 32 }}
+                            />
+                        </View>
 
+                        {isNutritionLoading ? (    
+                            <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 0 }} />
+                        ) : null}
+
+                        <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
+                            {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
+                            <Circle
+                                progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
+                                size={120}
+                                thickness={10}
+                                borderWidth={0}
+                                color="#4a9eff"
+                                animated
+                                showsText
+                                formatText={() => `${protein}`}
+                                textStyle={{ fontSize: 32 }}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.buttonContainer}>
+                        <Pressable 
+                            onPress={() => {
+                                navigation.navigate("NutritionHistory", {
+                                    nutrition
+                                });
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                            }}
+                            style={({ pressed }) => [
+                                CommonStyles.button,
+                                pressed && CommonStyles.buttonPressed,
+                                styles.actionButton,
+                                { marginTop: 0 }
+                            ]}
+                        >
+                            <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
+                        </Pressable>
+
+                        <Pressable 
+                            onPress={() => {
+                                openModal(); 
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                            }}
+                            style={({ pressed }) => [
+                                CommonStyles.button,
+                                pressed && CommonStyles.buttonPressed,
+                                styles.actionButton,
+                                { marginTop: 0 }
+                            ]}
+                        >
+                            <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
+                        </Pressable>
+                    </View>
+                </View>
+
+                <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
                 <View style={CommonStyles.componentContainer}>
                     <NutritionChart 
                         history={nutrition}
@@ -427,6 +427,7 @@ const styles = StyleSheet.create({
     nutritionContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
+        marginVertical: 16,
     },
     progressContainer: {
         flexDirection: "row",

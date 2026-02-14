@@ -83,7 +83,7 @@ export default function HomeScreen() {
 	return (
 		<View style={CommonStyles.container}>
 			<View style={CommonStyles.header}>
-                <Text style={CommonStyles.title}>Home screen</Text>
+                <Text style={CommonStyles.headerTitle}>Home screen</Text>
                 <Pressable
 					onPress={() => {
 						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -98,7 +98,7 @@ export default function HomeScreen() {
             </View>
 
 			<ScrollView 
-				style={[CommonStyles.scrollview, { marginTop: 8 }]} 
+				style={CommonStyles.scrollview} 
 				contentContainerStyle={CommonStyles.scrollViewContentContainer}
 				showsVerticalScrollIndicator={false}
 			>
@@ -176,6 +176,6 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
 	section: {
-		marginBottom: 16,
+		marginVertical: 8,
 	},
 });

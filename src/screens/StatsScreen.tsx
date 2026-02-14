@@ -36,7 +36,7 @@ export default function StatsScreen() {
 	const route = useRoute<RouteProp<StatsStackParamList, "StatsList">>();
 	const [error, setError] = useState<string | null>(null);
 	const [exerciseName, setExerciseName] = useState<string>("");
-	const [muscleGroup, setMuscleGroup] = useState<string>("rinta");
+	const [muscleGroup, setMuscleGroup] = useState<string>("chest");
 
 	const { session } = useAuthContext();
 
@@ -52,6 +52,16 @@ export default function StatsScreen() {
 	const [favoriteExercises, setFavoriteExercises] = useState<FavoriteExercises[]>([]);
 	const [isFavoritesActive, setIsFavoritesActive] = useState<boolean>(false);
 	const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
+
+	const muscleGroupColors = new Map([
+		["Chest", "#1e90ff"],
+		["Shoulders", "#1fc41f"],
+		["Biceps", "#9acd32"],
+		["Triceps", "#ffd700"],
+		["Legs", "#ff8c00"],
+		["Back", "#dc143c"],
+		["Abs", "#e10d70"]
+	]);
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
@@ -182,7 +192,7 @@ export default function StatsScreen() {
 	return (
 		<View style={CommonStyles.container}>
 			<View style={CommonStyles.header}>
-				<Text style={CommonStyles.title}>Exercise Stats</Text>
+				<Text style={CommonStyles.headerTitle}>Exercise Stats</Text>
 
 				<Switch value={isFavoritesActive} onValueChange={(value) => setIsFavoritesActive(value)} style={{ alignSelf: "center" }} />
 
@@ -203,7 +213,7 @@ export default function StatsScreen() {
 				data={exercises ?? []}
                 showsVerticalScrollIndicator={false}
 				keyExtractor={(item) => item.id.toString()}
-                style={CommonStyles.list}
+                style={[CommonStyles.list, { paddingTop: 16 }]}
 				renderItem={({ item }) => {
 					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
 						return (<View></View>);
@@ -228,11 +238,12 @@ export default function StatsScreen() {
 							style={({ pressed }) => [
 								CommonStyles.componentContainer,
 								pressed && CommonStyles.buttonPressed,
-								{ marginBottom: 13 }
+								{ marginBottom: 13, flexDirection: "row", alignItems: "center" }
 							]}
 						>
+							<View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
 							<View style={styles.cardHeader}>
-								<View>
+								<View style={{ gap: 2 }}>
 									<Text style={styles.cardTitle}>{item.name}</Text>
 									<Text style={styles.cardSubtitle}>
 										{item.muscleGroup}
@@ -344,10 +355,17 @@ const styles = StyleSheet.create({
 	listContent: {
 		paddingBottom: 24,
 	},
+    accent: {
+        width: 6,
+        height: "90%",
+        borderRadius: 6,
+        marginRight: 10,
+    },
 	cardHeader: {
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
+		flex: 1,
 	},
 	cardTitle: {
 		color: "#f1f1f1",

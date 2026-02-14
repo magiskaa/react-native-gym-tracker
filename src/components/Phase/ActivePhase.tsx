@@ -197,7 +197,7 @@ export default function ActivePhase({
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
                 <View style={CommonStyles.header}>
-                    <Text style={CommonStyles.title}>Current Phase</Text>
+                    <Text style={CommonStyles.headerTitle}>Current Phase</Text>
                     <Pressable
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -211,32 +211,8 @@ export default function ActivePhase({
                     </Pressable>
                 </View>
 
-                <View>
-                    {/* <Pressable
-                        onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                            Alert.alert(
-                                "Delete phase?", "Are you sure you want to delete this phase?", 
-                                [{ text: "No", style: "cancel" }, { text: "Yes", onPress: deleteCurrentPhase }], 
-                                { cancelable: true }
-                            )
-                        }}
-                    >
-                        <FontAwesome6 name="trash-can" size={24} color="red" />
-                    </Pressable> */}
-                    
-                    {/* <Pressable 
-                        onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                            openModal();
-                        }}
-                    >
-                        <FontAwesome6 name="pencil" size={24} color="#f1f1f1" />
-                    </Pressable> */}
-                </View>
-
-                
-                    <View style={CommonStyles.componentContainer}>
+                <ScrollView style={CommonStyles.scrollview}>
+                    <View style={[CommonStyles.componentContainer, { marginVertical: 16 }]}>
                         <Text style={styles.phaseType}>{capitalize(type)}</Text>
 
                         {endDate ? (
@@ -291,8 +267,6 @@ export default function ActivePhase({
                             </View>
                         </View>
                     </View>
-
-                <ScrollView style={CommonStyles.scrollview}>
                     <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
 
                     <View style={CommonStyles.componentContainer}>

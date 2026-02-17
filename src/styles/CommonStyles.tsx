@@ -4,7 +4,7 @@ export const CommonStyles = StyleSheet.create({
     container: {
 		flex: 1,
 		justifyContent: "flex-start",
-        padding: 16,
+        paddingHorizontal: 16,
 		paddingTop: 64,
 	},
 	error: {
@@ -12,11 +12,15 @@ export const CommonStyles = StyleSheet.create({
 		marginBottom: 8,
 		textAlign: "center"
 	},
+	flexRow: {
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
+	},
 	header: {
 		flexDirection: "row",
 		justifyContent: "space-between",
 		alignItems: "center",
-		// marginBottom: 8,
 		paddingBottom: 8,
 		borderBottomWidth: 1,
 		borderBottomColor: "#393939",
@@ -40,12 +44,12 @@ export const CommonStyles = StyleSheet.create({
 	secondTitle: {
 		marginBottom: 16,
 	},
-	scrollview: {
-		// marginTop: 16,
-	},
 	scrollViewContentContainer: {
-		paddingBottom: 80,
-	},	
+		paddingBottom: 160,
+	},
+	section: {
+		marginVertical: 12,
+	},
 	componentContainer: {
         backgroundColor: "#2b2b2b",
         borderRadius: 16,
@@ -65,7 +69,7 @@ export const CommonStyles = StyleSheet.create({
 		width: "100%",
 		height: "100%",
 	},
-	noActiveText: {
+	notActiveText: {
 		fontSize: 20,
 		fontWeight: "600",
 		textAlign: "center",

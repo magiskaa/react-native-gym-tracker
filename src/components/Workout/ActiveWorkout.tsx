@@ -29,6 +29,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { MenuStyles } from "../../styles/MenuStyles";
 import { NavigationProp, ParamListBase, useNavigation } from "@react-navigation/native";
 import { FavoriteExercises, getFavoriteExercises, addFavoriteExercises } from "../../services/favoriteExercises";
+import { BlurView } from "expo-blur";
 
 
 type Props = {
@@ -76,13 +77,13 @@ export default function ActiveWorkout({
     const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
 
     const muscleGroupColors = new Map([
-		["Chest", "#1e90ff"],
-		["Shoulders", "#1fc41f"],
-		["Biceps", "#9acd32"],
-		["Triceps", "#ffd700"],
-		["Legs", "#ff8c00"],
-		["Back", "#dc143c"],
-		["Abs", "#e10d70"]
+		["Chest", "#9f0fca"],
+		["Shoulders", "#0c3ed5"],
+		["Biceps", "#ffd700"],
+		["Triceps", "#47db16"],
+		["Legs", "#f00707"],
+		["Back", "#2f8507"],
+		["Abs", "#ea0a58"]
 	]);
 
     const loadData = async () => {
@@ -295,34 +296,40 @@ export default function ActiveWorkout({
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
-                <View style={CommonStyles.header}>
-                    <Text style={CommonStyles.headerTitle}>Workout in progress</Text>
-                    <Pressable
-                        onPress={() => {
-                            openMenu();
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                        }}
-                        style={({ pressed }) => [
-                            pressed && CommonStyles.buttonPressed
-                        ]}
-                    >
-                        <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
-                    </Pressable>
-                </View>
-
-                <View style={[styles.flexRow, { marginVertical: 16, paddingHorizontal: 8 }]}>
-                    <View style={styles.durationContainer}>
-                        <Text style={[styles.durationText, { color: "#20ca17" }]}>{formattedDuration}</Text>
+                <BlurView
+                    tint="dark"
+                    intensity={60}
+                    style={{ position: 'absolute', top: -64, left: -16, right: -16, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+                >
+                    <View style={CommonStyles.header}>
+                        <Text style={CommonStyles.headerTitle}>Workout in progress</Text>
+                        <Pressable
+                            onPress={() => {
+                                openMenu();
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }}
+                            style={({ pressed }) => [
+                                pressed && CommonStyles.buttonPressed
+                            ]}
+                        >
+                            <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+                        </Pressable>
                     </View>
-                    <TextInput 
-                        style={[CommonStyles.input, styles.nameInput]}
-                        value={name}
-                        onChangeText={(value) => setName(value)}
-                        placeholder="Workout name"
-                        selectionColor="#20ca17"
-                        cursorColor="#1e1e1e"
-                    />
-                </View>
+
+                    <View style={[styles.flexRow, { marginVertical: 24, paddingHorizontal: 8 }]}>
+                        <View style={styles.durationContainer}>
+                            <Text style={[styles.durationText, { color: "#20ca17" }]}>{formattedDuration}</Text>
+                        </View>
+                        <TextInput 
+                            style={[CommonStyles.input, styles.nameInput]}
+                            value={name}
+                            onChangeText={(value) => setName(value)}
+                            placeholder="Workout name"
+                            selectionColor="#20ca17"
+                            cursorColor="#1e1e1e"
+                        />
+                    </View>
+                </BlurView>
 
                 {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
 
@@ -344,8 +351,8 @@ export default function ActiveWorkout({
                                     CommonStyles.componentContainer,
                                     pressed && CommonStyles.buttonPressed,
                                     { 
-                                        marginBottom: isExpanded ? 22 : 13,
-                                        marginTop: isExpanded ? 9 : 0
+                                        marginBottom: isExpanded ? 32 : 13,
+                                        marginTop: isExpanded ? 19 : 0
                                     }
                                 ]}
                             >
@@ -436,22 +443,28 @@ export default function ActiveWorkout({
                     }
                 />
 
-                <Pressable
-                    style={({ pressed }) => [
-                        CommonStyles.button, { width: "100%" },
-                        pressed && CommonStyles.buttonPressed
-                    ]}
-                    onPress={() => {
-                        Alert.alert(
-                            "End workout?", "Are you done with this workout?", 
-                            [{ text: "No", style: "cancel" }, { text: "Yes", onPress: endWorkout }],
-                            { cancelable: true }
-                        );
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                    }}
+                <BlurView
+                    tint="dark"
+                    intensity={50}
+                    style={{ position: 'absolute', bottom: 83, left: -16, right: -16, zIndex: 1, paddingHorizontal: 16 }}
                 >
-                    <Text style={CommonStyles.buttonText}>End workout</Text>
-                </Pressable>
+                    <Pressable
+                        style={({ pressed }) => [
+                            CommonStyles.button, { width: "100%", marginVertical: 16 },
+                            pressed && CommonStyles.buttonPressed
+                        ]}
+                        onPress={() => {
+                            Alert.alert(
+                                "End workout?", "Are you done with this workout?", 
+                                [{ text: "No", style: "cancel" }, { text: "Yes", onPress: endWorkout }],
+                                { cancelable: true }
+                            );
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                        }}
+                    >
+                        <Text style={CommonStyles.buttonText}>End workout</Text>
+                    </Pressable>
+                </BlurView>
                 
                 <Modal
                     transparent
@@ -602,7 +615,7 @@ const styles = StyleSheet.create({
     durationText: {
         fontSize: 32,
         color: "#f1f1f1",
-        margin: "auto"
+        margin: "auto",
     },
     endButton: {
         borderRadius: 999,
@@ -617,6 +630,7 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 	listContent: {
-		paddingBottom: 120,
+        paddingTop: 144,
+		paddingBottom: "100%",
 	},
 });

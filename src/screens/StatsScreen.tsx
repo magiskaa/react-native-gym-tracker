@@ -26,6 +26,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatsStackParamList } from "../navigation/StatsStack";
 import Entypo from '@expo/vector-icons/Entypo';
 import { FavoriteExercises, getFavoriteExercises, addFavoriteExercises, updateFavoriteExercises } from "../services/favoriteExercises";
+import { BlurView } from "expo-blur";
 
 
 export default function StatsScreen() {
@@ -54,13 +55,13 @@ export default function StatsScreen() {
 	const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
 
 	const muscleGroupColors = new Map([
-		["Chest", "#1e90ff"],
-		["Shoulders", "#1fc41f"],
-		["Biceps", "#9acd32"],
-		["Triceps", "#ffd700"],
-		["Legs", "#ff8c00"],
-		["Back", "#dc143c"],
-		["Abs", "#e10d70"]
+		["Chest", "#9f0fca"],
+		["Shoulders", "#0c3ed5"],
+		["Biceps", "#ffd700"],
+		["Triceps", "#47db16"],
+		["Legs", "#f00707"],
+		["Back", "#2f8507"],
+		["Abs", "#ea0a58"]
 	]);
 
 	const loadData = async () => {
@@ -191,29 +192,51 @@ export default function StatsScreen() {
 
 	return (
 		<View style={CommonStyles.container}>
-			<View style={CommonStyles.header}>
-				<Text style={CommonStyles.headerTitle}>Exercise Stats</Text>
+			<BlurView
+				tint="dark"
+				intensity={60}
+				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+			>
+				<View style={CommonStyles.header}>
+					<Text style={CommonStyles.headerTitle}>Exercise Stats</Text>
+					<Pressable
+						onPress={() => {
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							openMenu();
+						}}
+						style={({ pressed }) => [
+							pressed && CommonStyles.buttonPressed
+						]}
+					>
+						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+					</Pressable>
+				</View>
 
-				<Switch value={isFavoritesActive} onValueChange={(value) => setIsFavoritesActive(value)} style={{ alignSelf: "center" }} />
+				<View style={[CommonStyles.flexRow, { paddingVertical: 14, paddingHorizontal: 8 }]}>
+					<Pressable
+						onPress={() => {
+							setIsMenuVisible(false);
+							openFilterModal();
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+						}}
+						style={({ pressed }) => [
+							CommonStyles.button,
+							pressed && CommonStyles.buttonPressed,
+							{ margin: 0, marginTop: 0, paddingVertical: 8, paddingHorizontal: 12 }
+						]}
+					>
+						<Text style={CommonStyles.buttonText}>Filter exercises</Text>
+					</Pressable>
 
-				<Pressable
-					onPress={() => {
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-						openMenu();
-					}}
-					style={({ pressed }) => [
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
-				</Pressable>
-			</View>
-			
+					<Switch value={isFavoritesActive} onValueChange={(value) => setIsFavoritesActive(value)} style={{ alignSelf: "center" }} />
+				</View>
+			</BlurView>
+
 			<FlatList
 				data={exercises ?? []}
                 showsVerticalScrollIndicator={false}
 				keyExtractor={(item) => item.id.toString()}
-                style={[CommonStyles.list, { paddingTop: 16 }]}
+                style={CommonStyles.list}
 				renderItem={({ item }) => {
 					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
 						return (<View></View>);
@@ -319,19 +342,6 @@ export default function StatsScreen() {
 						</Pressable>
 						<Pressable
 							onPress={() => {
-								setIsMenuVisible(false);
-								openFilterModal();
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-							}}
-							style={({ pressed }) => [
-								MenuStyles.menuItem,
-								pressed && CommonStyles.buttonPressed
-							]}
-						>
-							<Text style={MenuStyles.menuText}>Filter exercises</Text>
-						</Pressable>
-						<Pressable
-							onPress={() => {
 								closeMenu();
 								setSelectedGroups(new Set());
 								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -353,7 +363,8 @@ export default function StatsScreen() {
 
 const styles = StyleSheet.create({
 	listContent: {
-		paddingBottom: 24,
+		paddingTop: 120,
+		paddingBottom: 160,
 	},
     accent: {
         width: 6,

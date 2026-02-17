@@ -18,7 +18,8 @@ export const formatLocalDateISO = (date: Date) => {
 export const formatDuration = (elapsed: number) => {
     const h = Math.floor(elapsed / 3600);
     const m = Math.floor(elapsed / 60);
-    const s = Math.round(elapsed - h*3600 - m*60);
+    let s = Math.round(elapsed - h*3600 - m*60);
+    if (s === 60) { s = 0; }
     return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 };
 

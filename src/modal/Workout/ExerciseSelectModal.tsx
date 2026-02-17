@@ -33,9 +33,17 @@ export default function ExerciseSelectModal({
     onConfirm,
 }: Props) {
     const [modifiedSelectedIds, setModifiedSelectedIds] = useState<Set<number>>(selectedIds);
-
     const modifiedSelectedCount = useMemo(() => modifiedSelectedIds.size, [modifiedSelectedIds]);
     
+    const muscleGroupColors = new Map([
+		["Chest", "#9f0fca"],
+		["Shoulders", "#0c3ed5"],
+		["Biceps", "#ffd700"],
+		["Triceps", "#47db16"],
+		["Legs", "#f00707"],
+		["Back", "#2f8507"],
+		["Abs", "#ea0a58"]
+	]);
 
     const toggleModifiedExercise = (id: number) => {
 		setModifiedSelectedIds((prev) => {
@@ -79,6 +87,7 @@ export default function ExerciseSelectModal({
                     <FlatList
                         data={exercises}
                         keyExtractor={(item) => item.id.toString()}
+                        style={{ paddingTop: 16 }}
                         renderItem={({ item }) => {
                             let isSelected = selectedIds.has(item.id);
                             if (isWorkoutActive) { isSelected = modifiedSelectedIds.has(item.id); }
@@ -97,7 +106,8 @@ export default function ExerciseSelectModal({
                                         pressed && CommonStyles.buttonPressed,
                                     ]}
                                 >
-                                    <View>
+                                    <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
+                                    <View style={{ flex: 1 }}>
                                         <Text style={styles.exerciseName}>{item.name}</Text>
                                         <Text style={styles.muscleGroup}>{item.muscleGroup}</Text>
                                     </View>
@@ -148,14 +158,20 @@ export default function ExerciseSelectModal({
 const styles = StyleSheet.create({
     exercise: {
         padding: 12,
-        marginBottom: 8,
+        marginBottom: 10,
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "flex-start",
         alignItems: "center",
     },
     exerciseSelected: {
         borderWidth: 1,
         borderColor: "#20ca17",
+    },
+    accent: {
+        width: 6,
+        height: "90%",
+        borderRadius: 6,
+        marginRight: 10,
     },
     exerciseName: {
         color: "#f1f1f1",

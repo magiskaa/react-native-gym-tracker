@@ -68,7 +68,6 @@ export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Work
 
     return (
         <View style={ChartStyles.container}>
-            <Text style={[ChartStyles.chartTitle, styles.title]}>Workouts per week</Text>
             <BarChart
                 height={200}
                 data={barData}
@@ -93,18 +92,3 @@ export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Work
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    card: {
-        backgroundColor: "#141414",
-        borderRadius: 16,
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderWidth: 1,
-        borderColor: "#242424",
-    },
-    title: {
-        marginTop: 0,
-        marginBottom: 6,
-    },
-});

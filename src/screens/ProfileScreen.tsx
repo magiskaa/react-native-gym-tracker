@@ -10,7 +10,8 @@ import {
 	TextInput, 
 	TouchableWithoutFeedback, 
 	Keyboard,
-	Modal
+	Modal,
+	ScrollView
 } from "react-native";
 import { useState, useEffect } from "react";
 import WeightChart from "../components/Profile/WeightChart";
@@ -29,6 +30,7 @@ import { updateProfile, addProfile } from "../services/profiles";
 import { WeightEntry, getWeightHistory, addWeight } from "../services/weights";
 import { Entypo } from "@expo/vector-icons";
 import { MenuStyles } from "../styles/MenuStyles";
+import { BlurView } from "expo-blur";
 
 
 export default function ProfileScreen() {
@@ -185,8 +187,12 @@ export default function ProfileScreen() {
 	};
 
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-			<View style={CommonStyles.container}>
+		<View style={CommonStyles.container}>
+			<BlurView
+				tint="dark"
+				intensity={60}
+				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+			>
 				<View style={CommonStyles.header}>
 					<Text style={CommonStyles.headerTitle}>Profile</Text>
 					<Pressable
@@ -201,7 +207,13 @@ export default function ProfileScreen() {
 						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
 					</Pressable>
 				</View>
+			</BlurView>
 
+			<ScrollView
+				style={{ paddingTop: 56 }}
+				contentContainerStyle={CommonStyles.scrollViewContentContainer}
+				showsVerticalScrollIndicator={false}
+			>
 				{isEditable ? (
 					<View style={styles.selectImageButton}>
 						<Button title="Select image" onPress={() =>{ pickImage(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}} />
@@ -265,9 +277,8 @@ export default function ProfileScreen() {
 						<Text style={styles.username}>{username || ""}</Text>
 					)}
 				</View>
-
+			
 				<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weight chart</Text>
-
 				{isHistoryLoading ? (
 					<View style={ChartStyles.emptyContainer}>
 						<ActivityIndicator size="small" color="#20ca17" />
@@ -290,66 +301,66 @@ export default function ProfileScreen() {
 						</Pressable>
 					</View>
 				)}
+			</ScrollView>
 
-				{isWeightModalVisible ? (
-					<LogWeightModal 
-						visible={isWeightModalVisible}
-						error={error}
-						weightInput={weightInput}
-						dateInput={dateInput}
-						setWeightInput={setWeightInput}
-						setDateInput={setDateInput}
-						onClose={closeModal}
-						onConfirm={logWeight}
-					/>
-				) : null}
+			{isWeightModalVisible ? (
+				<LogWeightModal 
+					visible={isWeightModalVisible}
+					error={error}
+					weightInput={weightInput}
+					dateInput={dateInput}
+					setWeightInput={setWeightInput}
+					setDateInput={setDateInput}
+					onClose={closeModal}
+					onConfirm={logWeight}
+				/>
+			) : null}
 
-				<Modal
-					transparent
-					visible={isMenuVisible}
-					animationType="fade"
-					onRequestClose={closeMenu}
-				>
-					<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
-						<View style={MenuStyles.menu}>
-							<Pressable
-								onPress={() => {
-									closeMenu();
-									setOriginalUsername(username);
-									setOriginalImage(image);
-									setIsEditable(true);
-									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-								}}
-								style={({ pressed }) => [
-									MenuStyles.menuItem,
-									pressed && CommonStyles.buttonPressed
-								]}
-							>
-								<Text style={MenuStyles.menuText}>Edit profile</Text>
-							</Pressable>
-							<Pressable
-								onPress={() => {
-									closeMenu();
-									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-									Alert.alert(
-										"Logout?", "Are you sure you want to logout?", 
-										[{ text: "No", style: "cancel" }, { text: "Yes", onPress: signOut }], 
-										{ cancelable: true }
-									);
-								}}
-								style={({ pressed }) => [
-									MenuStyles.menuItem,
-									pressed && CommonStyles.buttonPressed, 
-									{ borderBottomWidth: 0 }
-								]}
-							>
-								<Text style={MenuStyles.menuText}>Log out</Text>
-							</Pressable>
-						</View>
-					</Pressable>
-				</Modal>
-			</View>
-		</TouchableWithoutFeedback>
+			<Modal
+				transparent
+				visible={isMenuVisible}
+				animationType="fade"
+				onRequestClose={closeMenu}
+			>
+				<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+					<View style={MenuStyles.menu}>
+						<Pressable
+							onPress={() => {
+								closeMenu();
+								setOriginalUsername(username);
+								setOriginalImage(image);
+								setIsEditable(true);
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							}}
+							style={({ pressed }) => [
+								MenuStyles.menuItem,
+								pressed && CommonStyles.buttonPressed
+							]}
+						>
+							<Text style={MenuStyles.menuText}>Edit profile</Text>
+						</Pressable>
+						<Pressable
+							onPress={() => {
+								closeMenu();
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+								Alert.alert(
+									"Logout?", "Are you sure you want to logout?", 
+									[{ text: "No", style: "cancel" }, { text: "Yes", onPress: signOut }], 
+									{ cancelable: true }
+								);
+							}}
+							style={({ pressed }) => [
+								MenuStyles.menuItem,
+								pressed && CommonStyles.buttonPressed, 
+								{ borderBottomWidth: 0 }
+							]}
+						>
+							<Text style={MenuStyles.menuText}>Log out</Text>
+						</Pressable>
+					</View>
+				</Pressable>
+			</Modal>
+		</View>
 	);
 }
 
@@ -387,13 +398,13 @@ const styles = StyleSheet.create({
 	editButton: {
 		position: "absolute",
 		right: 24,
-		top: 300,
+		top: 190,
 	},
 	selectImageButton: {
 		position: "absolute",
 		left: 0,
 		right: 0,
 		alignItems: "center",
-		top: 80,
+		top: -10,
 	},
 });

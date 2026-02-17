@@ -24,7 +24,9 @@ export const ModalStyles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 8,
+        paddingBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: "#393939"
     },
     modalTitle: {
         fontSize: 20,

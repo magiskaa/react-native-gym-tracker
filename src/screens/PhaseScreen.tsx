@@ -162,27 +162,25 @@ export default function PhaseScreen() {
 	return (
 		<View style={[CommonStyles.container, { alignItems: "center" }]}>
 			{isPhaseActive ? (
-				<View style={{ width: "100%" }}>
-					<ActivePhase 
-						error={error}
-						phaseId={phaseId}
-						startDate={startDate}
-						endDate={endDate}
-						type={type}
-						history={phaseWeightHistory}
-						isHistoryLoading={isPhaseHistoryLoading}
-						startingWeight={startingWeight}
-						weightGoal={weightGoal}
-						setError={setError}
-						onWeightUpdate={loadWeightData}
-						onPhaseUpdate={() => {
-							loadCurrentPhaseData().then(({ startDate, endDate }) => loadWeightData(startDate, endDate));
-						}}
-					/>
-				</View>
+				<ActivePhase 
+					error={error}
+					phaseId={phaseId}
+					startDate={startDate}
+					endDate={endDate}
+					type={type}
+					history={phaseWeightHistory}
+					isHistoryLoading={isPhaseHistoryLoading}
+					startingWeight={startingWeight}
+					weightGoal={weightGoal}
+					setError={setError}
+					onWeightUpdate={loadWeightData}
+					onPhaseUpdate={() => {
+						loadCurrentPhaseData().then(({ startDate, endDate }) => loadWeightData(startDate, endDate));
+					}}
+				/>
 			) : (
 				<View style={CommonStyles.notActiveContainer}>
-					<Text style={CommonStyles.noActiveText}>No active phase</Text>
+					<Text style={CommonStyles.notActiveText}>No active phase</Text>
 					<Pressable 
 						onPress={() => { 
 							openModal(); 

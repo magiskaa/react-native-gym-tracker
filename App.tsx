@@ -15,6 +15,8 @@ import ProfileScreen from "./src/screens/ProfileScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import { useAuthContext } from './src/auth/UseAuthContext';
 import AuthProvider from './src/auth/AuthProvider';
+import { BlurView } from "expo-blur";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -58,10 +60,18 @@ function AppContent() {
                     tabBarInactiveTintColor: "#e3e3e3",
                     tabBarStyle: {
                         borderTopWidth: 0,
-                        elevation: 0,
-                        shadowOpacity: 0.25,
-                        paddingTop: 7
+                        shadowOpacity: 0.2,
+                        paddingTop: 7,
+                        backgroundColor: "transparent",
+                        position: "absolute"
                     },
+                    tabBarBackground: () => (
+                        <BlurView
+                            tint="dark"
+                            intensity={50}
+                            style={{ flex: 1 }}
+                        />
+                    ),
                     tabBarIcon: ({ color, size }) => {
                         let iconName: keyof typeof Ionicons.glyphMap;
 

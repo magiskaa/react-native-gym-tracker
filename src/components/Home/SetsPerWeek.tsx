@@ -10,24 +10,24 @@ type Props = {
 
 export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
     const targetSetCounts = new Map([
-        ["Chest", 9], 
-        ["Shoulders", 7], 
-        ["Biceps", 9], 
-        ["Triceps", 9], 
-        ["Legs", 22], 
-        ["Back", 14], 
-        ["Abs", 9]
+        ["Chest", 8], 
+        ["Shoulders", 6], 
+        ["Biceps", 8], 
+        ["Triceps", 8], 
+        ["Legs", 20], 
+        ["Back", 13], 
+        ["Abs", 7]
     ]);
 
     const muscleGroupColors = new Map([
-        ["Chest", "#1e90ff"],
-        ["Shoulders", "#1fc41f"],
-        ["Biceps", "#9acd32"],
-        ["Triceps", "#ffd700"],
-        ["Legs", "#ff8c00"],
-        ["Back", "#dc143c"],
-        ["Abs", "#e10d70"]
-    ]);
+		["Chest", "#9f0fca"],
+		["Shoulders", "#0c3ed5"],
+		["Biceps", "#ffd700"],
+		["Triceps", "#47db16"],
+		["Legs", "#f00707"],
+		["Back", "#2f8507"],
+		["Abs", "#ea0a58"]
+	]);
 
     return (
         <View>

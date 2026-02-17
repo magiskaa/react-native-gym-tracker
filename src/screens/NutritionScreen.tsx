@@ -16,6 +16,7 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { NutritionStackParamList } from "../navigation/NutritionStack";
+import { BlurView } from "expo-blur";
 
 
 export default function NutritionScreen() {
@@ -250,104 +251,114 @@ export default function NutritionScreen() {
 
     return (
         <View style={CommonStyles.container}>
-            <View style={CommonStyles.header}>
-                <Text style={CommonStyles.headerTitle}>Today's Nutrition</Text>
-                <Pressable
-					onPress={() => {
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-						openMenu();
-					}}
-					style={({ pressed }) => [
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
-				</Pressable>
-            </View>
-
+            <BlurView
+                tint="dark"
+                intensity={60}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+            >
+                <View style={CommonStyles.header}>
+                    <Text style={CommonStyles.headerTitle}>Nutrition</Text>
+                    <Pressable
+                        onPress={() => {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            openMenu();
+                        }}
+                        style={({ pressed }) => [
+                            pressed && CommonStyles.buttonPressed
+                        ]}
+                    >
+                        <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+                    </Pressable>
+                </View>
+            </BlurView>
 
             <ScrollView 
-                style={CommonStyles.scrollview}
+                style={{ paddingTop: 56 }}
                 contentContainerStyle={CommonStyles.scrollViewContentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
-                    <View style={styles.progressContainer}>
-                        <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
-                            {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
-                            <Circle
-                                progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
-                                size={120}
-                                thickness={10}
-                                borderWidth={0}
-                                color="#20ca17"
-                                animated
-                                showsText
-                                formatText={() => `${calories}`}
-                                textStyle={{ fontSize: 32 }}
-                            />
+                <View style={CommonStyles.section}>
+                    <Text style={CommonStyles.title}>Today's Nutrition</Text>
+                    <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
+                        <View style={styles.progressContainer}>
+                            <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
+                                {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
+                                <Circle
+                                    progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
+                                    size={120}
+                                    thickness={10}
+                                    borderWidth={0}
+                                    color="#20ca17"
+                                    animated
+                                    showsText
+                                    formatText={() => `${calories}`}
+                                    textStyle={{ fontSize: 32 }}
+                                />
+                            </View>
+
+                            {isNutritionLoading ? (    
+                                <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 0 }} />
+                            ) : null}
+
+                            <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
+                                {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
+                                <Circle
+                                    progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
+                                    size={120}
+                                    thickness={10}
+                                    borderWidth={0}
+                                    color="#4a9eff"
+                                    animated
+                                    showsText
+                                    formatText={() => `${protein}`}
+                                    textStyle={{ fontSize: 32 }}
+                                />
+                            </View>
                         </View>
 
-                        {isNutritionLoading ? (    
-                            <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 0 }} />
-                        ) : null}
+                        <View style={styles.buttonContainer}>
+                            <Pressable 
+                                onPress={() => {
+                                    navigation.navigate("NutritionHistory", {
+                                        nutrition
+                                    });
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                }}
+                                style={({ pressed }) => [
+                                    CommonStyles.button,
+                                    pressed && CommonStyles.buttonPressed,
+                                    styles.actionButton,
+                                    { marginTop: 0 }
+                                ]}
+                            >
+                                <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
+                            </Pressable>
 
-                        <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
-                            {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
-                            <Circle
-                                progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
-                                size={120}
-                                thickness={10}
-                                borderWidth={0}
-                                color="#4a9eff"
-                                animated
-                                showsText
-                                formatText={() => `${protein}`}
-                                textStyle={{ fontSize: 32 }}
-                            />
+                            <Pressable 
+                                onPress={() => {
+                                    openModal(); 
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                }}
+                                style={({ pressed }) => [
+                                    CommonStyles.button,
+                                    pressed && CommonStyles.buttonPressed,
+                                    styles.actionButton,
+                                    { marginTop: 0 }
+                                ]}
+                            >
+                                <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
+                            </Pressable>
                         </View>
-                    </View>
-
-                    <View style={styles.buttonContainer}>
-                        <Pressable 
-                            onPress={() => {
-                                navigation.navigate("NutritionHistory", {
-                                    nutrition
-                                });
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                            }}
-                            style={({ pressed }) => [
-                                CommonStyles.button,
-                                pressed && CommonStyles.buttonPressed,
-                                styles.actionButton,
-                                { marginTop: 0 }
-                            ]}
-                        >
-                            <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
-                        </Pressable>
-
-                        <Pressable 
-                            onPress={() => {
-                                openModal(); 
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                            }}
-                            style={({ pressed }) => [
-                                CommonStyles.button,
-                                pressed && CommonStyles.buttonPressed,
-                                styles.actionButton,
-                                { marginTop: 0 }
-                            ]}
-                        >
-                            <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
-                        </Pressable>
                     </View>
                 </View>
 
-                <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
-                <View style={CommonStyles.componentContainer}>
-                    <NutritionChart 
-                        history={nutrition}
-                    />
+                <View style={CommonStyles.section}>
+                    <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
+                    <View style={CommonStyles.componentContainer}>
+                        <NutritionChart 
+                            history={nutrition}
+                        />
+                    </View>
                 </View>
             </ScrollView>
 
@@ -427,7 +438,7 @@ const styles = StyleSheet.create({
     nutritionContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        marginVertical: 16,
+        marginTop: 8,
     },
     progressContainer: {
         flexDirection: "row",

@@ -11,6 +11,7 @@ import { SetCount, getSetCountsForCurrentWeek } from "../services/sets";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { Entypo } from "@expo/vector-icons";
 import { MenuStyles } from "../styles/MenuStyles";
+import { BlurView } from "expo-blur";
 
 
 export default function HomeScreen() {
@@ -82,27 +83,33 @@ export default function HomeScreen() {
 
 	return (
 		<View style={CommonStyles.container}>
-			<View style={CommonStyles.header}>
-                <Text style={CommonStyles.headerTitle}>Home screen</Text>
-                <Pressable
-					onPress={() => {
-						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-						openMenu();
-					}}
-					style={({ pressed }) => [
-						pressed && CommonStyles.buttonPressed
-					]}
-				>
-					<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
-				</Pressable>
-            </View>
+			<BlurView
+				tint="dark"
+				intensity={60}
+				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+			>
+				<View style={CommonStyles.header}>
+					<Text style={CommonStyles.headerTitle}>Home screen</Text>
+					<Pressable
+						onPress={() => {
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							openMenu();
+						}}
+						style={({ pressed }) => [
+							pressed && CommonStyles.buttonPressed
+						]}
+					> 
+						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+					</Pressable>
+				</View>
+			</BlurView>
 
 			<ScrollView 
-				style={CommonStyles.scrollview} 
+				style={{ paddingTop: 56 }}
 				contentContainerStyle={CommonStyles.scrollViewContentContainer}
 				showsVerticalScrollIndicator={false}
 			>
-				<View style={styles.section}>
+				<View style={CommonStyles.section}>
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Sets</Text>
 					<SetsPerWeek 
 						setCounts={setCounts}
@@ -110,14 +117,14 @@ export default function HomeScreen() {
 					/>
 				</View>
 
-				<View style={styles.section}>
+				<View style={CommonStyles.section}>
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Workouts</Text>
 					<View style={CommonStyles.componentContainer}>
 						<WorkoutsPerWeekChart workouts={workouts} />
 					</View>
 				</View>
 
-				<View style={styles.section}>
+				<View style={CommonStyles.section}>
 					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Recent Workouts</Text>
 					<RecentWorkouts 
 						workouts={workouts}
@@ -173,9 +180,3 @@ export default function HomeScreen() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	section: {
-		marginVertical: 8,
-	},
-});

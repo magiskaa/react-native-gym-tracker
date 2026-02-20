@@ -24,9 +24,7 @@ const Theme = {
     ...DefaultTheme,
     colors: {
         ...DefaultTheme.colors,
-        background: "#1e1e1e",
-        card: "#2b2b2b",
-        text: "#f1f1f1"
+        background: "#1b1b1b"
     }
 }
 

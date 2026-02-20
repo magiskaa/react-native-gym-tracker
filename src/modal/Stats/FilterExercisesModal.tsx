@@ -56,7 +56,7 @@ export default function FilterExercisesModal({
                         </Pressable>
                     </View>
 
-                    <View style={{ paddingTop: 16 }}>
+                    <View>
                         {muscleGroups.map(group => {
                             const isSelected = selectedGroups.has(group);
                             return (
@@ -66,7 +66,7 @@ export default function FilterExercisesModal({
                                         CommonStyles.flexRow,
                                         pressed && CommonStyles.buttonPressed,
                                         isSelected && styles.muscleGroupSelected,
-                                        { marginBottom: 6, padding: 12, justifyContent: "flex-start" }
+                                        { marginBottom: 8, padding: 12, justifyContent: "flex-start" }
                                     ]} 
                                     key={group}
                                     onPress={() => {

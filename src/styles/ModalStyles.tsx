@@ -10,11 +10,11 @@ export const ModalStyles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.3)",
+        // backgroundColor: "rgba(0, 0, 0, 0.3)",
         justifyContent: "flex-end",
     },
     modalSheet: {
-        backgroundColor: "#0e0e0e",
+        backgroundColor: "#111111",
         borderRadius: 20,
         padding: 16,
         borderWidth: 1,
@@ -26,7 +26,8 @@ export const ModalStyles = StyleSheet.create({
         alignItems: "center",
         paddingBottom: 8,
         borderBottomWidth: 1,
-        borderBottomColor: "#393939"
+        borderBottomColor: "#393939",
+        marginBottom: 24,
     },
     modalTitle: {
         fontSize: 20,
@@ -45,6 +46,7 @@ export const ModalStyles = StyleSheet.create({
         alignItems: "center",
         marginTop: 16,
         paddingBottom: 30,
+        paddingHorizontal: 6,
     },
     modalFooterText: {
         color: "#9a9a9a",

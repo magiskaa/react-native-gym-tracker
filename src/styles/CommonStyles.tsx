@@ -51,7 +51,7 @@ export const CommonStyles = StyleSheet.create({
 		marginVertical: 12,
 	},
 	componentContainer: {
-        backgroundColor: "#2b2b2b",
+        backgroundColor: "#262626",
         borderRadius: 16,
         borderWidth: 1,
         borderColor: "#393939",

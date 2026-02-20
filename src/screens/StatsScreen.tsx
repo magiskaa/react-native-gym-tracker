@@ -8,8 +8,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	Animated,
-	Switch
+	Animated
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
@@ -21,12 +20,13 @@ import { useToast } from "../components/ToastConfig";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { Exercise, getExercises, addExercise } from "../services/exercises";
 import { Ionicons } from "@expo/vector-icons";
-import { RouteProp, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import { RouteProp, useFocusEffect, useNavigation, useRoute, useTheme } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { StatsStackParamList } from "../navigation/StatsStack";
 import Entypo from '@expo/vector-icons/Entypo';
 import { FavoriteExercises, getFavoriteExercises, addFavoriteExercises, updateFavoriteExercises } from "../services/favoriteExercises";
 import { BlurView } from "expo-blur";
+import Feather from '@expo/vector-icons/Feather';
 
 
 export default function StatsScreen() {
@@ -197,38 +197,50 @@ export default function StatsScreen() {
 				intensity={60}
 				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
 			>
-				<View style={CommonStyles.header}>
-					<Text style={CommonStyles.headerTitle}>Exercise Stats</Text>
+				<View style={[CommonStyles.header, { gap: 8 }]}>
+					<Text style={[CommonStyles.headerTitle, { flex: 1 }]}>Exercise Stats</Text>
 					<Pressable
 						onPress={() => {
-							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+							openFilterModal();
+						}}
+						style={({ pressed }) => [
+							pressed && CommonStyles.buttonPressed,
+							{ padding: 8 }
+						]}
+					>
+						<Feather name="filter" size={24} color="#f1f1f1" />
+					</Pressable>
+
+					<Pressable
+						onPress={() => {
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+							setIsFavoritesActive(!isFavoritesActive);
+						}}
+						style={({ pressed }) => [
+							pressed && CommonStyles.buttonPressed,
+							{ padding: 8 }
+						]}
+					>
+						{isFavoritesActive ? (
+							<Entypo name="heart" size={26} color="#f1f1f1" />
+						) : (
+							<Entypo name="heart-outlined" size={26} color="#f1f1f1" />
+						)}
+					</Pressable>
+
+					<Pressable
+						onPress={() => {
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 							openMenu();
 						}}
 						style={({ pressed }) => [
-							pressed && CommonStyles.buttonPressed
+							pressed && CommonStyles.buttonPressed,
+							{ padding: 8 }
 						]}
 					>
 						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
 					</Pressable>
-				</View>
-
-				<View style={[CommonStyles.flexRow, { paddingVertical: 14, paddingHorizontal: 8 }]}>
-					<Pressable
-						onPress={() => {
-							setIsMenuVisible(false);
-							openFilterModal();
-							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-						}}
-						style={({ pressed }) => [
-							CommonStyles.button,
-							pressed && CommonStyles.buttonPressed,
-							{ margin: 0, marginTop: 0, paddingVertical: 8, paddingHorizontal: 12 }
-						]}
-					>
-						<Text style={CommonStyles.buttonText}>Filter exercises</Text>
-					</Pressable>
-
-					<Switch value={isFavoritesActive} onValueChange={(value) => setIsFavoritesActive(value)} style={{ alignSelf: "center" }} />
 				</View>
 			</BlurView>
 
@@ -331,7 +343,7 @@ export default function StatsScreen() {
 							onPress={() => {
 								setIsMenuVisible(false);
 								openModal();
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 							}}
 							style={({ pressed }) => [
 								MenuStyles.menuItem,
@@ -344,7 +356,7 @@ export default function StatsScreen() {
 							onPress={() => {
 								closeMenu();
 								setSelectedGroups(new Set());
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 							}}
 							style={({ pressed }) => [
 								MenuStyles.menuItem,
@@ -363,7 +375,7 @@ export default function StatsScreen() {
 
 const styles = StyleSheet.create({
 	listContent: {
-		paddingTop: 120,
+		paddingTop: 80,
 		paddingBottom: 160,
 	},
     accent: {

@@ -96,7 +96,8 @@ export default function HomeScreen() {
 							openMenu();
 						}}
 						style={({ pressed }) => [
-							pressed && CommonStyles.buttonPressed
+							pressed && CommonStyles.buttonPressed,
+							{ padding: 8 }
 						]}
 					> 
 						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />

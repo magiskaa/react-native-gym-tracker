@@ -209,7 +209,8 @@ export default function ActivePhase({
                             openMenu();
                         }}
                         style={({ pressed }) => [
-                            pressed && CommonStyles.buttonPressed
+                            pressed && CommonStyles.buttonPressed,
+							{ padding: 8 }
                         ]}
                     >
                         <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
@@ -218,11 +219,11 @@ export default function ActivePhase({
             </BlurView>
 
             <ScrollView 
-                style={{ paddingTop: 56 }}
+                style={{ paddingTop: 80 }}
                 contentContainerStyle={CommonStyles.scrollViewContentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={[CommonStyles.componentContainer, CommonStyles.section, { marginTop: 24 }]}>
+                <View style={[CommonStyles.componentContainer, CommonStyles.section, { marginTop: 0 }]}>
                     <Text style={styles.phaseType}>{capitalize(type)}</Text>
 
                     {endDate ? (

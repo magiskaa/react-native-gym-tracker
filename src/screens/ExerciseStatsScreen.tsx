@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 10,
         borderWidth: 1,
-        borderColor: "#2b2b2b",
+        borderColor: "#393939",
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#1a1a1a",
@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     },
     tab: { 
         width: "31%", 
-        backgroundColor: "#2b2b2b", 
+        backgroundColor: "#262626", 
         padding: 10, 
         borderRadius: 999,
     },
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     statsCard: {
-        backgroundColor: "#2b2b2b",
+        backgroundColor: "#262626",
         borderRadius: 14,
         padding: 12,
         borderWidth: 1,
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
     sessionContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        backgroundColor: "#2b2b2b",
+        backgroundColor: "#262626",
         padding: 8,
 		marginVertical: 6,
         borderRadius: 14,

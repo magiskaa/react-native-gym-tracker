@@ -18,7 +18,7 @@ export const ModalStyles = StyleSheet.create({
         borderRadius: 20,
         padding: 16,
         borderWidth: 1,
-        borderColor: "#1c1c1c"
+        borderColor: "#232323"
     },
     modalHeader: {
         flexDirection: "row",
@@ -60,7 +60,6 @@ export const ModalStyles = StyleSheet.create({
     },
     datePicker: {
         marginHorizontal: "auto",
-        marginVertical: 12,
     },
 });
 

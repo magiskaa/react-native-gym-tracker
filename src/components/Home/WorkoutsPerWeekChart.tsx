@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Text, useWindowDimensions, View } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Workout } from "../../services/workouts";
 import { ChartStyles } from "../../styles/ChartStyles";
 import { formatDateWOZeros, formatLocalDateISO } from "../../utils/Utils";
 
-type WorkoutsPerWeekChartProps = {
+type Props = {
     workouts: Workout[];
     weeksToShow?: number;
 };
@@ -23,7 +23,9 @@ const getWeekStartISO = (date: Date) => {
     return formatLocalDateISO(d);
 };
 
-export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: WorkoutsPerWeekChartProps) {
+export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Props) {
+    const { width } = useWindowDimensions();
+
     const { labels, data } = useMemo(() => {
         const weekCounts = new Map<string, number>();
         workouts.forEach((workout) => {
@@ -58,7 +60,9 @@ export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Work
         );
     }
 
-    const barWidth = Dimensions.get("window").width / 11.5;
+    const chartWidth = width - 108;
+    const barWidth = chartWidth / 8.5;
+
     const maxValue = Math.max(1, ...data);
     const barData = data.map((count, index) => ({
         value: count,
@@ -72,6 +76,7 @@ export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Work
                 height={200}
                 data={barData}
                 barWidth={barWidth}
+                width={chartWidth}
                 spacing={16}
                 barBorderRadius={8}
                 initialSpacing={0}

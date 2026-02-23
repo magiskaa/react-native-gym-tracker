@@ -127,11 +127,14 @@ export default function ActivePhase({
 		try {
             const newStartDate = formatLocalDateISO(updatedStartDate ?? startDate);
             let newEndDate: string | null;
+            
             if (updatedEndDate !== null && updatedEndDate !== undefined) {
                 newEndDate = formatLocalDateISO(updatedEndDate);
-            } else if (endDate) {
+            } 
+            else if (endDate) {
                 newEndDate = formatLocalDateISO(endDate);
-            } else {
+            } 
+            else {
                 newEndDate = null;
             }
 
@@ -198,7 +201,7 @@ export default function ActivePhase({
         <View>
             <BlurView
                 tint="dark"
-                intensity={60}
+                intensity={50}
                 style={{ position: 'absolute', top: -64, left: -16, right: -16, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
             >
                 <View style={CommonStyles.header}>
@@ -224,7 +227,7 @@ export default function ActivePhase({
                 showsVerticalScrollIndicator={false}
             >
                 <View style={[CommonStyles.componentContainer, CommonStyles.section, { marginTop: 0 }]}>
-                    <Text style={styles.phaseType}>{capitalize(type)}</Text>
+                    <Text style={[styles.phaseType, { marginBottom: 24 }]}>{capitalize(type)}</Text>
 
                     {endDate ? (
                         <View>
@@ -241,13 +244,13 @@ export default function ActivePhase({
                         </View>
                     ) : null}
 
-                    <View style={styles.phaseInfo}>
+                    <View style={[styles.phaseInfo, { marginBottom: 24 }]}>
                         <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>Start date:</Text>
+                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>Start date</Text>
                             <Text style={styles.dateText}>{formatDate(formatLocalDateISO(startDate))}</Text>
                         </View>
                         <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>End date:</Text>
+                            <Text style={[styles.centeredText, { color: "#20ca17" }]}>End date</Text>
                             <Text style={styles.dateText}>{endDate ? formatDate(formatLocalDateISO(endDate)) : "?"}</Text>
                         </View>
                     </View>
@@ -269,11 +272,11 @@ export default function ActivePhase({
 
                     <View style={styles.phaseInfo}>
                         <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight:</Text>
+                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Starting weight</Text>
                             <Text style={styles.weightText}>{startingWeight.toString()}kg</Text>
                         </View>
                         <View style={styles.infoBox}>
-                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal:</Text>
+                            <Text style={[styles.centeredText, { color: "#4a9eff" }]}>Weight goal</Text>
                             <Text style={styles.weightText}>{weightGoal ? weightGoal.toString() : "?"}kg</Text>
                         </View>
                     </View>
@@ -283,7 +286,7 @@ export default function ActivePhase({
                     <Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Charts</Text>
                     <View style={CommonStyles.componentContainer}>
                         {isHistoryLoading ? (
-                            <View style={{ paddingVertical: 24 }}>
+                            <View style={{ paddingVertical: 100 }}>
                                 <ActivityIndicator size="small" color="#20ca17" />
                             </View>
                         ) : (
@@ -296,8 +299,6 @@ export default function ActivePhase({
                     </View>
                 </View>
             </ScrollView>
-
-            {error ? <Text style={CommonStyles.error}>{error}</Text> : null}
 
             {isModalVisible ? (
                 <UpdatePhaseModal 
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
     },
     centeredText: {
         textAlign: "center",
-        fontSize: 12,
+        fontSize: 14,
         marginVertical: 2,
         color: "#f1f1f1",
     },

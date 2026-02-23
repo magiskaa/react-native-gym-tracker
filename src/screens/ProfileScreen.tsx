@@ -190,7 +190,7 @@ export default function ProfileScreen() {
 		<View style={CommonStyles.container}>
 			<BlurView
 				tint="dark"
-				intensity={60}
+				intensity={50}
 				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
 			>
 				<View style={CommonStyles.header}>

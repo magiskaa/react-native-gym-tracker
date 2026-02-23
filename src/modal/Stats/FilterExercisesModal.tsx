@@ -4,7 +4,6 @@ import {
     StyleSheet, 
     Text, 
     View,
-    FlatList
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { ModalStyles } from "../../styles/ModalStyles";
@@ -15,7 +14,6 @@ type Props = {
     visible: boolean;
     error: string | null;
     selectedGroups: Set<string>;
-    selectedCount: number;
     onToggleGroup: (name: string) => void;
     onClose: () => void;
 };
@@ -24,7 +22,6 @@ export default function FilterExercisesModal({
     visible,
     error,
     selectedGroups,
-    selectedCount,
     onToggleGroup,
     onClose
 }: Props) {
@@ -85,11 +82,7 @@ export default function FilterExercisesModal({
                         })}
                     </View>
 
-                    <View style={[ModalStyles.modalFooter, { justifyContent: "space-between" }]}>
-                        <Text style={ModalStyles.modalFooterText}>
-                            Selected: {selectedCount}
-                        </Text>
-                        
+                    <View style={ModalStyles.modalFooter}>                        
                         <Pressable 
                             onPress={() => { 
                                 onClose(); 

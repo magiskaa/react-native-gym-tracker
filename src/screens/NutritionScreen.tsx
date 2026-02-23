@@ -253,11 +253,23 @@ export default function NutritionScreen() {
         <View style={CommonStyles.container}>
             <BlurView
                 tint="dark"
-                intensity={60}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+                intensity={50}
+                style={CommonStyles.blurView}
             >
-                <View style={CommonStyles.header}>
-                    <Text style={CommonStyles.headerTitle}>Nutrition</Text>
+                <View style={[CommonStyles.header, { gap: 8 }]}>
+                    <Text style={[CommonStyles.headerTitle, { flex: 1 }]}>Nutrition</Text>
+                    <Pressable 
+                        onPress={() => {
+                            openModal(); 
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                        }}
+                        style={({ pressed }) => [
+                            pressed && CommonStyles.buttonPressed,
+                            { padding: 8 }
+                        ]}
+                    >
+                        <Entypo name="plus" size={24} color="#f1f1f1" />
+                    </Pressable>
                     <Pressable
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -281,75 +293,41 @@ export default function NutritionScreen() {
                 <View style={CommonStyles.section}>
                     <Text style={CommonStyles.title}>Today's Nutrition</Text>
                     <View style={[CommonStyles.componentContainer, styles.nutritionContainer]}>
-                        <View style={styles.progressContainer}>
-                            <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
-                                {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
-                                <Circle
-                                    progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
-                                    size={120}
-                                    thickness={10}
-                                    borderWidth={0}
-                                    color="#20ca17"
-                                    animated
-                                    showsText
-                                    formatText={() => `${calories}`}
-                                    textStyle={{ fontSize: 32 }}
-                                />
-                            </View>
-
-                            {isNutritionLoading ? (    
-                                <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 0 }} />
-                            ) : null}
-
-                            <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
-                                {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
-                                <Circle
-                                    progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
-                                    size={120}
-                                    thickness={10}
-                                    borderWidth={0}
-                                    color="#4a9eff"
-                                    animated
-                                    showsText
-                                    formatText={() => `${protein}`}
-                                    textStyle={{ fontSize: 32 }}
-                                />
-                            </View>
+                        <View style={{backgroundColor: "#20ca1720", borderRadius: 999}}>
+                            {/* <Text style={styles.progressTitle}>Calories / {calorieGoal}</Text> */}
+                            <Circle
+                                progress={(Number(calories || 0) / (calorieGoal || 1)) > 1 ? 1 : (Number(calories || 0) / (calorieGoal || 1))}
+                                size={150}
+                                thickness={10}
+                                borderWidth={0}
+                                color="#20ca17"
+                                animated
+                                showsText
+                                formatText={() => `${calories}`}
+                                textStyle={{ fontSize: 40 }}
+                            />
+                            <Text style={styles.nutritionUnitText}>kcal</Text>
                         </View>
 
-                        <View style={styles.buttonContainer}>
-                            <Pressable 
-                                onPress={() => {
-                                    navigation.navigate("NutritionHistory", {
-                                        nutrition
-                                    });
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                                }}
-                                style={({ pressed }) => [
-                                    CommonStyles.button,
-                                    pressed && CommonStyles.buttonPressed,
-                                    styles.actionButton,
-                                    { marginTop: 0 }
-                                ]}
-                            >
-                                <Entypo name="list" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
-                            </Pressable>
+                        {isNutritionLoading ? (
+                            <ActivityIndicator size="small" color="#20ca17" style={{ position: "absolute", bottom: 16 }} />
+                        ) : null}
 
-                            <Pressable 
-                                onPress={() => {
-                                    openModal(); 
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                                }}
-                                style={({ pressed }) => [
-                                    CommonStyles.button,
-                                    pressed && CommonStyles.buttonPressed,
-                                    styles.actionButton,
-                                    { marginTop: 0 }
-                                ]}
-                            >
-                                <Entypo name="plus" size={20} color="black" style={{ textAlign: "center", margin: "auto" }} />
-                            </Pressable>
-                        </View>
+                        <View style={{backgroundColor: "#4a9eff20", borderRadius: 999}}>
+                            {/* <Text style={styles.progressTitle}>Protein / {proteinGoal}</Text> */}
+                            <Circle
+                                progress={(Number(protein || 0) / (proteinGoal || 1)) > 1 ? 1 : (Number(protein || 0) / (proteinGoal || 1))}
+                                size={150}
+                                thickness={10}
+                                borderWidth={0}
+                                color="#4a9eff"
+                                animated
+                                showsText
+                                formatText={() => `${protein.toFixed(1)}`}
+                                textStyle={{ fontSize: 40 }}
+                            />
+                            <Text style={[styles.nutritionUnitText, { color: "#4a9eff" }]}>g</Text>
+                        </View> 
                     </View>
                 </View>
 
@@ -401,6 +379,21 @@ export default function NutritionScreen() {
 							}
 						]}
 					>
+                        <Pressable 
+                            onPress={() => {
+                                setIsMenuVisible(false);
+                                navigation.navigate("NutritionHistory", {
+                                    nutrition
+                                });
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                            }}
+                            style={({ pressed }) => [
+                                MenuStyles.menuItem,
+                                pressed && CommonStyles.buttonPressed
+                            ]}
+                        >
+                            <Text style={MenuStyles.menuText}>History</Text>
+                        </Pressable>
                         <Pressable
                             onPress={() => {
                                 setIsMenuVisible(false);
@@ -438,8 +431,18 @@ export default function NutritionScreen() {
 const styles = StyleSheet.create({
     nutritionContainer: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "space-evenly",
+        gap: 16,
         marginTop: 8,
+        paddingVertical: 24,
+    },
+    nutritionUnitText: { 
+        position: "absolute",
+        color: "#20ca17",
+        fontSize: 20,
+        bottom: 35,
+        width: "100%",
+        textAlign: "center",
     },
     progressContainer: {
         flexDirection: "row",
@@ -453,14 +456,5 @@ const styles = StyleSheet.create({
         textAlign: "center",
         marginBottom: 8,
         color: "#f1f1f1",
-    },
-    buttonContainer: {
-        flexDirection: "column",
-        justifyContent: "space-between",
-        gap: 16,
-    },
-    actionButton: {
-        width: 55,
-        height: 55,
     },
 });

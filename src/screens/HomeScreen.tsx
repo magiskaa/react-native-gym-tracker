@@ -85,11 +85,11 @@ export default function HomeScreen() {
 		<View style={CommonStyles.container}>
 			<BlurView
 				tint="dark"
-				intensity={60}
-				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+				intensity={50}
+				style={CommonStyles.blurView}
 			>
 				<View style={CommonStyles.header}>
-					<Text style={CommonStyles.headerTitle}>Home screen</Text>
+					<Text style={CommonStyles.headerTitle}>Home</Text>
 					<Pressable
 						onPress={() => {
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

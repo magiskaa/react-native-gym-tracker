@@ -17,6 +17,15 @@ export const CommonStyles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 	},
+	blurView: {
+		position: "absolute", 
+		top: 0, 
+		left: 0, 
+		right: 0, 
+		zIndex: 1, 
+		paddingTop: 64, 
+		paddingHorizontal: 16,
+	},
 	header: {
 		flexDirection: "row",
 		justifyContent: "space-between",

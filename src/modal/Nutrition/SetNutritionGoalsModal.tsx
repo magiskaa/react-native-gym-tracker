@@ -54,20 +54,22 @@ export default function SetNutritionGoalsModal({
                                 </Pressable>
                             </View>
 
-                            <TextInput 
-                                onChangeText={(value) => setCalorieGoal(Number(value))}
-                                placeholder="Calorie Goal"
-                                placeholderTextColor="#8b8b8b"
-                                keyboardType="number-pad"
-                                style={CommonStyles.input}
-                            />
-                            <TextInput 
-                                onChangeText={(value) => setProteinGoal(Number(value))}
-                                placeholder="Protein Goal"
-                                placeholderTextColor="#8b8b8b"
-                                keyboardType="number-pad"
-                                style={CommonStyles.input}
-                            />
+                            <View style={[CommonStyles.flexRow, { gap: 12 }]}>
+                                <TextInput 
+                                    onChangeText={(value) => setCalorieGoal(Number(value))}
+                                    placeholder="Calorie Goal"
+                                    placeholderTextColor="#8b8b8b"
+                                    keyboardType="number-pad"
+                                    style={[CommonStyles.input, { flex: 1 }]}
+                                />
+                                <TextInput 
+                                    onChangeText={(value) => setProteinGoal(Number(value))}
+                                    placeholder="Protein Goal"
+                                    placeholderTextColor="#8b8b8b"
+                                    keyboardType="number-pad"
+                                    style={[CommonStyles.input, { flex: 1 }]}
+                                />
+                            </View>
 
                             <View style={ModalStyles.modalFooter}>
                                 {error ? <Text style={ModalStyles.error}>{error}</Text> : null}

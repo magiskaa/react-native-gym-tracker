@@ -8,8 +8,7 @@ export const ChartStyles = StyleSheet.create({
         width: "100%",
     },
     emptyContainer: {
-        marginTop: 16,
-        padding: 20,
+        paddingVertical: 100,
         alignItems: "center",
     },
     emptyText: {
@@ -26,5 +25,16 @@ export const ChartStyles = StyleSheet.create({
     },
     chart: {
         marginLeft: -22,
+    },
+    yAxisText: {
+        color: "#767676", 
+        fontSize: 13, 
+        marginRight: 4,
+    },
+    xAxisText: {
+        color: "#767676", 
+        fontSize: 13, 
+        marginLeft: 0, 
+        width: 28,
     },
 });

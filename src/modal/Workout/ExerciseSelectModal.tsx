@@ -87,7 +87,6 @@ export default function ExerciseSelectModal({
                     <FlatList
                         data={exercises}
                         keyExtractor={(item) => item.id.toString()}
-                        style={{ paddingTop: 16 }}
                         renderItem={({ item }) => {
                             let isSelected = selectedIds.has(item.id);
                             if (isWorkoutActive) { isSelected = modifiedSelectedIds.has(item.id); }

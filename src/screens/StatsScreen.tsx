@@ -48,7 +48,6 @@ export default function StatsScreen() {
 	const menuAnim = useRef(new Animated.Value(0)).current;
 
 	const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
-	const selectedCount = useMemo(() => selectedGroups.size, [selectedGroups]);
 
 	const [favoriteExercises, setFavoriteExercises] = useState<FavoriteExercises[]>([]);
 	const [isFavoritesActive, setIsFavoritesActive] = useState<boolean>(false);
@@ -194,8 +193,8 @@ export default function StatsScreen() {
 		<View style={CommonStyles.container}>
 			<BlurView
 				tint="dark"
-				intensity={60}
-				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+				intensity={50}
+				style={CommonStyles.blurView}
 			>
 				<View style={[CommonStyles.header, { gap: 8 }]}>
 					<Text style={[CommonStyles.headerTitle, { flex: 1 }]}>Exercise Stats</Text>
@@ -223,9 +222,9 @@ export default function StatsScreen() {
 						]}
 					>
 						{isFavoritesActive ? (
-							<Entypo name="heart" size={26} color="#f1f1f1" />
+							<Entypo name="heart" size={24} color="#f1f1f1" />
 						) : (
-							<Entypo name="heart-outlined" size={26} color="#f1f1f1" />
+							<Entypo name="heart-outlined" size={24} color="#f1f1f1" />
 						)}
 					</Pressable>
 
@@ -317,7 +316,6 @@ export default function StatsScreen() {
 					visible={isFilterModalVisible}
 					error={error}
 					selectedGroups={selectedGroups}
-					selectedCount={selectedCount}
 					onToggleGroup={toggleGroup}
 					onClose={closeModal}
 				/>

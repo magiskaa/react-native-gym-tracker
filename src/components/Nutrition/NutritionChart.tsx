@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet, Dimensions, Alert } from "react-native";
-import { LineChart } from "react-native-chart-kit";
-import { formatDate, formatDateWOZeros } from "../../utils/Utils";
+import { View, Text, Alert, useWindowDimensions } from "react-native";
+import { formatDateWOZeros } from "../../utils/Utils";
 import { ChartStyles } from "../../styles/ChartStyles";
 import { useEffect, useState } from "react";
 import { Nutrition } from "../../services/nutrition";
 import { getNutritionGoals } from "../../services/nutritionGoals";
 import { useAuthContext } from "../../auth/UseAuthContext";
+import { LineChart } from "react-native-gifted-charts";
 
 
 type Props = {
@@ -14,7 +14,9 @@ type Props = {
 
 export default function NutritionChart({ history }: Props) {
     const { session } = useAuthContext();
+    const { width } = useWindowDimensions();
     const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
+    const [proteinGoal, setProteinGoal] = useState<number | null>(null);
 
     const loadData = async () => {
         if (!session?.user.id) { 
@@ -22,13 +24,20 @@ export default function NutritionChart({ history }: Props) {
             return; 
         }
 
-        const data = await getNutritionGoals(session.user.id);
-        setCalorieGoal(data[0].calorieGoal);
+        try {
+            const nutritionGoalsData = await getNutritionGoals(session.user.id);
+            setCalorieGoal(nutritionGoalsData[0].calorieGoal);
+            setProteinGoal(nutritionGoalsData[0].proteinGoal);
+
+        } catch (error) {
+			Alert.alert("Failed to load data", "Please try again later");
+			console.error(`Failed to load data: ${error}`);
+        }
     };
 
     useEffect(() => {
         loadData();
-    });
+    }, [session?.user.id]);
 
     if (history.length === 0) {
         return (
@@ -38,7 +47,13 @@ export default function NutritionChart({ history }: Props) {
         );
     }
 
-    const chartWidth = Dimensions.get("window").width - 50;
+    const chartWidth = width - 108;
+    const pointCount = history.length;
+    const edgeSpacing = 16;
+    const usableWidth = Math.max(0, chartWidth - edgeSpacing * 2);
+    const dynamicSpacing = pointCount > 1
+        ? Math.max(1, Math.floor(usableWidth / (pointCount - 1)))
+        : 0;
 
     const reversed = [...history].reverse();
 
@@ -47,93 +62,85 @@ export default function NutritionChart({ history }: Props) {
     const step = Math.max(1, Math.ceil(rawLabels.length / maxLabels));
     const labels = rawLabels.map((label, i) => (i % step === 0 ? label : ""));
 
-    const calorieChartData = {
-        labels,
-        datasets: [
-            {
-                data: reversed.map((h) => (h.calories || 0)),
-                color: () => "#20ca17",
-                strokeWidth: 2,
-                withDots: true,
-            },
-            {
-                data: reversed.map(() => (calorieGoal || 0)),
-                color: () => "#626262",
-                strokeWidth: 2,
-                withDots: false,
-            },
-        ],
-    };
-    
-    const proteinChartData = {
-        labels,
-        datasets: [
-            {
-                data: reversed.map((h) => (h.protein || 0)),
-                color: () => "#4a9eff",
-                strokeWidth: 2,
-                withDots: true,
-            },
-            {
-                data: reversed.map(() => 150),
-                color: () => "#626262",
-                strokeWidth: 2,
-                withDots: false,
-            },
-        ],
-    };
+    const calorieGoalData = reversed.map(() => ({value: calorieGoal || 0}));
+    const calorieData = reversed.map((h, index) => ({
+        value: h.calories || 0,
+        label: labels[index],
+    }));
 
+    const proteinGoalData = reversed.map(() => ({value: proteinGoal || 0}));
+    const proteinData = reversed.map((h, index) => ({
+        value: h.protein || 0,
+        label: labels[index],
+    }));
+    
     return (
-        <View style={ChartStyles.container}>
+        <View style={{}}>
             <Text style={ChartStyles.chartTitle}>Calories</Text>
             <LineChart
-                data={calorieChartData}
+                isAnimated
                 width={chartWidth}
-                height={220}
-                chartConfig={{
-                    decimalPlaces: 0,
-                    color: () => "#20ca17",
-                    labelColor: () => "#f1f1f1",
-                    propsForLabels: {
-                        fontSize: 12,
-                    }
-                }}
-                yAxisLabel=""
-                yAxisSuffix=""
-                fromZero={false}
-                segments={5}
-                style={{ ...ChartStyles.chart, ...styles.chart }}
-                bezier
-                transparent
+                adjustToWidth
+                thickness1={2}
+                thickness2={2}
+                color1="#20ca17"
+                color2="#868686"
+                noOfSections={4}
+                animateOnDataChange
+                animationDuration={500}
+                onDataChangeAnimationDuration={300}
+                areaChart1
+                yAxisTextStyle={ChartStyles.yAxisText}
+                xAxisLabelTextStyle={ChartStyles.xAxisText}
+                data={calorieData}
+                data2={calorieGoalData}
+                hideDataPoints1
+                hideDataPoints2
+                startFillColor1={"#20ca17"}
+                endFillColor1={"#20ca17"}
+                startOpacity1={0.45}
+                endOpacity1={0.01}
+                spacing={dynamicSpacing}
+                rulesColor="#393939"
+                rulesType="solid"
+                initialSpacing={edgeSpacing}
+                endSpacing={0}
+                yAxisThickness={0}
+                xAxisColor="#767676"
             />
 
-            <Text style={ChartStyles.chartTitle}>Protein</Text>
+            <Text style={[ChartStyles.chartTitle, { marginTop: 32 }]}>Protein</Text>
             <LineChart
-                data={proteinChartData}
+                isAnimated
                 width={chartWidth}
-                height={220}
-                chartConfig={{
-                    decimalPlaces: 0,
-                    color: () => "#4a9eff",
-                    labelColor: () => "#f1f1f1",
-                    propsForLabels: {
-                        fontSize: 12,
-                    }
-                }}
-                yAxisLabel=""
-                yAxisSuffix=""
-                fromZero={false}
-                segments={5}
-                style={ChartStyles.chart}
-                bezier
-                transparent
+                adjustToWidth
+                thickness1={2}
+                thickness2={2}
+                color1="#4a9eff"
+                color2="#868686"
+                noOfSections={4}
+                animateOnDataChange
+                animationDuration={500}
+                onDataChangeAnimationDuration={300}
+                areaChart1
+                yAxisTextStyle={ChartStyles.yAxisText}
+                xAxisLabelTextStyle={ChartStyles.xAxisText}
+                data={proteinData}
+                data2={proteinGoalData}
+                hideDataPoints1
+                hideDataPoints2
+                startFillColor1={"#4a9eff"}
+                endFillColor1={"#4a9eff"}
+                startOpacity1={0.45}
+                endOpacity1={0.01}
+                spacing={dynamicSpacing}
+                rulesColor="#393939"
+                rulesType="solid"
+                initialSpacing={edgeSpacing}
+                endSpacing={0}
+                yAxisThickness={0}
+                xAxisColor="#767676"
             />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    chart: {
-        marginBottom: 12
-    },
-});

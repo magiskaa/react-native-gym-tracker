@@ -80,27 +80,29 @@ export default function UpdatePhaseModal({
                         <Picker
                             selectedValue={type}
                             onValueChange={(value) => setType(value)}
-                            style={{marginBottom: -12, marginTop: -32}}
+                            style={{ marginBottom: -4, marginTop: -28 }}
                         >
                             <Item label="Bulk" value="bulk" />
                             <Item label="Maintain" value="maintain" />
                             <Item label="Cut" value="cut" />
                         </Picker>
                         
-                        <TextInput
-                            onChangeText={(value) => setStartingWeight(Number(value.replace(",", ".")))}
-                            placeholder="Starting weight"
-                            placeholderTextColor="#8b8b8b"
-                            keyboardType="numeric"
-                            style={CommonStyles.input}
-                        />
-                        <TextInput
-                            onChangeText={(value) => setWeightGoal(Number(value.replace(",", ".")))}
-                            placeholder="Weight goal (optional)"
-                            placeholderTextColor="#8b8b8b"
-                            keyboardType="numeric"
-                            style={CommonStyles.input}
-                        />
+                        <View style={[CommonStyles.flexRow, { gap: 12 }]}>
+                            <TextInput
+                                onChangeText={(value) => setStartingWeight(Number(value.replace(",", ".")))}
+                                placeholder="Starting weight"
+                                placeholderTextColor="#8b8b8b"
+                                keyboardType="numeric"
+                                style={[CommonStyles.input, { flex: 1 }]}
+                            />
+                            <TextInput
+                                onChangeText={(value) => setWeightGoal(Number(value.replace(",", ".")))}
+                                placeholder="Weight goal (optional)"
+                                placeholderTextColor="#8b8b8b"
+                                keyboardType="numeric"
+                                style={[CommonStyles.input, { flex: 1 }]}
+                            />
+                        </View>
 
                         <View style={styles.switch}>
                             <Text style={styles.switchText}>{isEndDateActive ? "End date (optional)" : "Start date"}</Text>
@@ -161,8 +163,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginTop: 12,
-        marginBottom: -12,
+        marginTop: 4,
+        paddingHorizontal: 6,
     },
     switchText: {
         fontSize: 18,

@@ -57,7 +57,7 @@ export const toastConfig = {
     ),
 };
 
-export const useToast = (type: string, text1: string, text2: string, time: number = 6000) => {
+export const useToast = (type: string, text1: string, text2: string, time: number = 4000) => {
     Toast.show({
         type,
         text1,

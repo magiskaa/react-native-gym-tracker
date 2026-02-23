@@ -57,27 +57,28 @@ export default function LogCaloriesModal({
                             </Pressable>
                         </View>
 
-                        <TextInput 
-                            onChangeText={(value) => setCalories(Number(value))}
-                            placeholder="Calories"
-                            placeholderTextColor="#8b8b8b"
-                            keyboardType="number-pad"
-                            style={CommonStyles.input}
-                        />
-                        <TextInput 
-                            onChangeText={(value) => setProtein(Number(value))}
-                            placeholder="Protein"
-                            placeholderTextColor="#8b8b8b"
-                            keyboardType="number-pad"
-                            style={CommonStyles.input}
-                        />
-
-                        <View style={styles.switch}>
-                            <Text style={styles.switchText}>Remove</Text>
-                            <Switch 
-                                value={isRemoveActive} 
-                                onValueChange={(value) => { setIsRemoveActive(value); }}
+                        <View style={[CommonStyles.flexRow, { gap: 12 }]}>
+                            <TextInput 
+                                onChangeText={(value) => setCalories(Number(value))}
+                                placeholder="Calories"
+                                placeholderTextColor="#8b8b8b"
+                                keyboardType="number-pad"
+                                style={[CommonStyles.input, { flex: 1 }]}
                             />
+                            <TextInput 
+                                onChangeText={(value) => setProtein(Number(value.replace(",", ".")))}
+                                placeholder="Protein"
+                                placeholderTextColor="#8b8b8b"
+                                keyboardType="numeric"
+                                style={[CommonStyles.input, { flex: 1 }]}
+                            />
+                            <View style={styles.switch}>
+                                <Text style={styles.switchText}>Remove</Text>
+                                <Switch 
+                                    value={isRemoveActive} 
+                                    onValueChange={(value) => { setIsRemoveActive(value); }}
+                                />
+                            </View>
                         </View>
 
                         <DateTimePicker
@@ -88,7 +89,7 @@ export default function LogCaloriesModal({
                             mode="date"
                             display="spinner"
                             themeVariant="dark"
-                            style={[ModalStyles.datePicker, { marginTop: 22 }]}
+                            style={ModalStyles.datePicker}
                         />
 
                         <View style={ModalStyles.modalFooter}>
@@ -115,15 +116,14 @@ export default function LogCaloriesModal({
 
 const styles = StyleSheet.create({
     switch: {
-        position: "absolute",
-        top: 170,
-        right: 16,
-        flexDirection: "row",
+        flexDirection: "column",
+        justifyContent: "space-between",
         alignItems: "center",
+        marginTop: -22,
+        paddingLeft: 8,
     },
     switchText: {
         color: "#767676",
-        marginRight: 8,
     },
 });
 

@@ -106,12 +106,12 @@ export default function HomeScreen() {
 			</BlurView>
 
 			<ScrollView 
-				style={{ paddingTop: 56 }}
+				style={CommonStyles.scrollView}
 				contentContainerStyle={CommonStyles.scrollViewContentContainer}
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={CommonStyles.section}>
-					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Sets</Text>
+					<Text style={CommonStyles.title}>Weekly Sets</Text>
 					<SetsPerWeek 
 						setCounts={setCounts}
 						isLoading={isHomeLoading}
@@ -119,14 +119,14 @@ export default function HomeScreen() {
 				</View>
 
 				<View style={CommonStyles.section}>
-					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Weekly Workouts</Text>
+					<Text style={CommonStyles.title}>Weekly Workouts</Text>
 					<View style={CommonStyles.componentContainer}>
 						<WorkoutsPerWeekChart workouts={workouts} />
 					</View>
 				</View>
 
 				<View style={CommonStyles.section}>
-					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Recent Workouts</Text>
+					<Text style={CommonStyles.title}>Recent Workouts</Text>
 					<RecentWorkouts 
 						workouts={workouts}
 						isLoading={isHomeLoading}

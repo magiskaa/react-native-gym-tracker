@@ -44,7 +44,7 @@ export const CommonStyles = StyleSheet.create({
     },
 	title: {
         fontSize: 22,
-        marginVertical: 8,
+        marginBottom: 16,
         marginHorizontal: 4,
         fontWeight: "700",
         color: "#f1f1f1",
@@ -52,6 +52,9 @@ export const CommonStyles = StyleSheet.create({
     },
 	secondTitle: {
 		marginBottom: 16,
+	},
+	scrollView: {
+		paddingTop: 68,
 	},
 	scrollViewContentContainer: {
 		paddingBottom: 160,
@@ -110,6 +113,22 @@ export const CommonStyles = StyleSheet.create({
 	buttonPressed: {
 		opacity: 0.7,
 	},
+	headerIcon: {
+		padding: 8,
+	},
+	headerIconPressed: {
+		transform: [{scale: 1.25}],
+	},
+	backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: "#393939",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#1a1a1a",
+    },
     listContent: {
         flexDirection: "row",
         flexWrap: "nowrap",

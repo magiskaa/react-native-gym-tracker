@@ -222,11 +222,11 @@ export default function ActivePhase({
             </BlurView>
 
             <ScrollView 
-                style={{ paddingTop: 80 }}
+                style={CommonStyles.scrollView}
                 contentContainerStyle={CommonStyles.scrollViewContentContainer}
                 showsVerticalScrollIndicator={false}
             >
-                <View style={[CommonStyles.componentContainer, CommonStyles.section, { marginTop: 0 }]}>
+                <View style={[CommonStyles.componentContainer, CommonStyles.section]}>
                     <Text style={[styles.phaseType, { marginBottom: 24 }]}>{capitalize(type)}</Text>
 
                     {endDate ? (

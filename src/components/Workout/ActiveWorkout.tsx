@@ -55,19 +55,14 @@ export default function ActiveWorkout({
     setIsWorkoutActive,
     setSelectedIds
 }: Props) {
-    useEffect(() => {
-        if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-            UIManager.setLayoutAnimationEnabledExperimental(true);
-        }
-    }, []);
-
+    
     const { session } = useAuthContext();
     const startTime = useRef(Date.now() / 1000);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
     
     const [setsByExercise, setSetsByExercise] = useState<Record<string, { reps: string; weight: string }[]>>({});
     const [name, setName] = useState<string>("");
-
+    
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
     const menuAnim = useRef(new Animated.Value(0)).current;
     const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -110,9 +105,15 @@ export default function ActiveWorkout({
     };
 
     useEffect(() => {
+        if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+            UIManager.setLayoutAnimationEnabledExperimental(true);
+        }
+    }, []);
+
+    useEffect(() => {
         loadData();
     }, [session?.user.id]);
-
+    
     useEffect(() => {
         setSetsByExercise((prev) => {
             if (!exercises) { return prev; }
@@ -309,8 +310,8 @@ export default function ActiveWorkout({
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             }}
                             style={({ pressed }) => [
-                                pressed && CommonStyles.buttonPressed,
-							    { padding: 8 }
+                                pressed && CommonStyles.buttonPressed && CommonStyles.headerIconPressed,
+							    CommonStyles.headerIcon
                             ]}
                         >
                             <Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />

@@ -64,7 +64,7 @@ export default function ExerciseStatsScreen() {
     const loadData = async () => {
 		if (!session?.user.id) { 
 			Alert.alert("Failed to load data", "Please sign in again");
-			return { startDate: null, endDate: null}; 
+			return; 
 		}
 
         try {

@@ -16,6 +16,7 @@ type Props = {
     selectedGroups: Set<string>;
     onToggleGroup: (name: string) => void;
     onClose: () => void;
+    onUpdate: () => void;
 };
 
 export default function FilterExercisesModal({ 
@@ -23,7 +24,8 @@ export default function FilterExercisesModal({
     error,
     selectedGroups,
     onToggleGroup,
-    onClose
+    onClose,
+    onUpdate
 }: Props) {
     const muscleGroups = ["chest", "shoulders", "biceps", "triceps", "legs", "back", "abs"];
     const muscleGroupColors = new Map([
@@ -48,7 +50,7 @@ export default function FilterExercisesModal({
                     <View style={ModalStyles.modalHeader}>
                         <Text style={ModalStyles.modalTitle}>Filter exercises</Text>
 
-                        <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium) }}>
+                        <Pressable onPress={() => { onClose(); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) }}>
                             <Text style={ModalStyles.modalClose}>Close</Text>
                         </Pressable>
                     </View>
@@ -63,19 +65,24 @@ export default function FilterExercisesModal({
                                         CommonStyles.flexRow,
                                         pressed && CommonStyles.buttonPressed,
                                         isSelected && styles.muscleGroupSelected,
-                                        { marginBottom: 8, padding: 12, justifyContent: "flex-start" }
+                                        { marginBottom: 9, padding: 12, justifyContent: "flex-start" }
                                     ]} 
                                     key={group}
                                     onPress={() => {
-                                        onToggleGroup(group); 
+                                        onToggleGroup(group);
+                                        onUpdate();
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                     }}
                                 >
                                     <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(group) }]} />
                                     <Text style={styles.muscleGroupName}>{capitalize(group)}</Text>
 
-                                    <Text style={styles.exerciseSelected}>
-                                        {isSelected ? "Selected" : ""}
+                                    <Text style={[
+                                            styles.exerciseSelectedText,
+                                            !isSelected && styles.hiddenSelectedText
+                                        ]}
+                                    >
+                                        Selected
                                     </Text>
                                 </Pressable>
                             )
@@ -121,10 +128,15 @@ const styles = StyleSheet.create({
         fontSize: 16,
         flex: 1
     },
-    exerciseSelected: {
+    exerciseSelectedText: {
         color: "#20ca17",
         fontSize: 12,
         fontWeight: "600",
+        minWidth: 70,
+        textAlign: "right",
+    },
+    hiddenSelectedText: {
+        opacity: 0,
     },
     listContent: {
         paddingBottom: 16,

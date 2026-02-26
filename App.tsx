@@ -1,20 +1,20 @@
-import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import { View, ActivityIndicator } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import Toast from 'react-native-toast-message';
-import { toastConfig } from './src/components/ToastConfig';
+import Toast from "react-native-toast-message";
+import { toastConfig } from "./src/components/ToastConfig";
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from 'expo-haptics';
+import * as Haptics from "expo-haptics";
 import HomeScreen from "./src/screens/HomeScreen";
-import WorkoutScreen from "./src/screens/WorkoutScreen";
-import NutritionStack from './src/navigation/NutritionStack';
+import WorkoutStack from "./src/navigation/WorkoutStack";
+import NutritionStack from "./src/navigation/NutritionStack";
 import PhaseScreen from "./src/screens/PhaseScreen";
 import StatsStack from "./src/navigation/StatsStack";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import LoginScreen from "./src/screens/LoginScreen";
-import { useAuthContext } from './src/auth/UseAuthContext';
-import AuthProvider from './src/auth/AuthProvider';
+import { useAuthContext } from "./src/auth/UseAuthContext";
+import AuthProvider from "./src/auth/AuthProvider";
 import { BlurView } from "expo-blur";
 
 
@@ -104,7 +104,7 @@ function AppContent() {
                 }}
             >
                 <Tab.Screen name="Home" component={HomeScreen} />
-                <Tab.Screen name="Workout" component={WorkoutScreen} />
+                <Tab.Screen name="Workout" component={WorkoutStack} />
                 <Tab.Screen name="Stats" component={StatsStack} />
                 <Tab.Screen name="Nutrition" component={NutritionStack} />
                 <Tab.Screen name="Phase" component={PhaseScreen} />

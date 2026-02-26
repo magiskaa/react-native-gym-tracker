@@ -191,7 +191,7 @@ export default function ProfileScreen() {
 			<BlurView
 				tint="dark"
 				intensity={50}
-				style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, paddingTop: 64, paddingHorizontal: 16 }}
+				style={CommonStyles.blurView}
 			>
 				<View style={CommonStyles.header}>
 					<Text style={CommonStyles.headerTitle}>Profile</Text>
@@ -211,7 +211,7 @@ export default function ProfileScreen() {
 			</BlurView>
 
 			<ScrollView
-				style={{ paddingTop: 56 }}
+				style={CommonStyles.scrollView}
 				contentContainerStyle={CommonStyles.scrollViewContentContainer}
 				showsVerticalScrollIndicator={false}
 			>

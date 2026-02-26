@@ -286,7 +286,7 @@ export default function NutritionScreen() {
             </BlurView>
 
             <ScrollView 
-                style={{ paddingTop: 56 }}
+                style={CommonStyles.scrollView}
                 contentContainerStyle={CommonStyles.scrollViewContentContainer}
                 showsVerticalScrollIndicator={false}
             >

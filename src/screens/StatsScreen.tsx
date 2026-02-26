@@ -8,7 +8,11 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	Animated
+	Animated,
+	useWindowDimensions,
+	LayoutAnimation,
+	Platform,
+	UIManager,
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import AddExerciseModal from "../modal/Stats/AddExerciseModal";
@@ -36,6 +40,8 @@ export default function StatsScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<StatsStackParamList, "StatsList">>();
 	const route = useRoute<RouteProp<StatsStackParamList, "StatsList">>();
 	const [error, setError] = useState<string | null>(null);
+	const { height } = useWindowDimensions();
+
 	const [exerciseName, setExerciseName] = useState<string>("");
 	const [muscleGroup, setMuscleGroup] = useState<string>("chest");
 
@@ -97,6 +103,12 @@ export default function StatsScreen() {
 			loadData();
 		}
 	}, [session?.user.id]);
+
+	useEffect(() => {
+		if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+			UIManager.setLayoutAnimationEnabledExperimental(true);
+		}
+	}, []);
 
 	useEffect(() => {
 		const openExercise = route.params?.openExercise;
@@ -189,6 +201,24 @@ export default function StatsScreen() {
 		});
 	};
 
+	const runLayoutAnimation = () => {
+		LayoutAnimation.configureNext({
+			duration: 300,
+			create: {
+				type: LayoutAnimation.Types.easeInEaseOut,
+				property: LayoutAnimation.Properties.scaleY,
+			},
+			update: {
+				type: LayoutAnimation.Types.easeInEaseOut,
+			},
+			delete: {
+				type: LayoutAnimation.Types.easeInEaseOut,
+				property: LayoutAnimation.Properties.scaleY,
+				duration: 150,
+			},
+		});
+	};
+
 	return (
 		<View style={CommonStyles.container}>
 			<BlurView
@@ -204,8 +234,8 @@ export default function StatsScreen() {
 							openFilterModal();
 						}}
 						style={({ pressed }) => [
-							pressed && CommonStyles.buttonPressed,
-							{ padding: 8 }
+							pressed && CommonStyles.buttonPressed && CommonStyles.headerIconPressed,
+							CommonStyles.headerIcon
 						]}
 					>
 						<Feather name="filter" size={24} color="#f1f1f1" />
@@ -214,11 +244,12 @@ export default function StatsScreen() {
 					<Pressable
 						onPress={() => {
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+							runLayoutAnimation();
 							setIsFavoritesActive(!isFavoritesActive);
 						}}
 						style={({ pressed }) => [
-							pressed && CommonStyles.buttonPressed,
-							{ padding: 8 }
+							pressed && CommonStyles.buttonPressed && CommonStyles.headerIconPressed,
+							CommonStyles.headerIcon
 						]}
 					>
 						{isFavoritesActive ? (
@@ -234,92 +265,14 @@ export default function StatsScreen() {
 							openMenu();
 						}}
 						style={({ pressed }) => [
-							pressed && CommonStyles.buttonPressed,
-							{ padding: 8 }
+							pressed && CommonStyles.buttonPressed && CommonStyles.headerIconPressed,
+							CommonStyles.headerIcon
 						]}
 					>
 						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
 					</Pressable>
 				</View>
 			</BlurView>
-
-			<FlatList
-				data={exercises ?? []}
-                showsVerticalScrollIndicator={false}
-				keyExtractor={(item) => item.id.toString()}
-                style={CommonStyles.list}
-				renderItem={({ item }) => {
-					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
-						return (<View></View>);
-					}
-					if (isFavoritesActive && !favoriteExercises[0].favorites?.includes(item.id)) {
-						return (<View></View>);
-					}
-
-					return (
-						<Pressable
-							onPress={() => {
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-								navigation.navigate("ExerciseStats", {
-									exerciseId: item.id,
-									name: item.name,
-									muscleGroup: item.muscleGroup,
-									eliteBWRatio: item.eliteBWRatio,
-									eliteReps: item.eliteReps,
-						            favoriteExercises: favoriteExercises[0],
-								});
-							}}
-							style={({ pressed }) => [
-								CommonStyles.componentContainer,
-								pressed && CommonStyles.buttonPressed,
-								{ marginBottom: 13, flexDirection: "row", alignItems: "center" }
-							]}
-						>
-							<View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
-							<View style={styles.cardHeader}>
-								<View style={{ gap: 2 }}>
-									<Text style={styles.cardTitle}>{item.name}</Text>
-									<Text style={styles.cardSubtitle}>
-										{item.muscleGroup}
-									</Text>
-								</View>
-								<Ionicons name="chevron-forward" size={18} color="#6f6f6f" />
-							</View>
-						</Pressable>
-					);
-				}}
-				contentContainerStyle={styles.listContent}
-				ListEmptyComponent={
-					isExercisesLoading ? (
-						<ActivityIndicator size="small" color="#20ca17" />
-					) : (
-						<Text style={CommonStyles.empty}>No exercises yet</Text>
-					)
-				}
-			/>
-
-			{isModalVisible ? (
-				<AddExerciseModal 
-					visible={isModalVisible}
-					error={error}
-					exerciseName={exerciseName}
-					muscleGroup={muscleGroup}
-					setExerciseName={setExerciseName}
-					setMuscleGroup={setMuscleGroup}
-					onClose={closeModal}
-					onConfirm={handleAddExercise}
-				/>
-			) : null}
-
-			{isFilterModalVisible ? (
-				<FilterExercisesModal 
-					visible={isFilterModalVisible}
-					error={error}
-					selectedGroups={selectedGroups}
-					onToggleGroup={toggleGroup}
-					onClose={closeModal}
-				/>
-			) : null}
 
 			<Modal
 				transparent
@@ -340,7 +293,8 @@ export default function StatsScreen() {
 						<Pressable
 							onPress={() => {
 								setIsMenuVisible(false);
-								openModal();
+								Alert.alert("Add exercise", "Maybe coming soon");
+								// openModal();
 								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 							}}
 							style={({ pressed }) => [
@@ -367,6 +321,85 @@ export default function StatsScreen() {
 					</Animated.View>
 				</Pressable>
 			</Modal>
+
+			<FlatList
+				data={exercises || []}
+                showsVerticalScrollIndicator={false}
+				keyExtractor={(item) => item.id.toString()}
+                style={CommonStyles.list}
+				renderItem={({ item }) => {
+					if (!selectedGroups.has(item.muscleGroup.toLowerCase()) && selectedGroups.size !== 0) {
+						return (<View></View>);
+					}
+					if (isFavoritesActive && !favoriteExercises[0].favorites?.includes(item.id)) {
+						return (<View></View>);
+					}
+
+					return (
+						<Pressable
+							onPress={() => {
+								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+								navigation.navigate("ExerciseStats", {
+									exerciseId: item.id,
+									name: item.name,
+									muscleGroup: item.muscleGroup,
+									eliteBWRatio: item.eliteBWRatio,
+									eliteReps: item.eliteReps,
+						            favoriteExercises: favoriteExercises[0],
+								});
+							}}
+							style={({ pressed }) => [
+								CommonStyles.componentContainer,
+								pressed && CommonStyles.buttonPressed,
+								styles.exerciseCard
+							]}
+						>
+							<View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
+							<View style={styles.cardHeader}>
+								<View style={{ gap: 2 }}>
+									<Text style={styles.cardTitle}>{item.name}</Text>
+									<Text style={styles.cardSubtitle}>
+										{item.muscleGroup}
+									</Text>
+								</View>
+								<Ionicons name="chevron-forward" size={18} color="#6f6f6f" />
+							</View>
+						</Pressable>
+					);
+				}}
+				contentContainerStyle={styles.listContent}
+				ListEmptyComponent={
+					isExercisesLoading ? (
+						<ActivityIndicator size="small" color="#20ca17" style={{ height: height - 250 }} />
+					) : (
+						<Text style={CommonStyles.empty}>No exercises yet</Text>
+					)
+				}
+			/>
+
+			{isModalVisible ? (
+				<AddExerciseModal 
+					visible={isModalVisible}
+					error={error}
+					exerciseName={exerciseName}
+					muscleGroup={muscleGroup}
+					setExerciseName={setExerciseName}
+					setMuscleGroup={setMuscleGroup}
+					onClose={closeModal}
+					onConfirm={handleAddExercise}
+				/>
+			) : null}
+
+			{isFilterModalVisible ? (
+				<FilterExercisesModal 
+					visible={isFilterModalVisible}
+					error={error}
+					selectedGroups={selectedGroups}
+					onToggleGroup={toggleGroup}
+					onClose={closeModal}
+					onUpdate={runLayoutAnimation}
+				/>
+			) : null}
 		</View>
 	);
 }
@@ -375,6 +408,11 @@ const styles = StyleSheet.create({
 	listContent: {
 		paddingTop: 80,
 		paddingBottom: 160,
+	},
+	exerciseCard: { 
+		marginBottom: 13, 
+		flexDirection: "row", 
+		alignItems: "center",
 	},
     accent: {
         width: 6,

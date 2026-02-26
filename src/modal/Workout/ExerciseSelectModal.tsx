@@ -72,7 +72,7 @@ export default function ExerciseSelectModal({
         >
             <View style={ModalStyles.modalOverlay}>
                 <View style={[ModalStyles.modalSheet, { height: "70%" }]}>
-                    <View style={ModalStyles.modalHeader}>
+                    <View style={[ModalStyles.modalHeader, { marginBottom: 0 }]}>
                         <Text style={ModalStyles.modalTitle}>Select exercises</Text>
 
                         <Pressable onPress={() => {
@@ -87,6 +87,7 @@ export default function ExerciseSelectModal({
                     <FlatList
                         data={exercises}
                         keyExtractor={(item) => item.id.toString()}
+                        style={{ paddingTop: 24 }}
                         renderItem={({ item }) => {
                             let isSelected = selectedIds.has(item.id);
                             if (isWorkoutActive) { isSelected = modifiedSelectedIds.has(item.id); }

@@ -27,6 +27,7 @@ import { addSet } from "../services/sets";
 import { formatLocalDateISO } from "../utils/Utils";
 import { addWorkout } from "../services/workouts";
 import { addWorkoutExercise } from "../services/workoutExercises";
+import { useWorkoutSelection } from "../components/Workout/WorkoutContext";
 
 
 export default function WorkoutScreen() {
@@ -36,9 +37,9 @@ export default function WorkoutScreen() {
 
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
-	const [isWorkoutActive, setIsWorkoutActive] = useState<boolean>(false);
 
-	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+	const { selectedIds, setSelectedIds, toggleExercise, isWorkoutActive, startWorkoutSession, resetWorkoutSession, } = useWorkoutSelection();
+
 	const selectedCount = selectedIds.size;
 	
 	const [exercises, setExercises] = useState<Exercise[] | null>([]);
@@ -79,18 +80,6 @@ export default function WorkoutScreen() {
 		}
 	}, [session?.user.id]);	
 
-	const toggleExercise = (id: number) => {
-		setSelectedIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
-			return next;
-		});
-	};
-
 	const startWorkout = () => {
 		if (selectedIds.size === 0) {
 			setError("Select at least one exercise");
@@ -98,15 +87,11 @@ export default function WorkoutScreen() {
 		}
 	
 		if (!isWorkoutActive) {
-			setIsWorkoutActive(true);
-			setError(null);
+			startWorkoutSession(selectedIds);
 			closeModal();
 			navigation.navigate("ActiveWorkout", {
 				exercises,
 				favoriteExercises,
-				selectedIds,
-				setSelectedIds,
-				setIsModalVisible,
 				deleteWorkout,
 				endWorkout,
 			});
@@ -116,8 +101,7 @@ export default function WorkoutScreen() {
 	};
 
 	const deleteWorkout = () => {
-		setIsWorkoutActive(false);
-		setSelectedIds(new Set());
+		resetWorkoutSession();
 		navigation.navigate("WorkoutMain");
 		useToast("success", "Workout deleted", "Your workout was deleted succesfully");
 	};
@@ -183,8 +167,7 @@ export default function WorkoutScreen() {
 				}
 			}
 
-			setIsWorkoutActive(false);
-			setSelectedIds(new Set());
+			resetWorkoutSession();
 			navigation.navigate("WorkoutMain");
 			useToast("success", "Workout logged", "Your workout was added succesfully");
 
@@ -194,14 +177,14 @@ export default function WorkoutScreen() {
 		}
 	};
 
-	const closeModal = () => {
-		setIsModalVisible(false);
-		setError(null);
-	};
-
 	const openModal = () => {
 		setError(null);
 		setIsModalVisible(true);
+	};
+
+	const closeModal = () => {
+		setIsModalVisible(false);
+		setError(null);
 	};
 
 	const openMenu = () => {
@@ -310,9 +293,6 @@ export default function WorkoutScreen() {
 									navigation.navigate("ActiveWorkout", {
 										exercises,
 										favoriteExercises,
-										selectedIds,
-										setSelectedIds,
-										setIsModalVisible,
 										deleteWorkout,
 										endWorkout,
 									});
@@ -358,7 +338,7 @@ export default function WorkoutScreen() {
                 visible={isModalVisible}
                 exercises={exercises}
 				isLoading={isExercisesLoading}
-				isWorkoutActive={isWorkoutActive}
+				isWorkoutActive={false}
                 selectedIds={selectedIds}
                 selectedCount={selectedCount}
                 error={error}

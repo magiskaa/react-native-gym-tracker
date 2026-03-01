@@ -32,8 +32,7 @@ export default function ExerciseSelectModal({
     onClose,
     onConfirm,
 }: Props) {
-    const [modifiedSelectedIds, setModifiedSelectedIds] = useState<Set<number>>(selectedIds);
-    const modifiedSelectedCount = useMemo(() => modifiedSelectedIds.size, [modifiedSelectedIds]);
+    const modifiedSelectedCount = selectedIds.size;
     
     const muscleGroupColors = new Map([
 		["Chest", "#9f0fca"],
@@ -46,22 +45,11 @@ export default function ExerciseSelectModal({
 	]);
 
     const toggleModifiedExercise = (id: number) => {
-		setModifiedSelectedIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
-			return next;
-		});
+		const next = new Set(selectedIds);
+        if (next.has(id)) { next.delete(id); }
+        else { next.add(id); }
+        setSelectedIds(next);
 	};
-
-    useEffect(() => {
-        if (isWorkoutActive) {
-            setModifiedSelectedIds(selectedIds);
-        }
-    }, [visible]);
 
     return (
         <Modal
@@ -76,7 +64,7 @@ export default function ExerciseSelectModal({
                         <Text style={ModalStyles.modalTitle}>Select exercises</Text>
 
                         <Pressable onPress={() => {
-                            setModifiedSelectedIds(new Set());
+                            setSelectedIds(new Set());
                             onClose();
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                         }}>
@@ -90,7 +78,7 @@ export default function ExerciseSelectModal({
                         style={{ paddingTop: 24 }}
                         renderItem={({ item }) => {
                             let isSelected = selectedIds.has(item.id);
-                            if (isWorkoutActive) { isSelected = modifiedSelectedIds.has(item.id); }
+                            if (isWorkoutActive) { isSelected = selectedIds.has(item.id); }
 
                             return (
                                 <Pressable
@@ -133,9 +121,11 @@ export default function ExerciseSelectModal({
                             Selected: {isWorkoutActive ? modifiedSelectedCount : selectedCount}
                         </Text>
 
+                        {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
+
                         <Pressable 
                             onPress={() => {
-                                if (isWorkoutActive) { setSelectedIds(modifiedSelectedIds); }
+                                // if (isWorkoutActive) { setSelectedIds(selectedIds); }
                                 onConfirm();
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                             }}
@@ -147,8 +137,6 @@ export default function ExerciseSelectModal({
                             <Text style={CommonStyles.buttonText}>Use selection</Text>
                         </Pressable>
                     </View>
-
-                    {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
                 </View>
             </View>
         </Modal>

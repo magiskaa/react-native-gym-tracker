@@ -3,8 +3,10 @@ import { StyleSheet } from "react-native";
 export const ModalStyles = StyleSheet.create({
     error: {
         position: "absolute",
-        left: 10,
-        top: 25,
+        left: 0,
+        bottom: 6,
+        width: "100%",
+        textAlign: "center",
         color: "#b00020",
         marginRight: 20,
     },

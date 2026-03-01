@@ -26,21 +26,34 @@ import { Entypo } from "@expo/vector-icons";
 import { useToast } from "../components/ToastConfig";
 import { BlurView } from "expo-blur";
 import { WorkoutStackParamList } from "../navigation/WorkoutStack";
+import ExerciseSelectModal from "../modal/Workout/ExerciseSelectModal";
+import { useWorkoutSelection } from "../components/Workout/WorkoutContext";
 
 
 export default function ActiveWorkoutScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<WorkoutStackParamList>>();
     const route = useRoute<RouteProp<WorkoutStackParamList, "ActiveWorkout">>();
-    const { exercises, favoriteExercises, selectedIds, setSelectedIds, setIsModalVisible, deleteWorkout, endWorkout } = route.params;
+    
+    const { exercises, favoriteExercises, deleteWorkout, endWorkout } = route.params;
+    const { 
+        selectedIds, 
+        setSelectedIds, 
+        toggleExercise, 
+        resetSelection, 
+        startedAtMs, 
+        setsByExercise, 
+        setSetsForExercise, 
+        workoutName, 
+        updateWorkoutName 
+    } = useWorkoutSelection();
+
+    const [modifiedSelectedIds, setModifiedSelectedIds] = useState<Set<number>>(selectedIds);
+
     const { session } = useAuthContext();
     const [error, setError] = useState<string | null>(null);
     const statsNavigation = useNavigation<NavigationProp<ParamListBase>>();
 
-    const startTime = useRef(Date.now() / 1000);
     const [formattedDuration, setFormattedDuration] = useState<string>("0:00:00");
-    const [workoutName, setWorkoutName] = useState<string>("");
-
-    const [setsByExercise, setSetsByExercise] = useState<Record<string, { reps: string; weight: string }[]>>({});
 
     const [favorites, setFavorites] = useState<number[] | null>(favoriteExercises[0].favorites);
 
@@ -48,6 +61,8 @@ export default function ActiveWorkoutScreen() {
 
     const menuAnim = useRef(new Animated.Value(0)).current;
     const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
+
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
     const muscleGroupColors = new Map([
 		["Chest", "#9f0fca"],
@@ -59,25 +74,15 @@ export default function ActiveWorkoutScreen() {
 		["Abs", "#ea0a58"]
 	]);
 
-    const loadData = async () => {
-        if (!session?.user.id) { 
-            Alert.alert("Failed to load data", "Please sign in again");
-            return; 
-        }
-
-        try {
-            
-        } catch (error) {
-            Alert.alert("Failed to load data", "Please try again later");
-            console.error(`Failed to load data: ${error}`);
-        } finally {
-
-        }
-    };
-
     useEffect(() => {
-        loadData();
-    }, [session?.user.id]);
+        if (!startedAtMs) { return; }
+        const interval = setInterval(() => {
+            const elapsed = (Date.now() - startedAtMs) / 1000;
+            setFormattedDuration(formatDuration(elapsed));
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [startedAtMs]);
 
     useEffect(() => {
         if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -85,64 +90,49 @@ export default function ActiveWorkoutScreen() {
         }
     }, []);
 
-    useEffect(() => {
-        setSetsByExercise((prev) => {
-            if (!exercises) { return prev; }
+    const editWorkout = () => {
+		if (modifiedSelectedIds.size === 0) {
+			setError("Select at least one exercise");
+			return;
+		}
+        setSelectedIds(modifiedSelectedIds);
+        closeModal();
+    };
 
-            const next: Record<string, { reps: string; weight: string }[]> = {};
-            const selectedExercises = exercises.filter((ex) => selectedIds.has(ex.id));
+    const openModal = () => {
+        setModifiedSelectedIds(new Set(selectedIds));
+        setIsModalVisible(true);
+    };
 
-            selectedExercises.forEach((ex) => {
-                next[ex.id] = prev[ex.id] ?? [{ reps: "", weight: "" }];
-            });
-
-            return next;
-        });
-    }, [exercises, selectedIds]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const elapsed = Date.now() / 1000 - startTime.current;
-            setFormattedDuration(formatDuration(elapsed));
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [startTime]);
+    const closeModal = () => {
+		setIsModalVisible(false);
+		setError(null);
+	};
 
     const addSetRow = (exerciseId: number) => {
-        setError(null);
-        setSetsByExercise((prev) => ({
-            ...prev,
-            [exerciseId]: [...(prev[exerciseId] ?? []), { reps: "", weight: "" }],
-        }));
+    const current = setsByExercise[exerciseId] ?? [];
+        setSetsForExercise(exerciseId, [...current, { reps: "", weight: "" }]);
     };
 
     const removeSet = (exerciseId: number, index: number) => {
-        setError(null);
-        setSetsByExercise((prev) => ({
-            ...prev,
-            [exerciseId]: (prev[exerciseId] ?? []).filter((_, i) => i !== index),
-        }));
+        const current = setsByExercise[exerciseId] ?? [];
+        setSetsForExercise(exerciseId, current.filter((_, i) => i !== index));
     };
 
     const updateReps = (exerciseId: number, index: number, value: string) => {
-        setError(null);
-        setSetsByExercise((prev) => ({
-            ...prev,
-            [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
-                i === index ? { ...set, reps: value } : set
-            ),
-        }));
+        const current = setsByExercise[exerciseId] ?? [];
+        setSetsForExercise(
+            exerciseId,
+            current.map((row, i) => (i === index ? { ...row, reps: value } : row))
+        );
     };
 
     const updateWeight = (exerciseId: number, index: number, value: string) => {
-        setError(null);
-        setSetsByExercise((prev) => ({
-            ...prev,
-            [exerciseId]: (prev[exerciseId] ?? []).map((set, i) =>
-                i === index ? { ...set, weight: value } : set
-            ),
-        }));
+        const current = setsByExercise[exerciseId] ?? [];
+        setSetsForExercise(
+            exerciseId,
+            current.map((row, i) => (i === index ? { ...row, weight: value } : row))
+        );
     };
 
     const openMenu = () => {
@@ -211,7 +201,11 @@ export default function ActiveWorkoutScreen() {
                     <Pressable
                         onPress={() => {
                             setIsMenuVisible(false);
-                            endWorkout(workoutName || "Workout", formattedDuration, setsByExercise);
+                            Alert.alert(
+                                "End workout?", "Are you done with this workout?", 
+                                [{ text: "No", style: "cancel" }, { text: "Yes", onPress: () => endWorkout(formattedDuration, workoutName || "Workout", setsByExercise) }],
+                                { cancelable: true }
+                            );
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                         }}
                         style={({ pressed }) => [
@@ -274,7 +268,7 @@ export default function ActiveWorkoutScreen() {
                         <Pressable 
                             onPress={() => {
                                 setIsMenuVisible(false);
-                                setIsModalVisible(true);
+                                openModal();
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
                             }}
                             style={({ pressed }) => [
@@ -401,6 +395,20 @@ export default function ActiveWorkoutScreen() {
             <View style={[CommonStyles.componentContainer, styles.durationContainer]}>
                 <Text style={styles.durationText}>{formattedDuration}</Text>
             </View>
+
+            <ExerciseSelectModal
+                visible={isModalVisible}
+                exercises={exercises}
+                isLoading={false}
+                isWorkoutActive={true}
+                selectedIds={modifiedSelectedIds}
+                selectedCount={selectedIds.size}
+                error={error}
+                setSelectedIds={setModifiedSelectedIds}
+                onToggleExercise={toggleExercise}
+                onClose={closeModal}
+                onConfirm={editWorkout}
+            />
         </View>
     );
 }

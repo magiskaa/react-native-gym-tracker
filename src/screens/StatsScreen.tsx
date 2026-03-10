@@ -227,7 +227,7 @@ export default function StatsScreen() {
 				style={CommonStyles.blurView}
 			>
 				<View style={[CommonStyles.header, { gap: 8 }]}>
-					<Text style={[CommonStyles.headerTitle, { flex: 1 }]}>Exercise Stats</Text>
+					<Text style={[CommonStyles.headerTitle, { flex: 1 }]}>Exercises</Text>
 					<Pressable
 						onPress={() => {
 							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import * as Haptics from 'expo-haptics';
 import ExerciseSelectModal from "../modal/Workout/ExerciseSelectModal";
-import ActiveWorkout from "../components/Workout/ActiveWorkout";
 import { CommonStyles } from "../styles/CommonStyles";
 import { useAuthContext } from "../auth/UseAuthContext";
 import { Exercise, getExercises } from "../services/exercises";
@@ -28,6 +27,7 @@ import { formatLocalDateISO } from "../utils/Utils";
 import { addWorkout } from "../services/workouts";
 import { addWorkoutExercise } from "../services/workoutExercises";
 import { useWorkoutSelection } from "../components/Workout/WorkoutContext";
+import { CircleSnail, Circle } from "react-native-progress";
 
 
 export default function WorkoutScreen() {
@@ -38,7 +38,16 @@ export default function WorkoutScreen() {
 	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
 
-	const { selectedIds, setSelectedIds, toggleExercise, isWorkoutActive, startWorkoutSession, resetWorkoutSession, } = useWorkoutSelection();
+	const { 
+		selectedIds, 
+		setSelectedIds, 
+		toggleExercise, 
+		isWorkoutActive, 
+		startWorkoutSession, 
+		resetWorkoutSession, 
+		workoutName, 
+		updateWorkoutName 
+	} = useWorkoutSelection();
 
 	const selectedCount = selectedIds.size;
 	
@@ -47,6 +56,16 @@ export default function WorkoutScreen() {
 
 	const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 	const menuAnim = useRef(new Animated.Value(0)).current;
+
+	const muscleGroupColors = new Map([
+		["Chest", "#9f0fca"],
+		["Shoulders", "#0c3ed5"],
+		["Biceps", "#ffd700"],
+		["Triceps", "#47db16"],
+		["Legs", "#f00707"],
+		["Back", "#2f8507"],
+		["Abs", "#ea0a58"]
+	]);
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
@@ -286,26 +305,45 @@ export default function WorkoutScreen() {
 			>
 				<View style={[CommonStyles.componentContainer, CommonStyles.section]}>
 					{isWorkoutActive ? (
-						<View style={CommonStyles.flexRow}>
-							<Text style={CommonStyles.text}>Workout Active</Text>
-							<Pressable 
-								onPress={() => {
-									navigation.navigate("ActiveWorkout", {
-										exercises,
-										favoriteExercises,
-										deleteWorkout,
-										endWorkout,
-									});
-									Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
-								}}
-								style={({ pressed }) => [
-									CommonStyles.button,
-									pressed && CommonStyles.buttonPressed,
-									{ marginTop: 0 }
-								]}
-							>
-								<Text style={CommonStyles.buttonText}>Continue</Text>
-							</Pressable>
+						<View style={[CommonStyles.flexRow, { gap: 16 }]}>
+							<View style={{ flex: 1, flexDirection: "column", justifyContent: "flex-start" }}>
+								
+								<View style={{ borderBottomWidth: 1, borderBottomColor: "#393939", padding: 8 }}>
+									<Text style={[CommonStyles.text, { fontSize: 20 }]}>{workoutName || "Workout"}</Text>
+								</View>
+								
+								<View style={{ flex: 1, paddingTop: 16, paddingLeft: 8 }}>
+									{Array.from(selectedIds).map((id) => (
+										<View style={[CommonStyles.flexRow, { marginBottom: 6 }]} key={id} >
+											<View style={[styles.accent, { backgroundColor: muscleGroupColors.get(exercises?.find(ex => ex.id === id)?.muscleGroup || "Chest") }]} />
+											<Text style={[CommonStyles.text, { width: "100%", textAlign: "left", fontSize: 18 }]}>{exercises?.find(ex => ex.id === id)?.name}</Text>
+										</View>
+									))}
+								</View>
+							</View>
+
+							<View style={{ gap: 32 }}>
+								{/* <CircleSnail color={"#20ca17"} duration={2000} style={{ margin: "auto" }} /> */}
+								<Circle color="#20ca17" indeterminate indeterminateAnimationDuration={3000} style={{ margin: "auto" }} borderWidth={2} endAngle={0.7} />
+								<Pressable 
+									onPress={() => {
+										navigation.navigate("ActiveWorkout", {
+											exercises,
+											favoriteExercises,
+											deleteWorkout,
+											endWorkout,
+										});
+										Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
+									}}
+									style={({ pressed }) => [
+										CommonStyles.button,
+										pressed && CommonStyles.buttonPressed,
+										{ marginTop: 0 }
+									]}
+								>
+									<Text style={CommonStyles.buttonText}>Continue</Text>
+								</Pressable>
+							</View>
 						</View>
 					) : (
 						<View>
@@ -342,6 +380,8 @@ export default function WorkoutScreen() {
                 selectedIds={selectedIds}
                 selectedCount={selectedCount}
                 error={error}
+				workoutName={workoutName}
+				updateWorkoutName={updateWorkoutName}
 				setSelectedIds={setSelectedIds}
                 onToggleExercise={toggleExercise}
                 onClose={closeModal}
@@ -350,3 +390,13 @@ export default function WorkoutScreen() {
 		</View>
 	);
 }
+
+const styles = StyleSheet.create({
+	accent: {
+        width: 6,
+        height: 14,
+        borderRadius: 6,
+        backgroundColor: "#20ca17",
+        marginRight: 10,
+    },
+})

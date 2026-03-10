@@ -246,7 +246,21 @@ export default function ActiveWorkoutScreen() {
                                 transform: [{ scale: menuAnim }],
                             }
                         ]}
-                    >
+                    >   
+                        <Pressable 
+                            onPress={() => {
+                                setIsMenuVisible(false);
+                                openModal();
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
+                            }}
+                            style={({ pressed }) => [
+                                MenuStyles.menuItem,
+                                pressed && CommonStyles.buttonPressed
+                            ]}
+                        >
+                            <Text style={MenuStyles.menuText}>Edit</Text>
+                        </Pressable>
+                        
                         <Pressable 
                             onPress={() => { 
                                 Alert.alert(
@@ -263,20 +277,6 @@ export default function ActiveWorkoutScreen() {
                             ]}
                         >
                             <Text style={MenuStyles.menuText}>Delete</Text>
-                        </Pressable>
-
-                        <Pressable 
-                            onPress={() => {
-                                setIsMenuVisible(false);
-                                openModal();
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
-                            }}
-                            style={({ pressed }) => [
-                                MenuStyles.menuItem,
-                                pressed && CommonStyles.buttonPressed
-                            ]}
-                        >
-                            <Text style={MenuStyles.menuText}>Edit</Text>
                         </Pressable>
                     </Animated.View>
                 </Pressable>
@@ -305,7 +305,7 @@ export default function ActiveWorkoutScreen() {
                                 }
                             ]}
                         >
-                            <View style={[styles.flexRow, { justifyContent: "flex-start" }]}>
+                            <View style={[CommonStyles.flexRow, { justifyContent: "flex-start" }]}>
                                 <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
                                 <View style={styles.cardTitles}>
                                     <Text style={styles.cardTitle}>{item.name}</Text>
@@ -404,6 +404,8 @@ export default function ActiveWorkoutScreen() {
                 selectedIds={modifiedSelectedIds}
                 selectedCount={selectedIds.size}
                 error={error}
+                workoutName={workoutName}
+                updateWorkoutName={updateWorkoutName}
                 setSelectedIds={setModifiedSelectedIds}
                 onToggleExercise={toggleExercise}
                 onClose={closeModal}
@@ -425,11 +427,6 @@ const styles = StyleSheet.create({
         marginBottom: 0,
         fontWeight: "500",
         flex: 1,
-    },
-    flexRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
     },
     accent: {
         width: 6,

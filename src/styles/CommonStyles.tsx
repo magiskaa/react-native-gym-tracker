@@ -76,6 +76,7 @@ export const CommonStyles = StyleSheet.create({
 		paddingVertical: 10,
         marginBottom: 20,
 		color: "#f1f1f1",
+		fontSize: 16,
 	},
 	notActiveContainer: {
 		width: "100%",

@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Keyboard, Modal, Pressable, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from "react-native";
 import * as Haptics from 'expo-haptics';
 import { Exercise } from "../../services/exercises"; 
 import { ModalStyles } from "../../styles/ModalStyles";
@@ -13,6 +13,8 @@ type Props = {
     selectedIds: Set<number>;
     selectedCount: number;
     error: string | null;
+    workoutName: string;
+    updateWorkoutName: (name: string) => void;
     setSelectedIds: (ids: Set<number>) => void;
     onToggleExercise: (id: number) => void;
     onClose: () => void;
@@ -27,12 +29,16 @@ export default function ExerciseSelectModal({
     selectedIds,
     selectedCount,
     error,
+    workoutName,
+    updateWorkoutName,
     setSelectedIds,
     onToggleExercise,
     onClose,
     onConfirm,
 }: Props) {
     const modifiedSelectedCount = selectedIds.size;
+
+    const [modifiedName, setModifiedName] = useState<string>(workoutName);
     
     const muscleGroupColors = new Map([
 		["Chest", "#9f0fca"],
@@ -58,87 +64,101 @@ export default function ExerciseSelectModal({
             transparent
             onRequestClose={onClose}
         >
-            <View style={ModalStyles.modalOverlay}>
-                <View style={[ModalStyles.modalSheet, { height: "70%" }]}>
-                    <View style={[ModalStyles.modalHeader, { marginBottom: 0 }]}>
-                        <Text style={ModalStyles.modalTitle}>Select exercises</Text>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={ModalStyles.modalOverlay}>
+                    <View style={[ModalStyles.modalSheet, { height: "80%" }]}>
+                        <View style={ModalStyles.modalHeader}>
+                            <Text style={ModalStyles.modalTitle}>Select exercises</Text>
 
-                        <Pressable onPress={() => {
-                            setSelectedIds(new Set());
-                            onClose();
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                        }}>
-                            <Text style={ModalStyles.modalClose}>Close</Text>
-                        </Pressable>
-                    </View>
-
-                    <FlatList
-                        data={exercises}
-                        keyExtractor={(item) => item.id.toString()}
-                        style={{ paddingTop: 24 }}
-                        renderItem={({ item }) => {
-                            let isSelected = selectedIds.has(item.id);
-                            if (isWorkoutActive) { isSelected = selectedIds.has(item.id); }
-
-                            return (
-                                <Pressable
-                                    onPress={() => {
-                                        if (isWorkoutActive) { toggleModifiedExercise(item.id); }
-                                        else { onToggleExercise(item.id); }
-                                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
-                                    }}
-                                    style={({ pressed }) => [
-                                        CommonStyles.componentContainer,
-                                        styles.exercise,
-                                        isSelected && styles.exerciseSelected,
-                                        pressed && CommonStyles.buttonPressed,
-                                    ]}
-                                >
-                                    <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={styles.exerciseName}>{item.name}</Text>
-                                        <Text style={styles.muscleGroup}>{item.muscleGroup}</Text>
-                                    </View>
-
-                                    <Text style={styles.exerciseSelectedText}>
-                                        {isSelected ? "Selected" : ""}
-                                    </Text>
-                                </Pressable>
-                            );
-                        }}
-                        ListEmptyComponent={
-                            isLoading ? (
-                                <ActivityIndicator size="small" color="#20ca17" />
-                            ) : (
-                                <Text style={CommonStyles.empty}>No exercises found</Text>
-                            )
-                        }
-                        contentContainerStyle={styles.listContent}
-                    />
-
-                    <View style={[ModalStyles.modalFooter, { justifyContent: "space-between" }]}>
-                        <Text style={ModalStyles.modalFooterText}>
-                            Selected: {isWorkoutActive ? modifiedSelectedCount : selectedCount}
-                        </Text>
-
-                        {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
-
-                        <Pressable 
-                            onPress={() => {
-                                // if (isWorkoutActive) { setSelectedIds(selectedIds); }
-                                onConfirm();
+                            <Pressable onPress={() => {
+                                setSelectedIds(new Set());
+                                setModifiedName(workoutName);
+                                onClose();
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                            }}>
+                                <Text style={ModalStyles.modalClose}>Close</Text>
+                            </Pressable>
+                        </View>
+
+                        <TextInput
+                            value={modifiedName}
+                            onChangeText={(value) => setModifiedName(value)}
+                            placeholder="Workout name"
+                            placeholderTextColor="#8b8b8b"
+                            style={CommonStyles.input}
+                        />
+
+                        <FlatList
+                            data={exercises}
+                            keyExtractor={(item) => item.id.toString()}
+                            style={{ paddingTop: 8 }}
+                            showsVerticalScrollIndicator={false}
+                            renderItem={({ item }) => {
+                                let isSelected = selectedIds.has(item.id);
+                                if (isWorkoutActive) { isSelected = selectedIds.has(item.id); }
+
+                                return (
+                                    <Pressable
+                                        onPress={() => {
+                                            if (isWorkoutActive) { toggleModifiedExercise(item.id); }
+                                            else { onToggleExercise(item.id); }
+                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); 
+                                        }}
+                                        style={({ pressed }) => [
+                                            CommonStyles.componentContainer,
+                                            styles.exercise,
+                                            isSelected && styles.exerciseSelected,
+                                            pressed && CommonStyles.buttonPressed,
+                                        ]}
+                                    >
+                                        <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.exerciseName}>{item.name}</Text>
+                                            <Text style={styles.muscleGroup}>{item.muscleGroup}</Text>
+                                        </View>
+
+                                        <Text style={styles.exerciseSelectedText}>
+                                            {isSelected ? "Selected" : ""}
+                                        </Text>
+                                    </Pressable>
+                                );
                             }}
-                            style={({ pressed }) => [
-                                ModalStyles.button,
-                                pressed && CommonStyles.buttonPressed
-                            ]}
-                        >
-                            <Text style={CommonStyles.buttonText}>Use selection</Text>
-                        </Pressable>
+                            ListEmptyComponent={
+                                isLoading ? (
+                                    <ActivityIndicator size="small" color="#20ca17" />
+                                ) : (
+                                    <Text style={CommonStyles.empty}>No exercises found</Text>
+                                )
+                            }
+                            contentContainerStyle={styles.listContent}
+                        />
+
+                        <View style={[ModalStyles.modalFooter, { justifyContent: "space-between" }]}>
+                            <Text style={ModalStyles.modalFooterText}>
+                                Selected: {isWorkoutActive ? modifiedSelectedCount : selectedCount}
+                            </Text>
+
+                            {error ? <Text style={ModalStyles.error}>{error}</Text> : null}
+
+                            <Pressable 
+                                onPress={() => {
+                                    // if (isWorkoutActive) { setSelectedIds(selectedIds); }
+                                    updateWorkoutName(modifiedName || workoutName);
+                                    setModifiedName(modifiedName || workoutName);
+                                    onConfirm();
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                }}
+                                style={({ pressed }) => [
+                                    ModalStyles.button,
+                                    pressed && CommonStyles.buttonPressed
+                                ]}
+                            >
+                                <Text style={CommonStyles.buttonText}>Use selection</Text>
+                            </Pressable>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 }

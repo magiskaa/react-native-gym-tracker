@@ -26,7 +26,7 @@ export function WorkoutSelectionProvider({ children }: { children: React.ReactNo
     const [selectedIdsState, setSelectedIdsState] = useState<Set<number>>(new Set());
     const [isWorkoutActive, setIsWorkoutActive] = useState(false);
     const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
-    const [workoutName, setWorkoutName] = useState("");
+    const [workoutName, setWorkoutName] = useState<string>("Workout");
     const [setsByExercise, setSetsByExercise] = useState<SetsByExercise>({});
 
     const setSelectedIds = useCallback((next: Set<number>) => {

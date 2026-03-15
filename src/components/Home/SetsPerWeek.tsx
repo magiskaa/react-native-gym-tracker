@@ -2,33 +2,15 @@ import { ActivityIndicator, View, Text, FlatList, StyleSheet } from "react-nativ
 import { Circle } from "react-native-progress";
 import { SetCount } from "../../services/sets";
 import { CommonStyles } from "../../styles/CommonStyles";
+import { muscleGroupColors, targetSetCounts } from "../../utils/Const";
+
 
 type Props = {
     setCounts: SetCount[];
-    isLoading?: boolean;
+    isLoading: boolean;
 };
 
-export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
-    const targetSetCounts = new Map([
-        ["Chest", 8], 
-        ["Shoulders", 6], 
-        ["Biceps", 8], 
-        ["Triceps", 8], 
-        ["Legs", 20], 
-        ["Back", 13], 
-        ["Abs", 7]
-    ]);
-
-    const muscleGroupColors = new Map([
-		["Chest", "#9f0fca"],
-		["Shoulders", "#0c3ed5"],
-		["Biceps", "#ffd700"],
-		["Triceps", "#47db16"],
-		["Legs", "#f00707"],
-		["Back", "#2f8507"],
-		["Abs", "#ea0a58"]
-	]);
-
+export default function SetsPerWeek({ setCounts, isLoading }: Props) {
     return (
         <View>
             <FlatList
@@ -44,7 +26,7 @@ export default function SetsPerWeek({ setCounts, isLoading = false }: Props) {
                             <Text style={styles.muscleGroupText}>{item.muscleGroup}</Text>
                             <Circle 
                                 progress={Math.min(item.setCount / target, 1)}
-                                size={84}
+                                size={68}
                                 thickness={5}
                                 borderWidth={0}
                                 color={muscleGroupColors.get(item.muscleGroup)}

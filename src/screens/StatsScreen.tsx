@@ -31,6 +31,7 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { FavoriteExercises, getFavoriteExercises, addFavoriteExercises, updateFavoriteExercises } from "../services/favoriteExercises";
 import { BlurView } from "expo-blur";
 import Feather from '@expo/vector-icons/Feather';
+import { muscleGroupColors } from "../utils/Const";
 
 
 export default function StatsScreen() {
@@ -58,16 +59,6 @@ export default function StatsScreen() {
 	const [favoriteExercises, setFavoriteExercises] = useState<FavoriteExercises[]>([]);
 	const [isFavoritesActive, setIsFavoritesActive] = useState<boolean>(false);
 	const [isFavoriteExercisesLoading, setIsFavoriteExercisesLoading] = useState<boolean>(true);
-
-	const muscleGroupColors = new Map([
-		["Chest", "#9f0fca"],
-		["Shoulders", "#0c3ed5"],
-		["Biceps", "#ffd700"],
-		["Triceps", "#47db16"],
-		["Legs", "#f00707"],
-		["Back", "#2f8507"],
-		["Abs", "#ea0a58"]
-	]);
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
@@ -354,7 +345,7 @@ export default function StatsScreen() {
 								styles.exerciseCard
 							]}
 						>
-							<View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
+							<View style={[CommonStyles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
 							<View style={styles.cardHeader}>
 								<View style={{ gap: 2 }}>
 									<Text style={styles.cardTitle}>{item.name}</Text>
@@ -414,12 +405,6 @@ const styles = StyleSheet.create({
 		flexDirection: "row", 
 		alignItems: "center",
 	},
-    accent: {
-        width: 6,
-        height: "90%",
-        borderRadius: 6,
-        marginRight: 10,
-    },
 	cardHeader: {
 		flexDirection: "row",
 		alignItems: "center",

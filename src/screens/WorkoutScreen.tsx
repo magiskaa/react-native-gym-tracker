@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	Pressable,
-	StyleSheet,
 	Text,
 	View,
 	Alert,
@@ -26,17 +25,96 @@ import { addSet } from "../services/sets";
 import { formatLocalDateISO } from "../utils/Utils";
 import { addWorkout } from "../services/workouts";
 import { addWorkoutExercise } from "../services/workoutExercises";
-import { useWorkoutSelection } from "../components/Workout/WorkoutContext";
-import { CircleSnail, Circle } from "react-native-progress";
+import { useWorkoutSelection } from "../context/WorkoutContext";
+import { BlurHeaderProps } from "../utils/Types";
+import ActiveWorkoutContainer from "../components/Workout/ActiveWorkoutContainer";
 
+
+type MenuModalProps = {
+	isMenuVisible: boolean;
+	menuAnim: Animated.Value;
+	closeMenu: () => void;
+}
+
+function BlurHeader({ openMenu } : BlurHeaderProps) {
+	return (
+		<BlurView
+			tint="dark"
+			intensity={50}
+			style={CommonStyles.blurView}
+		>
+			<View style={CommonStyles.header}>
+				<Text style={CommonStyles.headerTitle}>Workout</Text>
+				<Pressable
+					onPress={() => {
+						Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+						openMenu();
+					}}
+					style={({ pressed }) => [
+						pressed && CommonStyles.buttonPressed,
+						{ padding: 8 }
+					]}
+				> 
+					<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
+				</Pressable>
+			</View>
+		</BlurView>
+	);
+}
+
+function MenuModal({ isMenuVisible, menuAnim, closeMenu } : MenuModalProps) {
+	return (
+		<Modal
+			transparent
+			visible={isMenuVisible}
+			animationType="fade"
+			onRequestClose={closeMenu}
+		>
+			<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
+				<Animated.View
+					style={[
+						MenuStyles.menu,
+						{
+							opacity: menuAnim,
+							transform: [{ scale: menuAnim }],
+						}
+					]}
+				>
+					<Pressable
+						onPress={() => {
+							closeMenu();
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+						}}
+						style={({ pressed }) => [
+							MenuStyles.menuItem,
+							pressed && CommonStyles.buttonPressed
+						]}
+					>
+						<Text style={MenuStyles.menuText}>Something</Text>
+					</Pressable>
+					<Pressable
+						onPress={() => {
+							closeMenu();
+							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+						}}
+						style={({ pressed }) => [
+							MenuStyles.menuItem,
+							pressed && CommonStyles.buttonPressed, 
+							{ borderBottomWidth: 0 }
+						]}
+					>
+						<Text style={MenuStyles.menuText}>Something else</Text>
+					</Pressable>
+				</Animated.View>
+			</Pressable>
+		</Modal>
+	);
+}
 
 export default function WorkoutScreen() {
+	const { session } = useAuthContext();
 	const navigation = useNavigation<NativeStackNavigationProp<WorkoutStackParamList, "WorkoutMain">>();
 	const [error, setError] = useState<string | null>(null);
-	const { session } = useAuthContext();
-
-	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
 
 	const { 
 		selectedIds, 
@@ -48,24 +126,19 @@ export default function WorkoutScreen() {
 		workoutName, 
 		updateWorkoutName 
 	} = useWorkoutSelection();
-
-	const selectedCount = selectedIds.size;
+	
+	const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 	
 	const [exercises, setExercises] = useState<Exercise[] | null>([]);
+	const [isExercisesLoading, setIsExercisesLoading] = useState<boolean>(true);
+	
+	const selectedCount = selectedIds.size;
+	
 	const [favoriteExercises, setFavoriteExercises] = useState<FavoriteExercises[]>([]);
 
 	const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 	const menuAnim = useRef(new Animated.Value(0)).current;
 
-	const muscleGroupColors = new Map([
-		["Chest", "#9f0fca"],
-		["Shoulders", "#0c3ed5"],
-		["Biceps", "#ffd700"],
-		["Triceps", "#47db16"],
-		["Legs", "#f00707"],
-		["Back", "#2f8507"],
-		["Abs", "#ea0a58"]
-	]);
 
 	const loadData = async () => {
 		if (!session?.user.id) { 
@@ -231,72 +304,14 @@ export default function WorkoutScreen() {
 
 	return (
 		<View style={CommonStyles.container}>
-			<BlurView
-				tint="dark"
-				intensity={50}
-				style={CommonStyles.blurView}
-			>
-				<View style={CommonStyles.header}>
-					<Text style={CommonStyles.headerTitle}>Workout</Text>
-					<Pressable
-						onPress={() => {
-							Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-							openMenu();
-						}}
-						style={({ pressed }) => [
-							pressed && CommonStyles.buttonPressed,
-							{ padding: 8 }
-						]}
-					> 
-						<Entypo name="dots-three-vertical" size={24} color="#f1f1f1" />
-					</Pressable>
-				</View>
-			</BlurView>
+			
+			<BlurHeader openMenu={openMenu} />
 
-			<Modal
-				transparent
-				visible={isMenuVisible}
-				animationType="fade"
-				onRequestClose={closeMenu}
-			>
-				<Pressable style={MenuStyles.menuOverlay} onPress={closeMenu}>
-					<Animated.View
-						style={[
-							MenuStyles.menu,
-							{
-								opacity: menuAnim,
-								transform: [{ scale: menuAnim }],
-							}
-						]}
-					>
-						<Pressable
-							onPress={() => {
-								closeMenu();
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-							}}
-							style={({ pressed }) => [
-								MenuStyles.menuItem,
-								pressed && CommonStyles.buttonPressed
-							]}
-						>
-							<Text style={MenuStyles.menuText}>Tähän vaikka jotain</Text>
-						</Pressable>
-						<Pressable
-							onPress={() => {
-								closeMenu();
-								Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-							}}
-							style={({ pressed }) => [
-								MenuStyles.menuItem,
-								pressed && CommonStyles.buttonPressed, 
-								{ borderBottomWidth: 0 }
-							]}
-						>
-							<Text style={MenuStyles.menuText}>Tohon sitte jotai muuta</Text>
-						</Pressable>
-					</Animated.View>
-				</Pressable>
-			</Modal>
+			<MenuModal
+				isMenuVisible={isMenuVisible}
+				menuAnim={menuAnim}
+				closeMenu={closeMenu}
+			/>
 
 			<ScrollView
 				style={CommonStyles.scrollView}
@@ -305,46 +320,13 @@ export default function WorkoutScreen() {
 			>
 				<View style={[CommonStyles.componentContainer, CommonStyles.section]}>
 					{isWorkoutActive ? (
-						<View style={[CommonStyles.flexRow, { gap: 16 }]}>
-							<View style={{ flex: 1, flexDirection: "column", justifyContent: "flex-start" }}>
-								
-								<View style={{ borderBottomWidth: 1, borderBottomColor: "#393939", padding: 8 }}>
-									<Text style={[CommonStyles.text, { fontSize: 20 }]}>{workoutName || "Workout"}</Text>
-								</View>
-								
-								<View style={{ flex: 1, paddingTop: 16, paddingLeft: 8 }}>
-									{Array.from(selectedIds).map((id) => (
-										<View style={[CommonStyles.flexRow, { marginBottom: 6 }]} key={id} >
-											<View style={[styles.accent, { backgroundColor: muscleGroupColors.get(exercises?.find(ex => ex.id === id)?.muscleGroup || "Chest") }]} />
-											<Text style={[CommonStyles.text, { width: "100%", textAlign: "left", fontSize: 18 }]}>{exercises?.find(ex => ex.id === id)?.name}</Text>
-										</View>
-									))}
-								</View>
-							</View>
-
-							<View style={{ gap: 32 }}>
-								{/* <CircleSnail color={"#20ca17"} duration={2000} style={{ margin: "auto" }} /> */}
-								<Circle color="#20ca17" indeterminate indeterminateAnimationDuration={3000} style={{ margin: "auto" }} borderWidth={2} endAngle={0.7} />
-								<Pressable 
-									onPress={() => {
-										navigation.navigate("ActiveWorkout", {
-											exercises,
-											favoriteExercises,
-											deleteWorkout,
-											endWorkout,
-										});
-										Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
-									}}
-									style={({ pressed }) => [
-										CommonStyles.button,
-										pressed && CommonStyles.buttonPressed,
-										{ marginTop: 0 }
-									]}
-								>
-									<Text style={CommonStyles.buttonText}>Continue</Text>
-								</Pressable>
-							</View>
-						</View>
+						<ActiveWorkoutContainer 
+							exercises={exercises}
+							favoriteExercises={favoriteExercises}
+							navigation={navigation}
+							deleteWorkout={deleteWorkout}
+							endWorkout={endWorkout}
+						/>
 					) : (
 						<View>
 							<Text style={CommonStyles.text}>No Active Workout</Text>
@@ -365,7 +347,7 @@ export default function WorkoutScreen() {
 				</View>
 
 				<View style={CommonStyles.section}>
-					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Jotaki</Text>
+					<Text style={[CommonStyles.title, CommonStyles.secondTitle]}>Preset Workouts</Text>
 					<View style={CommonStyles.componentContainer}>
 
 					</View>
@@ -390,13 +372,3 @@ export default function WorkoutScreen() {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	accent: {
-        width: 6,
-        height: 14,
-        borderRadius: 6,
-        backgroundColor: "#20ca17",
-        marginRight: 10,
-    },
-})

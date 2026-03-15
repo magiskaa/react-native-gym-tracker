@@ -3,7 +3,7 @@ import { FavoriteExercises } from "../services/favoriteExercises";
 import WorkoutScreen from "../screens/WorkoutScreen";
 import ActiveWorkoutScreen from "../screens/ActiveWorkoutScreen";
 import { Exercise } from "../services/exercises";
-import { WorkoutSelectionProvider } from "../components/Workout/WorkoutContext";
+import { WorkoutSelectionProvider } from "../context/WorkoutContext";
 
 
 export type WorkoutStackParamList = {

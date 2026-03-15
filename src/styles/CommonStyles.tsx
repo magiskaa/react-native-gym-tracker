@@ -143,5 +143,11 @@ export const CommonStyles = StyleSheet.create({
         textAlign: "center",
         marginTop: 24,
     },
+    accent: {
+        width: 6,
+        height: "90%",
+        borderRadius: 6,
+        marginRight: 10,
+    },
 });
 

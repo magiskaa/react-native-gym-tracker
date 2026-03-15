@@ -27,7 +27,7 @@ import { useToast } from "../components/ToastConfig";
 import { BlurView } from "expo-blur";
 import { WorkoutStackParamList } from "../navigation/WorkoutStack";
 import ExerciseSelectModal from "../modal/Workout/ExerciseSelectModal";
-import { useWorkoutSelection } from "../components/Workout/WorkoutContext";
+import { useWorkoutSelection } from "../context/WorkoutContext";
 
 
 export default function ActiveWorkoutScreen() {
@@ -306,7 +306,7 @@ export default function ActiveWorkoutScreen() {
                             ]}
                         >
                             <View style={[CommonStyles.flexRow, { justifyContent: "flex-start" }]}>
-                                <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
+                                <View style={[CommonStyles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
                                 <View style={styles.cardTitles}>
                                     <Text style={styles.cardTitle}>{item.name}</Text>
                                     <Text style={styles.cardSubtitle}>{item.muscleGroup}</Text>
@@ -427,13 +427,6 @@ const styles = StyleSheet.create({
         marginBottom: 0,
         fontWeight: "500",
         flex: 1,
-    },
-    accent: {
-        width: 6,
-        height: "90%",
-        borderRadius: 6,
-        backgroundColor: "#20ca17",
-        marginRight: 10,
     },
 	cardTitles: {
 		gap: 2,

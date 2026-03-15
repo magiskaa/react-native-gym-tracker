@@ -74,7 +74,7 @@ export default function FilterExercisesModal({
                                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                     }}
                                 >
-                                    <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(group) }]} />
+                                    <View style={[CommonStyles.accent, { backgroundColor: muscleGroupColors.get(group) }]} />
                                     <Text style={styles.muscleGroupName}>{capitalize(group)}</Text>
 
                                     <Text style={[
@@ -112,12 +112,6 @@ export default function FilterExercisesModal({
 }
 
 const styles = StyleSheet.create({
-    accent: {
-        width: 6,
-        height: "90%",
-        borderRadius: 6,
-        marginRight: 10,
-    },
     muscleGroupSelected: {
         borderWidth: 1,
         borderColor: "#20ca17",

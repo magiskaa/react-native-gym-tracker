@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Text, useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, Text, useWindowDimensions, View } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 import { Workout } from "../../services/workouts";
 import { ChartStyles } from "../../styles/ChartStyles";
@@ -7,6 +7,7 @@ import { formatDateWOZeros, formatLocalDateISO } from "../../utils/Utils";
 
 type Props = {
     workouts: Workout[];
+    isLoading: boolean;
     weeksToShow?: number;
 };
 
@@ -23,7 +24,7 @@ const getWeekStartISO = (date: Date) => {
     return formatLocalDateISO(d);
 };
 
-export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Props) {
+export default function WorkoutsPerWeekChart({ workouts, isLoading, weeksToShow = 6 }: Props) {
     const { width } = useWindowDimensions();
 
     const { labels, data } = useMemo(() => {
@@ -72,28 +73,32 @@ export default function WorkoutsPerWeekChart({ workouts, weeksToShow = 6 }: Prop
 
     return (
         <View style={ChartStyles.container}>
-            <BarChart
-                height={200}
-                data={barData}
-                barWidth={barWidth}
-                width={chartWidth}
-                spacing={16}
-                barBorderRadius={8}
-                initialSpacing={0}
-                endSpacing={0}
-                rulesColor="#393939"
-                rulesThickness={1}
-                yAxisThickness={0}
-                xAxisThickness={1}
-                xAxisColor="#393939"
-                yAxisTextStyle={{ color: "#767676", fontSize: 13 }}
-                xAxisLabelTextStyle={{ color: "#767676", fontSize: 13 }}
-                noOfSections={maxValue}
-                maxValue={maxValue}
-                isAnimated
-                animationDuration={300}
-                disableScroll
-            />
+            {isLoading ? (
+                <ActivityIndicator size="small" color="#20ca17" />
+            ) : (
+                <BarChart
+                    height={200}
+                    data={barData}
+                    barWidth={barWidth}
+                    width={chartWidth}
+                    spacing={16}
+                    barBorderRadius={8}
+                    initialSpacing={0}
+                    endSpacing={0}
+                    rulesColor="#393939"
+                    rulesThickness={1}
+                    yAxisThickness={0}
+                    xAxisThickness={1}
+                    xAxisColor="#393939"
+                    yAxisTextStyle={{ color: "#767676", fontSize: 13 }}
+                    xAxisLabelTextStyle={{ color: "#767676", fontSize: 13 }}
+                    noOfSections={maxValue}
+                    maxValue={maxValue}
+                    isAnimated
+                    animationDuration={300}
+                    disableScroll
+                />
+            )}
         </View>
     );
 }

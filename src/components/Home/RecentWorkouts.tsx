@@ -1,14 +1,14 @@
-import { ActivityIndicator, View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import { ActivityIndicator, View, Text, FlatList, StyleSheet } from "react-native";
 import { formatDate } from "../../utils/Utils";
 import { Workout } from "../../services/workouts";
 import { CommonStyles } from "../../styles/CommonStyles";
 
 type Props = {
     workouts: Workout[];
-    isLoading?: boolean;
+    isLoading: boolean;
 };
 
-export default function RecentWorkouts({ workouts, isLoading = false }: Props) {
+export default function RecentWorkouts({ workouts, isLoading }: Props) {
     return (
         <View>
             <FlatList
@@ -20,7 +20,7 @@ export default function RecentWorkouts({ workouts, isLoading = false }: Props) {
                 renderItem={({ item }) => {	
                     return (
                         <View style={[CommonStyles.componentContainer, styles.workoutContainer]}>
-                            <View style={styles.accent} />
+                            <View style={[CommonStyles.accent, { height: "70%", backgroundColor: "#20ca17" }]} />
                             <View style={styles.workoutContent}>
                                 <Text style={styles.workoutNameText}>{item.name}</Text>
                                 <Text style={styles.workoutText}>{item.duration}</Text>
@@ -50,13 +50,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginRight: 8,
 	},
-    accent: {
-        width: 6,
-        height: "70%",
-        borderRadius: 6,
-        backgroundColor: "#20ca17",
-        marginRight: 10,
-    },
     workoutContent: {
         flex: 1,
     },

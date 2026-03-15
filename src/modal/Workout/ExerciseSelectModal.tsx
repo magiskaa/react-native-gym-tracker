@@ -111,7 +111,7 @@ export default function ExerciseSelectModal({
                                             pressed && CommonStyles.buttonPressed,
                                         ]}
                                     >
-                                        <View style={[styles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
+                                        <View style={[CommonStyles.accent, { backgroundColor: muscleGroupColors.get(item.muscleGroup) }]} />
                                         <View style={{ flex: 1 }}>
                                             <Text style={styles.exerciseName}>{item.name}</Text>
                                             <Text style={styles.muscleGroup}>{item.muscleGroup}</Text>
@@ -174,12 +174,6 @@ const styles = StyleSheet.create({
     exerciseSelected: {
         borderWidth: 1,
         borderColor: "#20ca17",
-    },
-    accent: {
-        width: 6,
-        height: "90%",
-        borderRadius: 6,
-        marginRight: 10,
     },
     exerciseName: {
         color: "#f1f1f1",
